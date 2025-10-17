@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 #pragma once
-#include <cuforest/traversal/traversal_node.hpp>
-#include <cuforest/traversal/traversal_order.hpp>
+#include <cuforest/detail/traversal/traversal_node.hpp>
+#include <cuforest/detail/traversal/traversal_order.hpp>
 
 #include <cstddef>
 #include <queue>

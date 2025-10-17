@@ -15,8 +15,8 @@
  */
 #pragma once
 #include <cuforest/exceptions.hpp>
-#include <cuforest/traversal/traversal_forest.hpp>
-#include <cuforest/traversal/traversal_node.hpp>
+#include <cuforest/detail/traversal/traversal_forest.hpp>
+#include <cuforest/detail/traversal/traversal_node.hpp>
 
 #include <treelite/tree.h>
 

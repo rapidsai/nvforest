@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <cuforest/integration/treelite.hpp>
-#include <cuforest/traversal/traversal_order.hpp>
+#include <cuforest/detail/integration/treelite.hpp>
+#include <cuforest/detail/traversal/traversal_order.hpp>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

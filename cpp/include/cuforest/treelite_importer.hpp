@@ -19,8 +19,8 @@
 #include <cuforest/detail/decision_forest_builder.hpp>
 #include <cuforest/detail/degenerate_trees.hpp>
 #include <cuforest/detail/index_type.hpp>
+#include <cuforest/detail/integration/treelite.hpp>
 #include <cuforest/exceptions.hpp>
-#include <cuforest/integration/treelite.hpp>
 #include <cuforest/forest_model.hpp>
 #include <cuforest/postproc_ops.hpp>
 #include <cuforest/tree_layout.hpp>

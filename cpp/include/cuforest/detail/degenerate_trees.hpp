@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include <cuforest/integration/treelite.hpp>
+#include <cuforest/detail/integration/treelite.hpp>
 
 #include <treelite/tree.h>
 
