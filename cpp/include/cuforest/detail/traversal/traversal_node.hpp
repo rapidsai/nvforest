@@ -20,7 +20,7 @@
 
 namespace cuforest::traversal {
 
-/** Exception indicating model is incompatible with FIL */
+/** Exception indicating model is incompatible with cuForest */
 struct parentless_node_exception : std::exception {
   parentless_node_exception() : msg_{"Node does not track its parent"} {}
   parentless_node_exception(std::string msg) : msg_{msg} {}

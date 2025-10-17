@@ -23,14 +23,14 @@
 #endif
 
 namespace cuforest::detail {
-/* Set any required device options for optimizing FIL compute */
+/* Set any required device options for optimizing cuForest compute */
 template <typename forest_t, raft_proto::device_type D>
 void initialize_device(raft_proto::device_id<D> device)
 {
   device_initialization::initialize_device<forest_t>(device);
 }
 
-/* Set any required device options for optimizing FIL compute */
+/* Set any required device options for optimizing cuForest compute */
 template <typename forest_t>
 void initialize_device(raft_proto::device_id_variant device)
 {

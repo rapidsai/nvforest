@@ -36,7 +36,7 @@
 namespace cuforest::detail {
 
 /*
- * Exception indicating that FIL model could not be built from given input
+ * Exception indicating that cuForest model could not be built from given input
  */
 struct model_builder_error : std::exception {
   model_builder_error() : model_builder_error("Error while building model") {}
@@ -48,7 +48,7 @@ struct model_builder_error : std::exception {
 };
 
 /*
- * Struct used to build FIL forests
+ * Struct used to build cuForest forests
  */
 template <typename decision_forest_t>
 struct decision_forest_builder {
@@ -177,7 +177,7 @@ struct decision_forest_builder {
   {
   }
 
-  /* Return the FIL decision forest built by this builder */
+  /* Return the cuForest decision forest built by this builder */
   auto get_decision_forest(index_type num_feature,
                            index_type num_class,
                            raft_proto::device_type mem_type = raft_proto::device_type::cpu,

@@ -46,9 +46,9 @@ struct postproc_params_t {
 }  // namespace detail
 
 /**
- * Struct used to import a model from Treelite to FIL
+ * Struct used to import a model from Treelite to cuForest
  *
- * @tparam layout The in-memory layout for nodes to be loaded into FIL
+ * @tparam layout The in-memory layout for nodes to be loaded into cuForest
  */
 template <tree_layout layout>
 struct treelite_importer {
@@ -61,7 +61,7 @@ struct treelite_importer {
       return cuforest::traversal::forest_order::layered_children_together;
     } else {
       static_assert(layout == tree_layout::depth_first,
-                    "Layout not yet implemented in treelite importer for FIL");
+                    "Layout not yet implemented in treelite importer for cuForest");
     }
   }();
 
@@ -330,9 +330,9 @@ struct treelite_importer {
   }
 
   /**
-   * Import a treelite model to FIL
+   * Import a treelite model to cuForest
    *
-   * Load a model from Treelite to a FIL forest_model. The model will be
+   * Load a model from Treelite to a cuForest forest_model. The model will be
    * inspected to determine the correct underlying decision_forest variant to
    * use within the forest_model object.
    *
@@ -364,7 +364,7 @@ struct treelite_importer {
         *processed_tl_model.get(), align_bytes, use_double_precision, dev_type, device, stream);
     }
 
-    ASSERT(tl_model.num_target == 1, "FIL does not support multi-target model");
+    ASSERT(tl_model.num_target == 1, "cuForest does not support multi-target model");
     // Check tree annotation (assignment)
     if (tl_model.task_type == treelite::TaskType::kMultiClf) {
       // Must be either vector leaf or grove-per-class
@@ -423,9 +423,9 @@ struct treelite_importer {
 };
 
 /**
- * Import a treelite model to FIL
+ * Import a treelite model to cuForest
  *
- * Load a model from Treelite to a FIL forest_model. The model will be
+ * Load a model from Treelite to a cuForest forest_model. The model will be
  * inspected to determine the correct underlying decision_forest variant to
  * use within the forest_model object.
  *
@@ -472,10 +472,10 @@ auto import_from_treelite_model(treelite::Model const& tl_model,
 }
 
 /**
- * Import a treelite model handle to FIL
+ * Import a treelite model handle to cuForest
  *
  * Load a model from a Treelite model handle (type-erased treelite::Model
- * object) to a FIL forest_model. The model will be inspected to determine the
+ * object) to a cuForest forest_model. The model will be inspected to determine the
  * correct underlying decision_forest variant to use within the forest_model
  * object.
  *

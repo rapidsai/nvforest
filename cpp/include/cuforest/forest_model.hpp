@@ -28,10 +28,10 @@
 namespace cuforest {
 
 /**
- * A model used for performing inference with FIL
+ * A model used for performing inference with cuForest
  *
  * This struct is a wrapper for all variants of decision_forest supported by a
- * standard FIL build.
+ * standard cuForest build.
  */
 struct forest_model {
   /** Wrap a decision_forest in a full forest_model object */

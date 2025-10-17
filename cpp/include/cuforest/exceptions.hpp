@@ -19,9 +19,9 @@
 
 namespace cuforest {
 
-/** Exception indicating model is incompatible with FIL */
+/** Exception indicating model is incompatible with cuForest */
 struct unusable_model_exception : std::exception {
-  unusable_model_exception() : msg_{"Model is not compatible with FIL"} {}
+  unusable_model_exception() : msg_{"Model is not compatible with cuForest"} {}
   unusable_model_exception(std::string msg) : msg_{msg} {}
   unusable_model_exception(char const* msg) : msg_{msg} {}
   virtual char const* what() const noexcept { return msg_.c_str(); }
