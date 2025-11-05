@@ -5,7 +5,7 @@
 
 from pylibraft.common.handle cimport handle_t as raft_handle_t
 
-from cuml.fil.detail.raft_proto.cuda_stream cimport (
+from cuforest.detail.raft_proto.cuda_stream cimport (
     cuda_stream as raft_proto_stream_t,
 )
 

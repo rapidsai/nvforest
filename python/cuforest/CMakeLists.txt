@@ -67,3 +67,15 @@ message(VERBOSE "CUFOREST_PY: Building cuForest")
 
 include(rapids-cython-core)
 rapids_cython_init()
+
+set(cython_sources "")
+add_module_gpu_default("cuforest/cuforest.pyx")
+
+set(linked_libraries "cuforest::${CUFOREST_CPP_TARGET}" "${CUFOREST_PYTHON_TREELITE_TARGET}")
+
+rapids_cython_create_modules(
+  CXX
+  SOURCE_FILES "${cython_sources}"
+  LINKED_LIBRARIES "${linked_libraries}"
+  MODULE_PREFIX cuforest_
+)

@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
+from pathlib import Path
+from typing import Union
 
 from libc.stdint cimport uint32_t
 from libcpp cimport bool
@@ -41,3 +43,10 @@ cdef extern from "cuforest/treelite_importer.hpp" namespace "cuforest" nogil:
         int,
         raft_proto_stream_t
     ) except +
+
+
+def load_model(
+    model_file: Union[str, Path],
+    device: str
+):
+    pass
