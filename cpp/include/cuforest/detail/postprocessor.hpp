@@ -165,75 +165,75 @@ struct postprocessor {
     switch (ops_to_val(row_wise_, elem_wise_)) {
       case ops_to_val(row_op::disable, element_op::signed_square):
         postprocess<row_op::disable, element_op::signed_square>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::disable, element_op::hinge):
         postprocess<row_op::disable, element_op::hinge>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::disable, element_op::sigmoid):
         postprocess<row_op::disable, element_op::sigmoid>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::disable, element_op::exponential):
         postprocess<row_op::disable, element_op::exponential>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::disable, element_op::logarithm_one_plus_exp):
         postprocess<row_op::disable, element_op::logarithm_one_plus_exp>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::softmax, element_op::disable):
         postprocess<row_op::softmax, element_op::disable>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::softmax, element_op::signed_square):
         postprocess<row_op::softmax, element_op::signed_square>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::softmax, element_op::hinge):
         postprocess<row_op::softmax, element_op::hinge>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::softmax, element_op::sigmoid):
         postprocess<row_op::softmax, element_op::sigmoid>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::softmax, element_op::exponential):
         postprocess<row_op::softmax, element_op::exponential>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::softmax, element_op::logarithm_one_plus_exp):
         postprocess<row_op::softmax, element_op::logarithm_one_plus_exp>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::max_index, element_op::disable):
         postprocess<row_op::max_index, element_op::disable>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::max_index, element_op::signed_square):
         postprocess<row_op::max_index, element_op::signed_square>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::max_index, element_op::hinge):
         postprocess<row_op::max_index, element_op::hinge>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::max_index, element_op::sigmoid):
         postprocess<row_op::max_index, element_op::sigmoid>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::max_index, element_op::exponential):
         postprocess<row_op::max_index, element_op::exponential>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       case ops_to_val(row_op::max_index, element_op::logarithm_one_plus_exp):
         postprocess<row_op::max_index, element_op::logarithm_one_plus_exp>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
         break;
       default:
         postprocess<row_op::disable, element_op::disable>(
-          infer_type, val, output_count, bias, out, stride, average_factor_, bias_, constant_);
+          infer_type, val, output_count, bias, out, stride, average_factor_, constant_);
     }
   }
 
