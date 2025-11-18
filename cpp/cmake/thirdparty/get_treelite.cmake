@@ -79,7 +79,7 @@ function(find_and_configure_treelite)
     rapids_export_find_package_root(BUILD Treelite [=[${CMAKE_CURRENT_LIST_DIR}]=] EXPORT_SET cuforest-exports)
 endfunction()
 
-find_and_configure_treelite(VERSION     4.5.1
-                        PINNED_TAG  9e92827e2b909c2ad725845e2069353d863fc361
+find_and_configure_treelite(VERSION     4.6.1
+                        PINNED_TAG  e14222bfdf02cba3ece0f3692f3574711cab0fc2
                         EXCLUDE_FROM_ALL  ${CUFOREST}
                         BUILD_STATIC_LIBS ${CUFOREST_USE_TREELITE_STATIC})
