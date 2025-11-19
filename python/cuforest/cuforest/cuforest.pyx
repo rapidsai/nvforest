@@ -15,6 +15,9 @@ from pylibraft.common.handle cimport handle_t as raft_handle_t
 
 from cuforest.detail.raft_proto.handle cimport handle_t as raft_proto_handle_t
 from cuforest.detail.raft_proto.optional cimport nullopt, optional
+from cuforest.detail.raft_proto.cuda_stream cimport (
+    cuda_stream as raft_proto_stream_t,
+)
 from cuforest.detail.raft_proto.device_type cimport (
     device_type as raft_proto_device_t,
 )
