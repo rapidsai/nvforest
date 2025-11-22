@@ -61,21 +61,25 @@ find_package(cuforest "${RAPIDS_VERSION}" REQUIRED)
 # ##################################################################################################
 # * Build Cython artifacts -----------------------------------------------------
 
-include(cmake/ConfigureCythonAlgorithms.cmake)
-
 message(VERBOSE "CUFOREST_PY: Building cuForest")
 
 include(rapids-cython-core)
 rapids_cython_init()
 
-set(cython_sources "")
-add_module_gpu_default("cuforest/cuforest.pyx")
-
 set(linked_libraries "cuforest::${CUFOREST_CPP_TARGET}" "${CUFOREST_PYTHON_TREELITE_TARGET}")
 
 rapids_cython_create_modules(
   CXX
-  SOURCE_FILES "${cython_sources}"
+  SOURCE_FILES "cuforest/forest_inference.pyx"
   LINKED_LIBRARIES "${linked_libraries}"
+  INSTALL_DIR cuforest
+  MODULE_PREFIX cuforest_
+)
+
+rapids_cython_create_modules(
+  CXX
+  SOURCE_FILES "cuforest/detail/treelite.pyx"
+  LINKED_LIBRARIES "${linked_libraries}"
+  INSTALL_DIR cuforest/detail
   MODULE_PREFIX cuforest_
 )

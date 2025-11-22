@@ -16,3 +16,7 @@ else:
 from pylibraft.common import Handle
 
 from cuforest._version import __git_commit__, __version__
+
+from cuforest.forest_inference import ForestInference
+
+__all__ = ["ForestInference"]
