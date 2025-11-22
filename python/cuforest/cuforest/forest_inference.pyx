@@ -371,8 +371,7 @@ class ForestInference:
             # active device
             device_id = self._detect_current_device(require=True)
 
-        if device == "gpu":
-            self.device_id = device_id
+        self.device_id = device_id if device == "gpu" else -1
 
         if self.treelite_model is not None:
             if isinstance(self.treelite_model, treelite.Model):
