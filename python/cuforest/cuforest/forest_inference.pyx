@@ -235,7 +235,7 @@ class ForestInference:
             old_value = self._use_double_precision_
         if value in ("native", None):
             self._use_double_precision_ = None
-        elif value in ("double", 'float64'):
+        elif value in ("double", "float64"):
             self._use_double_precision_ = True
         else:
             self._use_double_precision_ = False
@@ -320,7 +320,7 @@ class ForestInference:
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
-        precision: str = "single",
+        precision: Optional[str] = "single",
         device: str = "auto",
         device_id: Optional[int] = None,
     ):
@@ -398,6 +398,99 @@ class ForestInference:
 
 def load_model(
     model_file: Union[str, pathlib.Path],
-    device: str,
-):
-    pass
+    *,
+    model_type: Optional[str] = None,
+    device: str = "auto",
+    is_classifier: bool = False,
+    layout: str = "depth_first",
+    default_chunk_size: Optional[int] = None,
+    align_bytes: Optional[int] = None,
+    precision: Optional[str] = None,
+    device_id: Optional[int] = None,
+    raft_handle: Optional[RaftHandle] = None,
+) -> ForestInference:
+    """Load a model into FIL from a serialized model file.
+
+    Parameters
+    ----------
+    model_file :
+        The path to the serialized model file. This can be an XGBoost
+        binary or JSON file, a LightGBM text file, or a Treelite checkpoint
+        file. If the model_type parameter is not passed, an attempt will be
+        made to load the file based on its extension.
+    model_type : {"xgboost_ubj", "xgboost_json", "xgboost_legacy", "lightgbm",
+        "treelite_checkpoint", None}, default=None
+        The serialization format for the model file. If None, a best-effort
+        guess will be made based on the file extension.
+    device: {"auto", "gpu", "cpu"}, default="auto"
+        Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
+        be selected if it is available.
+    is_classifier : boolean, default=False
+        True for classification models, False for regressors
+    layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
+        The in-memory layout to be used during inference for nodes of the
+        forest model. This parameter is available purely for runtime
+        optimization. For performance-critical applications, it is
+        recommended that available layouts be tested with realistic batch
+        sizes to determine the optimal value.
+    default_chunk_size : int or None, default=None
+        If set, predict calls without a specified chunk size will use
+        this default value.
+    align_bytes : int or None, default=None
+        Pad each tree with empty nodes until its in-memory size is a multiple
+        of the given value. If None, use 0 for GPU and 64 for CPU.
+    precision : {"single", "double", None}, default="single"
+        Use the given floating point precision for evaluating the model. If
+        None, use the native precision of the model. Note that
+        single-precision execution is substantially faster than
+        double-precision execution, so double-precision is recommended
+        only for models trained and double precision and when exact
+        conformance between results from FIL and the original training
+        framework is of paramount importance.
+    device_id : int or None, default=None
+        For GPU execution, the device on which to load and execute this
+        model. For CPU execution, this value is currently ignored.
+    raft_handle : pylibraft.common.handle or None
+        For GPU execution, the RAFT handle containing the stream or stream
+        pool to use during loading and inference. If not given, a new
+        handle will be constructed.
+    """
+    model_path = pathlib.Path(model_file)
+    if not model_path.exists():
+        raise ValueError(f"Model file {model_file} does not exist")
+    if model_type is None:
+        extension = model_path.suffix
+        if extension == ".json":
+            model_type = "xgboost_json"
+        elif extension == ".ubj":
+            model_type = "xgboost_ubj"
+        elif extension == ".model":
+            model_type = "xgboost"
+        elif extension == ".txt":
+            model_type = "lightgbm"
+        else:
+            model_type = "treelite_checkpoint"
+    if model_type == "treelite_checkpoint":
+        tl_model = treelite.frontend.Model.deserialize(model_path)
+    elif model_type == "xgboost_ubj":
+        tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="ubjson")
+    elif model_type == "xgboost_json":
+        tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="json")
+    elif model_type == "xgboost":
+        tl_model = treelite.frontend.load_xgboost_model_legacy_binary(model_path)
+    elif model_type == "lightgbm":
+        tl_model = treelite.frontend.load_lightgbm_model(model_path)
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
+
+    return ForestInference(
+        raft_handle=raft_handle,
+        treelite_model=tl_model,
+        is_classifier=is_classifier,
+        layout=layout,
+        default_chunk_size=default_chunk_size,
+        align_bytes=align_bytes,
+        precision=precision,
+        device=device,
+        device_id=device_id,
+    )

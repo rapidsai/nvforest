@@ -13,10 +13,8 @@ else:
     libcuforest.load_library()
     del libcuforest
 
-from pylibraft.common import Handle
-
 from cuforest._version import __git_commit__, __version__
 
-from cuforest.forest_inference import ForestInference
+from cuforest.forest_inference import ForestInference, load_model
 
-__all__ = ["ForestInference"]
+__all__ = ["ForestInference", "load_model"]
