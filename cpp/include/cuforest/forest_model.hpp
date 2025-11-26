@@ -297,7 +297,11 @@ struct forest_model {
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
     int current_device_id;
-    raft_proto::cuda_check(cudaGetDevice(&current_device_id));
+    if (out_mem_type == raft_proto::device_type::gpu || in_mem_type == raft_proto::device_type::gpu) {
+      raft_proto::cuda_check(cudaGetDevice(&current_device_id));
+    } else {
+      current_device_id = -1;
+    }
     auto out_buffer =
       raft_proto::buffer{output, num_rows * num_outputs(), out_mem_type, current_device_id};
     auto in_buffer =

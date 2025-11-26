@@ -12,7 +12,7 @@ from pylibraft.common.handle import Handle as RaftHandle
 
 from cuforest.detail.treelite import safe_treelite_call
 
-from libc.stdint cimport uint32_t
+from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
 from pylibraft.common.handle cimport handle_t as raft_handle_t
 
@@ -29,6 +29,7 @@ from cuforest.detail.treelite cimport (
     TreeliteFreeModel,
     TreeliteModelHandle,
 )
+from cuforest.infer_kind cimport infer_kind
 from cuforest.postprocessing cimport element_op, row_op
 from cuforest.tree_layout cimport tree_layout as cuforest_tree_layout
 
@@ -65,10 +66,14 @@ cdef extern from "cuforest/treelite_importer.hpp" namespace "cuforest" nogil:
     ) except +
 
 
+DataType = Union[np.ndarray, "cupy.ndarray"]
+
+
 cdef class ForestInference_impl():
     cdef forest_model model
     cdef raft_proto_handle_t raft_proto_handle
     cdef object raft_handle
+    cdef object device
 
     def __cinit__(
         self,
@@ -122,6 +127,7 @@ cdef class ForestInference_impl():
         assert device_id is not None, (
             "device_id should be set before building ForestInference_impl"
         )
+        self.device = device
 
         self.model = import_from_treelite_handle(
             tl_handle,
@@ -173,6 +179,95 @@ cdef class ForestInference_impl():
             return "exponential"
         elif enum_val == element_op.logarithm_one_plus_exp:
             return "logarithm_one_plus_exp"
+
+    def predict(
+        self,
+        X: DataType,
+        *,
+        predict_type: str = "default",
+        chunk_size: Optional[int] = None,
+    ) -> DataType:
+        cdef uintptr_t in_ptr
+        cdef raft_proto_device_t in_dev
+        cdef uintptr_t out_ptr
+        cdef raft_proto_device_t out_dev
+        cdef infer_kind infer_type_enum
+        cdef optional[uint32_t] chunk_specification
+
+        n_rows = X.shape[0]
+        model_dtype = self.get_dtype()
+
+        if predict_type == "default":
+            infer_type_enum = infer_kind.default_kind
+            output_shape = (n_rows, self.model.num_outputs())
+        elif predict_type == "per_tree":
+            infer_type_enum = infer_kind.per_tree
+            if self.model.has_vector_leaves():
+                output_shape = (n_rows, self.model.num_trees(), self.model.num_outputs())
+            else:
+                output_shape = (n_rows, self.model.num_trees())
+        elif predict_type == "leaf_id":
+            infer_type_enum = infer_kind.leaf_id
+            output_shape = (n_rows, self.model.num_trees())
+        else:
+            raise ValueError(f"Unrecognized predict_type: {predict_type}")
+
+        if self.device == "cpu":
+            X = np.asarray(X, dtype=model_dtype, order="C")
+            preds = np.empty(
+                shape=output_shape,
+                dtype=model_dtype,
+                order="C",
+            )
+            in_ptr = X.__array_interface__["data"][0]
+            in_dev = raft_proto_device_t.cpu
+            out_ptr = preds.__array_interface__["data"][0]
+            out_dev = raft_proto_device_t.cpu
+        else:
+            assert self.device == "gpu"
+            import cupy as cp
+            X = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
+            preds = cp.empty(
+                shape=output_shape,
+                dtype=model_dtype,
+                order="C",
+            )
+            in_ptr = X.__cuda_array_interface__["data"][0]
+            in_dev = raft_proto_device_t.gpu
+            out_ptr = preds.__cuda_array_interface__["data"][0]
+            out_dev = raft_proto_device_t.gpu
+
+        if chunk_size is None:
+            chunk_specification = nullopt
+        else:
+            chunk_specification = <uint32_t> chunk_size
+
+        if model_dtype == np.float32:
+            self.model.predict[float](
+                self.raft_proto_handle,
+                <float *> out_ptr,
+                <float *> in_ptr,
+                n_rows,
+                out_dev,
+                in_dev,
+                infer_type_enum,
+                chunk_specification
+            )
+        else:
+            self.model.predict[double](
+                self.raft_proto_handle,
+                <double *> out_ptr,
+                <double *> in_ptr,
+                n_rows,
+                out_dev,
+                in_dev,
+                infer_type_enum,
+                chunk_specification
+            )
+
+        if self.device == "gpu":
+            self.raft_proto_handle.synchronize()
+        return preds
 
 
 class ForestInference:
@@ -358,7 +453,11 @@ class ForestInference:
                 return None
             _, name = runtime.cudaGetErrorName(status)
             _, msg = runtime.cudaGetErrorString(status)
-            raise RuntimeError(f"Failed to run cudaGetDevice(). {name}: {msg}")
+            name, msg = name.decode("utf-8"), msg.decode("utf-8")
+            raise RuntimeError(
+                f"Failed to detect a GPU device. Diagnostic:\n"
+                f"    {name}: {msg}"
+            )
         return current_device_id
 
     def _load(self, device, device_id):
@@ -395,6 +494,223 @@ class ForestInference:
             else:
                 self._cpu_forest = impl
 
+    @property
+    def gpu_forest(self):
+        """The underlying cuForest forest model loaded in GPU-accessible memory"""
+        try:
+            return self._gpu_forest
+        except AttributeError:
+            self._load(device="gpu", device_id=self.device_id)
+            return self._gpu_forest
+
+    @property
+    def cpu_forest(self):
+        """The underlying cuForest forest model loaded in CPU-accessible memory"""
+        try:
+            return self._cpu_forest
+        except AttributeError:
+            self._load(device="cpu")
+            return self._cpu_forest
+
+    @property
+    def forest(self):
+        """The underlying cuForest forest model loaded in memory compatible with the
+        current device setting"""
+        if self.device == "gpu":
+            return self.gpu_forest
+        return self.cpu_forest
+
+    def num_outputs(self):
+        return self.forest.num_outputs()
+
+    def num_trees(self):
+        return self.forest.num_trees()
+
+    def predict_proba(
+        self,
+        X: DataType,
+        *,
+        chunk_size: Optional[int] = None,
+    ) -> DataType:
+        """
+        Predict the class probabilities for each row in X.
+
+        Parameters
+        ----------
+        X :
+            The input data of shape Rows * Features. This can be a numpy
+            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            numpy/cupy arrays). Inputs whose datatype does not match the
+            precision of the loaded model (float/double) will be converted
+            to the correct datatype before inference. If this input is in a
+            memory location that is inaccessible to the current device type
+            (as set with the 'device' parameter in the constructor),
+            it will be copied to the correct location. This copy will be
+            distributed across as many CUDA streams as are available
+            in the stream pool of the model's RAFT handle.
+        chunk_size :
+            The number of rows to simultaneously process in one iteration
+            of the inference algorithm. Batches are further broken down into
+            "chunks" of this size when assigning available threads to tasks.
+            The choice of chunk size can have a substantial impact on
+            performance, but the optimal choice depends on model and
+            hardware and is difficult to predict a priori. In general,
+            larger batch sizes benefit from larger chunk sizes, and smaller
+            batch sizes benefit from small chunk sizes. On GPU, valid
+            values are powers of 2 from 1 to 32. On CPU, valid values are
+            any power of 2, but little benefit is expected above a chunk size
+            of 512.
+        """
+        if not self.is_classifier:
+            raise RuntimeError(
+                "predict_proba is not available for regression models. Load"
+                " with is_classifier=True if this is a classifier."
+            )
+        return self.forest.predict(
+            X, chunk_size=(chunk_size or self.default_chunk_size)
+        )
+
+    def predict(
+        self,
+        X: DataType,
+        *,
+        chunk_size: Optional[int] = None,
+        threshold: Optional[float] = None,
+    ) -> DataType:
+        """
+        For classification models, predict the class for each row. For
+        regression models, predict the output for each row.
+
+        Parameters
+        ----------
+        X
+            The input data of shape Rows X Features. This can be a numpy
+            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            numpy/cupy arrays). Inputs whose datatype does not match the
+            precision of the loaded model (float/double) will be converted
+            to the correct datatype before inference. If this input is in a
+            memory location that is inaccessible to the current device type
+            (as set with the 'device' parameter in the constructor),
+            it will be copied to the correct location. This copy will be
+            distributed across as many CUDA streams as are available
+            in the stream pool of the model's RAFT handle.
+        chunk_size :
+            The number of rows to simultaneously process in one iteration
+            of the inference algorithm. Batches are further broken down into
+            "chunks" of this size when assigning available threads to tasks.
+            The choice of chunk size can have a substantial impact on
+            performance, but the optimal choice depends on model and
+            hardware and is difficult to predict a priori. In general,
+            larger batch sizes benefit from larger chunk sizes, and smaller
+            batch sizes benefit from small chunk sizes. On GPU, valid
+            values are powers of 2 from 1 to 32. On CPU, valid values are
+            any power of 2, but little benefit is expected above a chunk size
+            of 512.
+        threshold :
+            For binary classifiers, output probabilities above this threshold
+            will be considered positive detections. If None, a threshold
+            of 0.5 will be used for binary classifiers. For multiclass
+            classifiers, the highest probability class is chosen regardless
+            of threshold.
+        """
+        chunk_size = (chunk_size or self.default_chunk_size)
+        if self.forest.row_postprocessing() == "max_index":
+            raw_out = self.forest.predict(X, chunk_size=chunk_size)
+            return raw_out[:, 0]
+        elif self.is_classifier:
+            proba = self.forest.predict(X, chunk_size=chunk_size)
+            if len(proba.shape) < 2 or proba.shape[1] == 1:
+                if threshold is None:
+                    threshold = 0.5
+                result = (proba > threshold).astype("int")
+            else:
+                result = proba.argmax(axis=1)
+            return result
+        else:
+            return self.forest.predict(
+                X, predict_type="default", chunk_size=chunk_size
+            )
+
+    def predict_per_tree(
+        self,
+        X: DataType,
+        *,
+        chunk_size: Optional[int] = None,
+    ) -> DataType:
+        """
+        Output prediction of each tree.
+        This function computes one or more margin scores per tree.
+
+        Parameters
+        ----------
+        X:
+            The input data of shape Rows X Features. This can be a numpy
+            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            numpy/cupy arrays). Inputs whose datatype does not match the
+            precision of the loaded model (float/double) will be converted
+            to the correct datatype before inference. If this input is in a
+            memory location that is inaccessible to the current device type
+            (as set with the 'device' parameter in the constructor),
+            it will be copied to the correct location. This copy will be
+            distributed across as many CUDA streams as are available
+            in the stream pool of the model's RAFT handle.
+        chunk_size :
+            The number of rows to simultaneously process in one iteration
+            of the inference algorithm. Batches are further broken down into
+            "chunks" of this size when assigning available threads to tasks.
+            The choice of chunk size can have a substantial impact on
+            performance, but the optimal choice depends on model and
+            hardware and is difficult to predict a priori. In general,
+            larger batch sizes benefit from larger chunk sizes, and smaller
+            batch sizes benefit from small chunk sizes. On GPU, valid
+            values are powers of 2 from 1 to 32. On CPU, valid values are
+            any power of 2, but little benefit is expected above a chunk size
+            of 512.
+        """
+        chunk_size = (chunk_size or self.default_chunk_size)
+        return self.forest.predict(
+            X, predict_type="per_tree", chunk_size=chunk_size
+        )
+
+    def apply(
+        self,
+        X: DataType,
+        *,
+        chunk_size: Optional[int] = None,
+    ) -> DataType:
+        """
+        Output the ID of the leaf node for each tree.
+
+        Parameters
+        ----------
+        X
+            The input data of shape Rows X Features. This can be a numpy
+            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            numpy/cupy arrays). Inputs whose datatype does not match the
+            precision of the loaded model (float/double) will be converted
+            to the correct datatype before inference. If this input is in a
+            memory location that is inaccessible to the current device type
+            (as set with the 'device' parameter in the constructor),
+            it will be copied to the correct location. This copy will be
+            distributed across as many CUDA streams as are available
+            in the stream pool of the model's RAFT handle.
+        chunk_size :
+            The number of rows to simultaneously process in one iteration
+            of the inference algorithm. Batches are further broken down into
+            "chunks" of this size when assigning available threads to tasks.
+            The choice of chunk size can have a substantial impact on
+            performance, but the optimal choice depends on model and
+            hardware and is difficult to predict a priori. In general,
+            larger batch sizes benefit from larger chunk sizes, and smaller
+            batch sizes benefit from small chunk sizes. On GPU, valid
+            values are powers of 2 from 1 to 32. On CPU, valid values are
+            any power of 2, but little benefit is expected above a chunk size
+            of 512.
+        """
+        return self.forest.predict(
+            X, predict_type="leaf_id", chunk_size=chunk_size
+        )
+
 
 def load_model(
     model_file: Union[str, pathlib.Path],
@@ -409,7 +725,7 @@ def load_model(
     device_id: Optional[int] = None,
     raft_handle: Optional[RaftHandle] = None,
 ) -> ForestInference:
-    """Load a model into FIL from a serialized model file.
+    """Load a model into cuForest from a serialized model file.
 
     Parameters
     ----------
@@ -445,7 +761,7 @@ def load_model(
         single-precision execution is substantially faster than
         double-precision execution, so double-precision is recommended
         only for models trained and double precision and when exact
-        conformance between results from FIL and the original training
+        conformance between results from cuForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this

@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
+
 cdef extern from "cuforest/postproc_ops.hpp" namespace "cuforest" nogil:
     cdef enum row_op:
         row_disable "cuforest::row_op::disable",
