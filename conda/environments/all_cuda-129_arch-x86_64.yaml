@@ -30,8 +30,8 @@ dependencies:
 - libcurand-dev
 - libcusolver-dev
 - libcusparse-dev
-- libraft==25.12.*,>=0.0.0a0
-- librmm==25.12.*,>=0.0.0a0
+- libraft==26.02.*,>=0.0.0a0
+- librmm==26.02.*,>=0.0.0a0
 - matplotlib-base
 - nbsphinx
 - ninja
@@ -45,7 +45,7 @@ dependencies:
 - packaging
 - pre-commit
 - pydata-sphinx-theme!=0.14.2
-- pylibraft==25.12.*,>=0.0.0a0
+- pylibraft==26.02.*,>=0.0.0a0
 - pynndescent
 - pytest
 - pytest-benchmark
@@ -56,10 +56,10 @@ dependencies:
 - pyyaml
 - rapids-build-backend>=0.4.0,<0.5.0.dev0
 - rapids-logger==0.2.*,>=0.0.0a0
-- rapids-xgboost==25.12.*,>=0.0.0a0
+- rapids-xgboost==26.02.*,>=0.0.0a0
 - recommonmark
 - rich
-- rmm==25.12.*,>=0.0.0a0
+- rmm==26.02.*,>=0.0.0a0
 - scikit-build-core>=0.10.0
 - scikit-learn>=1.4
 - scipy>=1.8.0
