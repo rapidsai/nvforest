@@ -28,12 +28,10 @@ license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = [
     "cuda-python>=13.0.1,<14.0a0",
-    "cuda-toolkit[cublas,cufft,curand,cusolver,cusparse]>=12,<14",
+    "cuda-toolkit>=12,<14",
     "cupy-cuda13x>=13.6.0",
     "joblib>=0.11",
     "libcuforest==26.02.*,>=0.0.0a0",
-    "numba-cuda[cu13]>=0.19.1,<0.20.0a0",
-    "numba>=0.60.0,<0.62.0a0",
     "numpy>=1.23,<3.0a0",
     "packaging",
     "pylibraft==26.02.*,>=0.0.0a0",

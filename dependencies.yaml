@@ -16,7 +16,6 @@ files:
       - depends_on_cupy
       - depends_on_libraft
       - depends_on_librmm
-      - depends_on_numba_cuda
       - depends_on_pylibraft
       - depends_on_rapids_logger
       - depends_on_rmm
@@ -39,7 +38,6 @@ files:
       - depends_on_cupy
       - depends_on_libraft
       - depends_on_librmm
-      - depends_on_numba_cuda
       - depends_on_pylibraft
       - depends_on_rapids_logger
       - depends_on_rmm
@@ -133,7 +131,6 @@ files:
       - depends_on_cuda_python
       - depends_on_cupy
       - depends_on_libcuforest
-      - depends_on_numba_cuda
       - depends_on_pylibraft
       - depends_on_rmm
       - py_run_cuforest
@@ -247,7 +244,6 @@ dependencies:
       - output_types: [conda, requirements, pyproject]
         packages:
           - joblib>=0.11
-          - numba>=0.60.0,<0.62.0a0
           - &numpy numpy>=1.23,<3.0a0
           - scipy>=1.8.0
           - packaging
@@ -302,12 +298,12 @@ dependencies:
               cuda: "12.*"
               use_cuda_wheels: "true"
             packages:
-              - cuda-toolkit[cublas,cufft,curand,cusolver,cusparse]==12.*
+              - cuda-toolkit==12.*
           - matrix:
               cuda: "13.*"
               use_cuda_wheels: "true"
             packages:
-              - cuda-toolkit[cublas,cufft,curand,cusolver,cusparse]==13.*
+              - cuda-toolkit==13.*
           # if use_cuda_wheels=false is provided, do not add dependencies on any CUDA wheels
           # (e.g. for DLFW and pip devcontainers)
           - matrix:
@@ -317,7 +313,7 @@ dependencies:
           # (just as a source of documentation, as this populates pyproject.toml in source control)
           - matrix:
             packages:
-              - cuda-toolkit[cublas,cufft,curand,cusolver,cusparse]>=12,<14
+              - cuda-toolkit>=12,<14
   docs:
     common:
       - output_types: [conda, requirements]
@@ -537,22 +533,6 @@ dependencies:
             packages:
               - librmm-cu13==26.02.*,>=0.0.0a0
           - {matrix: null, packages: [*librmm_unsuffixed]}
-  depends_on_numba_cuda:
-    common:
-      - output_types: [conda]
-        packages:
-        - numba-cuda>=0.19.1,<0.20.0a0
-    specific:
-      - output_types: [requirements, pyproject]
-        matrices:
-          - matrix:
-              cuda: "12.*"
-            packages:
-              - numba-cuda[cu12]>=0.19.1,<0.20.0a0
-          # fallback to CUDA 13 versions if 'cuda' is '13.*' or not provided
-          - matrix:
-            packages:
-              - numba-cuda[cu13]>=0.19.1,<0.20.0a0
   depends_on_pylibraft:
     common:
       - output_types: conda
