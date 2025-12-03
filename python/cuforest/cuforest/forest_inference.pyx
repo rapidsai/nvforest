@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import pathlib
-from typing import Union, Optional
+from typing import Union, Optional, Any
 
 from cuda.bindings import runtime
 import treelite
@@ -277,7 +277,7 @@ class ForestInference:
         if hasattr(self, "_gpu_forest"):
             self._load(device="gpu", device_id=self.device_id)
         if hasattr(self, "_cpu_forest"):
-            self._load(device="cpu")
+            self._load(device="cpu", device_id=None)
 
     def _get_default_align_bytes(self):
         if self.device == "cpu":
@@ -368,9 +368,10 @@ class ForestInference:
             old_value = None
         self._device_id_ = value
         if (
-                self.treelite_model is not None
-                and self.device_id != old_value
-                and hasattr(self, "_gpu_forest")
+            self.treelite_model is not None
+            and self.device == "gpu"
+            and self.device_id != old_value
+            and hasattr(self, "_gpu_forest")
         ):
             self._load(device="gpu", device_id=self.device_id)
 
@@ -509,7 +510,7 @@ class ForestInference:
         try:
             return self._cpu_forest
         except AttributeError:
-            self._load(device="cpu")
+            self._load(device="cpu", device_id=None)
             return self._cpu_forest
 
     @property
@@ -799,6 +800,135 @@ def load_model(
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
+    return ForestInference(
+        raft_handle=raft_handle,
+        treelite_model=tl_model,
+        is_classifier=is_classifier,
+        layout=layout,
+        default_chunk_size=default_chunk_size,
+        align_bytes=align_bytes,
+        precision=precision,
+        device=device,
+        device_id=device_id,
+    )
+
+
+def load_from_sklearn(
+    skl_model: Any,
+    *,
+    device: str = "auto",
+    is_classifier: bool = False,
+    layout: str = "depth_first",
+    default_chunk_size: Optional[int] = None,
+    align_bytes: Optional[int] = None,
+    precision: Optional[str] = None,
+    device_id: Optional[int] = None,
+    raft_handle: Optional[RaftHandle] = None,
+) -> ForestInference:
+    """Load a Scikit-Learn forest model to cuForest
+
+    Parameters
+    ----------
+    skl_model
+        The Scikit-Learn forest model to load.
+    device: {"auto", "gpu", "cpu"}, default="auto"
+        Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
+        be selected if it is available.
+    is_classifier : boolean, default=False
+        True for classification models, False for regressors
+    layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
+        The in-memory layout to be used during inference for nodes of the
+        forest model. This parameter is available purely for runtime
+        optimization. For performance-critical applications, it is
+        recommended that available layouts be tested with realistic batch
+        sizes to determine the optimal value.
+    default_chunk_size : int or None, default=None
+        If set, predict calls without a specified chunk size will use
+        this default value.
+    align_bytes : int or None, default=None
+        Pad each tree with empty nodes until its in-memory size is a multiple
+        of the given value. If None, use 0 for GPU and 64 for CPU.
+    precision : {"single", "double", None}, default="single"
+        Use the given floating point precision for evaluating the model. If
+        None, use the native precision of the model. Note that
+        single-precision execution is substantially faster than
+        double-precision execution, so double-precision is recommended
+        only for models trained and double precision and when exact
+        conformance between results from cuForest and the original training
+        framework is of paramount importance.
+    device_id : int or None, default=None
+        For GPU execution, the device on which to load and execute this
+        model. For CPU execution, this value is currently ignored.
+    raft_handle : pylibraft.common.handle or None
+        For GPU execution, the RAFT handle containing the stream or stream
+        pool to use during loading and inference. If not given, a new
+        handle will be constructed.
+    """
+    tl_model = treelite.sklearn.import_model(skl_model)
+    return ForestInference(
+        raft_handle=raft_handle,
+        treelite_model=tl_model,
+        is_classifier=is_classifier,
+        layout=layout,
+        default_chunk_size=default_chunk_size,
+        align_bytes=align_bytes,
+        precision=precision,
+        device=device,
+        device_id=device_id,
+    )
+
+
+def load_from_treelite_model(
+    tl_model: treelite.Model,
+    *,
+    device: str = "auto",
+    is_classifier: bool = False,
+    layout: str = "depth_first",
+    default_chunk_size: Optional[int] = None,
+    align_bytes: Optional[int] = None,
+    precision: Optional[str] = None,
+    device_id: Optional[int] = None,
+    raft_handle: Optional[RaftHandle] = None,
+) -> ForestInference:
+    """Load a Treelite forest model to cuForest
+
+    Parameters
+    ----------
+    tl_model :
+        The Treelite model to load.
+    device: {"auto", "gpu", "cpu"}, default="auto"
+        Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
+        be selected if it is available.
+    is_classifier : boolean, default=False
+        True for classification models, False for regressors
+    layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
+        The in-memory layout to be used during inference for nodes of the
+        forest model. This parameter is available purely for runtime
+        optimization. For performance-critical applications, it is
+        recommended that available layouts be tested with realistic batch
+        sizes to determine the optimal value.
+    default_chunk_size : int or None, default=None
+        If set, predict calls without a specified chunk size will use
+        this default value.
+    align_bytes : int or None, default=None
+        Pad each tree with empty nodes until its in-memory size is a multiple
+        of the given value. If None, use 0 for GPU and 64 for CPU.
+    precision : {"single", "double", None}, default="single"
+        Use the given floating point precision for evaluating the model. If
+        None, use the native precision of the model. Note that
+        single-precision execution is substantially faster than
+        double-precision execution, so double-precision is recommended
+        only for models trained and double precision and when exact
+        conformance between results from cuForest and the original training
+        framework is of paramount importance.
+    device_id : int or None, default=None
+        For GPU execution, the device on which to load and execute this
+        model. For CPU execution, this value is currently ignored.
+    raft_handle : pylibraft.common.handle or None
+        For GPU execution, the RAFT handle containing the stream or stream
+        pool to use during loading and inference. If not given, a new
+        handle will be constructed.
+    """
     return ForestInference(
         raft_handle=raft_handle,
         treelite_model=tl_model,
