@@ -191,6 +191,11 @@ struct decision_forest_builder {
                            int device                       = 0,
                            raft_proto::cuda_stream stream   = raft_proto::cuda_stream{})
   {
+    // Set device = -1 when loading the model onto CPU
+    if (mem_type == raft_proto::device_type::cpu) {
+      device = -1;
+    }
+
     // Allow narrowing for preprocessing constants. They are stored as doubles
     // for consistency in the builder but must be converted to the proper types
     // for the concrete forest model.

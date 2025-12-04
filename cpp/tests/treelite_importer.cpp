@@ -266,7 +266,7 @@ TEST(TreeliteImporter, depth_first)
   ASSERT_EQ(fil_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(fil_model.elem_postprocessing(), element_op::disable);
   ASSERT_EQ(fil_model.memory_type(), raft_proto::device_type::cpu);
-  ASSERT_EQ(fil_model.device_index(), 0);
+  ASSERT_EQ(fil_model.device_index(), -1);
   ASSERT_FALSE(fil_model.is_double_precision());
 }
 
@@ -280,7 +280,7 @@ TEST(TreeliteImporter, breadth_first)
   ASSERT_EQ(fil_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(fil_model.elem_postprocessing(), element_op::disable);
   ASSERT_EQ(fil_model.memory_type(), raft_proto::device_type::cpu);
-  ASSERT_EQ(fil_model.device_index(), 0);
+  ASSERT_EQ(fil_model.device_index(), -1);
   ASSERT_FALSE(fil_model.is_double_precision());
 }
 
@@ -295,7 +295,7 @@ TEST(TreeliteImporter, layered_children_together)
   ASSERT_EQ(fil_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(fil_model.elem_postprocessing(), element_op::disable);
   ASSERT_EQ(fil_model.memory_type(), raft_proto::device_type::cpu);
-  ASSERT_EQ(fil_model.device_index(), 0);
+  ASSERT_EQ(fil_model.device_index(), -1);
   ASSERT_FALSE(fil_model.is_double_precision());
 }
 

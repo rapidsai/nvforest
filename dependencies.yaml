@@ -1,0 +1,597 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION.
+# SPDX-License-Identifier: Apache-2.0
+
+# Dependency list for https://github.com/rapidsai/dependency-file-generator
+files:
+  all:
+    output: conda
+    matrix:
+      cuda: ["12.9", "13.0"]
+      arch: [x86_64, aarch64]
+    includes:
+      - common_build
+      - cuda
+      - cuda_version
+      - depends_on_cuda_python
+      - depends_on_cupy
+      - depends_on_libraft
+      - depends_on_librmm
+      - depends_on_pylibraft
+      - depends_on_rapids_logger
+      - depends_on_rmm
+      - develop
+      - docs
+      - py_build_cuforest
+      - py_run_cuforest
+      - py_version
+      - rapids_build_backend
+      - test_python
+      - test_python_xgboost
+  devcontainers:
+    output: none
+    includes:
+      # "devcontainers" includes everything in "all", excluding test_python_xgboost
+      - common_build
+      - cuda
+      - cuda_version
+      - depends_on_cuda_python
+      - depends_on_cupy
+      - depends_on_libraft
+      - depends_on_librmm
+      - depends_on_pylibraft
+      - depends_on_rapids_logger
+      - depends_on_rmm
+      - docs
+      - py_build_cuforest
+      - py_run_cuforest
+      - py_version
+      - rapids_build_backend
+      - test_python
+  cpp_all:
+    output: conda
+    matrix:
+      cuda: ["12.9", "13.0"]
+      arch: [x86_64]
+    includes:
+      - common_build
+      - cuda
+      - cuda_version
+      - depends_on_libraft_headers
+      - depends_on_librmm
+  checks:
+    output: none
+    includes:
+      - checks
+      - py_version
+  clang_tidy:
+    output: conda
+    matrix:
+      cuda: ["12.9", "13.0"]
+      arch: [x86_64]
+    includes:
+      - clang_tidy
+      - common_build
+      - cuda
+      - cuda_version
+      - depends_on_libraft_headers
+      - depends_on_librmm
+  docs:
+    output: none
+    includes:
+      - cuda_version
+      - docs
+      - py_version
+      - depends_on_cuforest
+      - depends_on_libcuforest
+  test_cpp:
+    output: none
+    includes:
+      - cuda_version
+      - depends_on_libcuforest
+      - test_libcuforest
+      - test_cpp
+  test_python:
+    output: none
+    includes:
+      - cuda_version
+      - depends_on_cuforest
+      - depends_on_libcuforest
+      - py_version
+      - test_python
+      - test_python_xgboost
+  py_build_cuforest:
+    output: pyproject
+    pyproject_dir: python/cuforest
+    extras:
+      table: build-system
+    includes:
+      - rapids_build_backend
+  py_rapids_build_cuforest:
+    output: pyproject
+    pyproject_dir: python/cuforest
+    extras:
+      table: tool.rapids-build-backend
+      key: requires
+    includes:
+      - common_build
+      - depends_on_cuda_python
+      - depends_on_libcuforest
+      - depends_on_libraft
+      - depends_on_librmm
+      - depends_on_pylibraft
+      - depends_on_rmm
+      - py_build_cuforest
+  py_run_cuforest:
+    output: pyproject
+    pyproject_dir: python/cuforest
+    extras:
+      table: project
+    includes:
+      - cuda_wheels
+      - depends_on_cuda_python
+      - depends_on_cupy
+      - depends_on_libcuforest
+      - depends_on_pylibraft
+      - depends_on_rmm
+      - py_run_cuforest
+  py_test_cuforest:
+    output: pyproject
+    pyproject_dir: python/cuforest
+    extras:
+      table: project.optional-dependencies
+      key: test
+    includes:
+      - test_python
+      - test_python_xgboost
+  py_build_libcuforest:
+    output: pyproject
+    pyproject_dir: python/libcuforest
+    extras:
+      table: build-system
+    includes:
+      - rapids_build_backend
+  py_rapids_build_libcuforest:
+    output: pyproject
+    pyproject_dir: python/libcuforest
+    extras:
+      table: tool.rapids-build-backend
+      key: requires
+    includes:
+      - common_build
+      - depends_on_libraft
+      - depends_on_librmm
+      - depends_on_rapids_logger
+  py_run_libcuforest:
+    output: pyproject
+    pyproject_dir: python/libcuforest
+    extras:
+      table: project
+    includes:
+      - cuda_wheels
+      - depends_on_libraft
+      - depends_on_rapids_logger
+channels:
+  - rapidsai
+  - rapidsai-nightly
+  - conda-forge
+dependencies:
+  rapids_build_backend:
+    common:
+      - output_types: [conda, requirements, pyproject]
+        packages:
+          - rapids-build-backend>=0.4.0,<0.5.0.dev0
+      - output_types: [conda]
+        packages:
+          - scikit-build-core>=0.10.0
+      - output_types: [requirements, pyproject]
+        packages:
+          - scikit-build-core[pyproject]>=0.10.0
+  checks:
+    common:
+      - output_types: [conda, requirements]
+        packages:
+          - pre-commit
+  clang_tidy:
+    common:
+      - output_types: [conda, requirements]
+        packages:
+          # clang 15 required by libcudacxx.
+          - clang==15.0.7
+          - clang-tools==15.0.7
+          - llvm-openmp==15.0.7
+          - ninja
+          - tomli
+  common_build:
+    common:
+      - output_types: [conda, requirements, pyproject]
+        packages:
+          - &cmake_ver cmake>=3.30.4
+          - ninja
+      - output_types: conda
+        packages:
+          - c-compiler
+          - cuda-nvcc
+          - cxx-compiler
+    specific:
+      - output_types: conda
+        matrices:
+          - matrix:
+              arch: x86_64
+            packages:
+              - gcc_linux-64=14.*
+              - sysroot_linux-64==2.28
+          - matrix:
+              arch: aarch64
+            packages:
+              - gcc_linux-aarch64=14.*
+              - sysroot_linux-aarch64==2.28
+  develop:
+    common:
+      - output_types: [conda, requirements]
+        packages:
+          - pre-commit
+      - output_types: conda
+        packages:
+          - ccache
+  py_build_cuforest:
+    common:
+      - output_types: [conda, requirements, pyproject]
+        packages:
+          - &cython cython>=3.0.0
+          - treelite
+  py_run_cuforest:
+    common:
+      - output_types: [conda, requirements, pyproject]
+        packages:
+          - joblib>=0.11
+          - &numpy numpy>=1.23,<3.0a0
+          - scipy>=1.8.0
+          - packaging
+          - rich
+          - &scikit_learn scikit-learn>=1.4
+          - treelite
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          - --extra-index-url=https://pypi.nvidia.com
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+  cuda_version:
+    specific:
+      - output_types: conda
+        matrices:
+          - matrix:
+              cuda: "12.2"
+            packages:
+              - cuda-version=12.2
+          - matrix:
+              cuda: "12.5"
+            packages:
+              - cuda-version=12.5
+          - matrix:
+              cuda: "12.8"
+            packages:
+              - cuda-version=12.8
+          - matrix:
+              cuda: "12.9"
+            packages:
+              - cuda-version=12.9
+          - matrix:
+              cuda: "13.0"
+            packages:
+              - cuda-version=13.0
+  cuda:
+    common:
+      - output_types: [conda]
+        packages:
+          - cuda-cudart-dev
+          - cuda-profiler-api
+          - libcublas-dev
+          - libcufft-dev
+          - libcurand-dev
+          - libcusolver-dev
+          - libcusparse-dev
+  cuda_wheels:
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              use_cuda_wheels: "true"
+            packages:
+              - cuda-toolkit==12.*
+          - matrix:
+              cuda: "13.*"
+              use_cuda_wheels: "true"
+            packages:
+              - cuda-toolkit==13.*
+          # if use_cuda_wheels=false is provided, do not add dependencies on any CUDA wheels
+          # (e.g. for DLFW and pip devcontainers)
+          - matrix:
+              use_cuda_wheels: "false"
+            packages:
+          # if no matching matrix selectors passed, list the unsuffixed packages
+          # (just as a source of documentation, as this populates pyproject.toml in source control)
+          - matrix:
+            packages:
+              - cuda-toolkit>=12,<14
+  docs:
+    common:
+      - output_types: [conda, requirements]
+        packages:
+          - graphviz
+          - ipython
+          - ipykernel
+          - nbsphinx
+          - numpydoc
+          # https://github.com/pydata/pydata-sphinx-theme/issues/1539
+          - pydata-sphinx-theme!=0.14.2
+          - recommonmark
+          - *scikit_learn
+          - sphinx
+          - sphinx-copybutton
+          - sphinx-markdown-tables
+          - pyyaml
+      - output_types: conda
+        packages:
+          - doxygen=1.9.1
+          - matplotlib-base
+      - output_types: requirements
+        packages:
+          - matplotlib
+  py_version:
+    specific:
+      - output_types: conda
+        matrices:
+          - matrix:
+              py: "3.10"
+            packages:
+              - python=3.10
+          - matrix:
+              py: "3.11"
+            packages:
+              - python=3.11
+          - matrix:
+              py: "3.12"
+            packages:
+              - python=3.12
+          - matrix:
+              py: "3.13"
+            packages:
+              - python=3.13
+          - matrix:
+            packages:
+              - python>=3.10,<3.14
+  test_libcuforest:
+    common:
+      - output_types: conda
+        packages:
+          - libcuforest-tests==26.02.*,>=0.0.0a0
+  test_cpp:
+    common:
+      - output_types: conda
+        packages:
+          - *cmake_ver
+  test_python:
+    specific:
+      - output_types: [conda, requirements]
+        matrices:
+          # Package versions to user for the "oldest-dep" CI run
+          - matrix: {dependencies: "oldest"}
+            packages:
+              - scikit-learn==1.4.2
+          - matrix: {dependencies: "intermediate"}
+            packages:
+              - scikit-learn==1.5.2
+          - matrix:
+            packages:
+    common:
+      - output_types: [conda, requirements, pyproject]
+        packages:
+          - certifi
+          - *cython
+          - hdbscan>=0.8.39,<0.8.40
+          - hypothesis>=6.0,<7
+          - nltk
+          # upstream sklearn docstring tests require numpydoc<1.9
+          - numpydoc<1.9
+          # 'nvidia-ml-py' provides the 'pynvml' module
+          - nvidia-ml-py>=12
+          - pyyaml
+          - pytest
+          - pytest-benchmark
+          - pytest-cases
+          - pytest-cov
+          - pytest-xdist
+          - seaborn
+          - *scikit_learn
+          - statsmodels
+          - tenacity
+          - umap-learn==0.5.7
+          - pynndescent
+  test_python_xgboost:
+    common:
+      - output_types: [conda]
+        packages:
+          # We must separate xgboost into its own list so that it is not
+          # included in the "devcontainers" key. The libxgboost package depends
+          # on librmm but we do not want to have a package depending on librmm
+          # in devcontainers since it should be built from source.
+          - &rapids-xgboost rapids-xgboost==26.02.*,>=0.0.0a0
+      - output_types: [requirements, pyproject]
+        packages:
+          - &xgboost xgboost>=2.1.0
+  depends_on_cuda_python:
+    specific:
+      - output_types: [conda, requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+            packages:
+              - cuda-python>=12.9.2,<13.0a0
+          # fallback to CUDA 13 versions if 'cuda' is '13.*' or not provided
+          - matrix:
+            packages:
+              - cuda-python>=13.0.1,<14.0a0
+  depends_on_cuforest:
+    common:
+      - output_types: conda
+        packages:
+          - cuforest==26.02.*,>=0.0.0a0
+  depends_on_cupy:
+    common:
+      - output_types: conda
+        packages:
+          - cupy>=13.6.0
+    # NOTE: This is intentionally not broken into groups by a 'cuda_suffixed' selector like
+    #       other packages with -cu{nn}x suffixes in this file.
+    #       All RAPIDS wheel builds (including in devcontainers) expect cupy to be suffixed.
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+            packages:
+              - cupy-cuda12x>=13.6.0
+          # fallback to CUDA 13 versions if 'cuda' is '13.*' or not provided
+          - matrix:
+            packages:
+              - cupy-cuda13x>=13.6.0
+  depends_on_libcuforest:
+    common:
+      - output_types: conda
+        packages:
+          - &libcuforest_unsuffixed libcuforest==26.02.*,>=0.0.0a0
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          - --extra-index-url=https://pypi.nvidia.com
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - libcuforest-cu12==26.02.*,>=0.0.0a0
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - libcuforest-cu13==26.02.*,>=0.0.0a0
+          - {matrix: null, packages: [*libcuforest_unsuffixed]}
+  depends_on_libraft:
+    common:
+      - output_types: conda
+        packages:
+          - &libraft_unsuffixed libraft==26.02.*,>=0.0.0a0
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          - --extra-index-url=https://pypi.nvidia.com
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - libraft-cu12==26.02.*,>=0.0.0a0
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - libraft-cu13==26.02.*,>=0.0.0a0
+          - {matrix: null, packages: [*libraft_unsuffixed]}
+  depends_on_libraft_headers:
+    common:
+      - output_types: conda
+        packages:
+          - libraft-headers==26.02.*,>=0.0.0a0
+  depends_on_librmm:
+    common:
+      - output_types: conda
+        packages:
+          - &librmm_unsuffixed librmm==26.02.*,>=0.0.0a0
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          - --extra-index-url=https://pypi.nvidia.com
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - librmm-cu12==26.02.*,>=0.0.0a0
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - librmm-cu13==26.02.*,>=0.0.0a0
+          - {matrix: null, packages: [*librmm_unsuffixed]}
+  depends_on_pylibraft:
+    common:
+      - output_types: conda
+        packages:
+          - &pylibraft_unsuffixed pylibraft==26.02.*,>=0.0.0a0
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          - --extra-index-url=https://pypi.nvidia.com
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - pylibraft-cu12==26.02.*,>=0.0.0a0
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - pylibraft-cu13==26.02.*,>=0.0.0a0
+          - matrix:
+            packages:
+              - *pylibraft_unsuffixed
+  depends_on_rapids_logger:
+    common:
+      - output_types: [conda, requirements, pyproject]
+        packages:
+          - rapids-logger==0.2.*,>=0.0.0a0
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          # This index is needed for rapids_logger
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+  depends_on_rmm:
+    common:
+      - output_types: conda
+        packages:
+          - &rmm_unsuffixed rmm==26.02.*,>=0.0.0a0
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          - --extra-index-url=https://pypi.nvidia.com
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - rmm-cu12==26.02.*,>=0.0.0a0
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - rmm-cu13==26.02.*,>=0.0.0a0
+          - matrix:
+            packages:
+              - *rmm_unsuffixed
