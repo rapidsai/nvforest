@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import pathlib
+from enum import Enum
 from typing import Union, Optional, Any
 
 from cuda.bindings import runtime
@@ -67,6 +68,23 @@ cdef extern from "cuforest/treelite_importer.hpp" namespace "cuforest" nogil:
 
 
 DataType = Union[np.ndarray, "cupy.ndarray"]
+
+
+# TaskType enum class from Treelite
+class TaskTypeEnum(Enum):
+    kBinaryClf = 0
+    kRegressor = 1
+    kMultiClf = 2
+    kLearningToRank = 3
+    kIsolationForest = 4
+
+
+def _infer_is_classifier(treelite_model: treelite.Model) -> bool:
+    header = treelite_model.get_header_accessor()
+    return header.get_field("task_type") in (
+        TaskTypeEnum.kBinaryClf.value,
+        TaskTypeEnum.kMultiClf.value,
+    )
 
 
 cdef class ForestInference_impl():
@@ -376,16 +394,17 @@ class ForestInference:
             self._load(device="gpu", device_id=self.device_id)
 
     @property
-    def treelite_model(self):
+    def treelite_model(self) -> treelite.Model:
         try:
             return self._treelite_model_
         except AttributeError:
             return None
 
     @treelite_model.setter
-    def treelite_model(self, value):
+    def treelite_model(self, value: treelite.Model):
         if value is not None:
             self._treelite_model_ = value
+            self._is_classifier_ = _infer_is_classifier(self._treelite_model_)
             self._reload_model()
 
     @property
@@ -412,7 +431,6 @@ class ForestInference:
         *,
         raft_handle: Optional[RaftHandle] = None,
         treelite_model: Optional[treelite.Model] = None,
-        is_classifier: bool = False,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
@@ -421,7 +439,6 @@ class ForestInference:
         device_id: Optional[int] = None,
     ):
         self.raft_handle = RaftHandle() if raft_handle is None else raft_handle
-        self.is_classifier = is_classifier
         self.default_chunk_size = default_chunk_size
         self.align_bytes = align_bytes
         self.layout = layout
@@ -718,7 +735,6 @@ def load_model(
     *,
     model_type: Optional[str] = None,
     device: str = "auto",
-    is_classifier: bool = False,
     layout: str = "depth_first",
     default_chunk_size: Optional[int] = None,
     align_bytes: Optional[int] = None,
@@ -742,8 +758,6 @@ def load_model(
     device: {"auto", "gpu", "cpu"}, default="auto"
         Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
         be selected if it is available.
-    is_classifier : boolean, default=False
-        True for classification models, False for regressors
     layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
         The in-memory layout to be used during inference for nodes of the
         forest model. This parameter is available purely for runtime
@@ -803,7 +817,6 @@ def load_model(
     return ForestInference(
         raft_handle=raft_handle,
         treelite_model=tl_model,
-        is_classifier=is_classifier,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
@@ -817,7 +830,6 @@ def load_from_sklearn(
     skl_model: Any,
     *,
     device: str = "auto",
-    is_classifier: bool = False,
     layout: str = "depth_first",
     default_chunk_size: Optional[int] = None,
     align_bytes: Optional[int] = None,
@@ -834,8 +846,6 @@ def load_from_sklearn(
     device: {"auto", "gpu", "cpu"}, default="auto"
         Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
         be selected if it is available.
-    is_classifier : boolean, default=False
-        True for classification models, False for regressors
     layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
         The in-memory layout to be used during inference for nodes of the
         forest model. This parameter is available purely for runtime
@@ -868,7 +878,6 @@ def load_from_sklearn(
     return ForestInference(
         raft_handle=raft_handle,
         treelite_model=tl_model,
-        is_classifier=is_classifier,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
@@ -882,7 +891,6 @@ def load_from_treelite_model(
     tl_model: treelite.Model,
     *,
     device: str = "auto",
-    is_classifier: bool = False,
     layout: str = "depth_first",
     default_chunk_size: Optional[int] = None,
     align_bytes: Optional[int] = None,
@@ -899,8 +907,6 @@ def load_from_treelite_model(
     device: {"auto", "gpu", "cpu"}, default="auto"
         Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
         be selected if it is available.
-    is_classifier : boolean, default=False
-        True for classification models, False for regressors
     layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
         The in-memory layout to be used during inference for nodes of the
         forest model. This parameter is available purely for runtime
@@ -932,7 +938,6 @@ def load_from_treelite_model(
     return ForestInference(
         raft_handle=raft_handle,
         treelite_model=tl_model,
-        is_classifier=is_classifier,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
