@@ -160,7 +160,7 @@ def test_classification(
     dvalidation = xgb.DMatrix(X_validation, label=y_validation)
     xgb_proba = bst.predict(dvalidation)
 
-    fm = cuforest.load_model(model_path, is_classifier=True, device=device)
+    fm = cuforest.load_model(model_path, device=device)
 
     cuforest_proba = _get_numpy_array(fm.predict_proba(X_validation))
     cuforest_proba = np.reshape(cuforest_proba, xgb_proba.shape)
@@ -219,7 +219,7 @@ def test_regression(
     xgb_preds = bst.predict(dvalidation)
 
     fm = cuforest.load_model(
-        model_path, is_classifier=False, precision="single", device=device
+        model_path, precision="single", device=device
     )
 
     fil_preds = _get_numpy_array(fm.predict(X_validation))
@@ -302,7 +302,6 @@ def test_skl_classification(
     fm = cuforest.load_from_sklearn(
         skl_model,
         precision=precision,
-        is_classifier=True,
         device=device,
     )
 
@@ -380,7 +379,6 @@ def test_fil_skl_regression(
 
     fm = cuforest.load_from_sklearn(
         skl_model=skl_model,
-        is_classifier=False,
         precision="double",
         device=device,
     )
@@ -414,7 +412,6 @@ def test_precision_xgboost(device, precision, small_classifier_and_preds):
     fm = cuforest.load_model(
         model_path,
         model_type=model_type,
-        is_classifier=True,
         precision=precision,
         device=device,
     )
@@ -435,7 +432,6 @@ def test_performance_hyperparameters(
     fm = cuforest.load_model(
         model_path,
         layout=layout,
-        is_classifier=True,
         model_type=model_type,
         device=device,
     )
@@ -452,7 +448,6 @@ def test_chunk_size(chunk_size, small_classifier_and_preds):
     fm = cuforest.load_model(
         model_path,
         model_type=model_type,
-        is_classifier=True,
     )
 
     cuforest_preds = _get_numpy_array(fm.predict(X, chunk_size=chunk_size))
@@ -470,7 +465,7 @@ def test_chunk_size(chunk_size, small_classifier_and_preds):
 def test_output_args(device, small_classifier_and_preds):
     model_path, model_type, X, xgb_preds = small_classifier_and_preds
     fm = cuforest.load_model(
-        model_path, is_classifier=True, model_type=model_type, device=device
+        model_path, model_type=model_type, device=device
     )
     X = np.asarray(X)
     cuforest_preds = _get_numpy_array(fm.predict_proba(X))
@@ -573,7 +568,7 @@ def test_lightgbm(device, tmp_path, num_classes, n_categorical):
     lgm.fit(X_fit, y)
     lgm.booster_.save_model(model_path)
     fm = cuforest.load_model(
-        model_path, is_classifier=True, model_type="lightgbm", device=device
+        model_path, model_type="lightgbm", device=device
     )
     gbm_proba = lgm.predict_proba(X_predict)
     cuforest_proba = _get_numpy_array(fm.predict_proba(X_predict))
@@ -616,7 +611,7 @@ def test_predict_per_tree(device, n_classes, num_boost_round, tmp_path):
         n_classes=n_classes,
         xgboost_params=xgboost_params,
     )
-    fm = cuforest.load_model(model_path, is_classifier=True, device=device)
+    fm = cuforest.load_model(model_path, device=device)
     tl_model = treelite.frontend.from_xgboost(bst)
     pred_per_tree_tl = treelite.gtil.predict_per_tree(tl_model, X)
 
@@ -663,7 +658,7 @@ def test_predict_per_tree_with_vector_leaf(device, n_classes, tmp_path):
     tl_model = treelite.sklearn.import_model(skl_model)
     pred_per_tree_tl = treelite.gtil.predict_per_tree(tl_model, X)
     fm = cuforest.load_from_sklearn(
-        skl_model, precision="native", is_classifier=True, device=device
+        skl_model, precision="native", device=device
     )
 
     pred_per_tree = _get_numpy_array(fm.predict_per_tree(X))
@@ -703,7 +698,7 @@ def test_apply(device, n_classes, tmp_path):
     )
 
     fm = cuforest.load_model(
-        model_path, is_classifier=True, model_type="xgboost_ubj", device=device
+        model_path, model_type="xgboost_ubj", device=device
     )
 
     pred_leaf = _get_numpy_array(fm.apply(X).astype(np.int32))
@@ -723,7 +718,7 @@ def test_missing_categorical(category_list):
         leaf_output_type="float32",
         metadata=treelite.model_builder.Metadata(
             num_feature=1,
-            task_type="kBinaryClf",
+            task_type="kRegressor",
             average_tree_output=False,
             num_target=1,
             num_class=[1],
@@ -797,7 +792,6 @@ def test_device_selection(device_id, model_kind, tmp_path):
         fm = cuforest.load_from_sklearn(
             skl_model,
             precision="native",
-            is_classifier=True,
             device="gpu",
             device_id=device_id,
         )
@@ -812,7 +806,6 @@ def test_device_selection(device_id, model_kind, tmp_path):
             model_path,
             model_type="xgboost_ubj",
             precision="native",
-            is_classifier=True,
             device="gpu",
             device_id=device_id,
         )
@@ -859,5 +852,5 @@ def test_wide_data():
     clf.fit(X, y)
 
     # Inference should run without crashing
-    fm = cuforest.load_from_sklearn(clf, is_classifier=True)
+    fm = cuforest.load_from_sklearn(clf)
     _ = fm.predict(X)

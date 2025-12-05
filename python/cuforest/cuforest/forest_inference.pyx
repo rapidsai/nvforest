@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import pathlib
+from enum import Enum
 from typing import Union, Optional, Any
 
 from cuda.bindings import runtime
 import treelite
 import numpy as np
-from pylibraft.common.handle import Handle as RaftHandle
 
 from cuforest.detail.treelite import safe_treelite_call
+from cuforest.handle import Handle
 
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
@@ -67,6 +68,53 @@ cdef extern from "cuforest/treelite_importer.hpp" namespace "cuforest" nogil:
 
 
 DataType = Union[np.ndarray, "cupy.ndarray"]
+
+
+# TaskType enum class from Treelite
+class TaskTypeEnum(Enum):
+    kBinaryClf = 0
+    kRegressor = 1
+    kMultiClf = 2
+    kLearningToRank = 3
+    kIsolationForest = 4
+
+
+def _infer_is_classifier(treelite_model: treelite.Model) -> bool:
+    header = treelite_model.get_header_accessor()
+    return header.get_field("task_type") in (
+        TaskTypeEnum.kBinaryClf.value,
+        TaskTypeEnum.kMultiClf.value,
+    )
+
+
+def _detect_current_device(
+    require: bool
+) -> Optional[int]:
+    """
+    Query the currently active GPU.
+
+    Parameters
+    ----------
+    require:
+        Whether to raise an exception when no GPU is available.
+
+    Returns
+    -------
+    int or None
+        ID of the currently active GPU device, or None if no GPU is available.
+    """
+    status, current_device_id = runtime.cudaGetDevice()
+    if status != runtime.cudaError_t.cudaSuccess:
+        if not require:
+            return None
+        _, name = runtime.cudaGetErrorName(status)
+        _, msg = runtime.cudaGetErrorString(status)
+        name, msg = name.decode("utf-8"), msg.decode("utf-8")
+        raise RuntimeError(
+            f"Failed to detect a GPU device. Diagnostic:\n"
+            f"    {name}: {msg}"
+        )
+    return current_device_id
 
 
 cdef class ForestInference_impl():
@@ -376,16 +424,17 @@ class ForestInference:
             self._load(device="gpu", device_id=self.device_id)
 
     @property
-    def treelite_model(self):
+    def treelite_model(self) -> treelite.Model:
         try:
             return self._treelite_model_
         except AttributeError:
             return None
 
     @treelite_model.setter
-    def treelite_model(self, value):
+    def treelite_model(self, value: treelite.Model):
         if value is not None:
             self._treelite_model_ = value
+            self._is_classifier_ = _infer_is_classifier(self._treelite_model_)
             self._reload_model()
 
     @property
@@ -410,9 +459,8 @@ class ForestInference:
     def __init__(
         self,
         *,
-        raft_handle: Optional[RaftHandle] = None,
+        handle: Optional[Handle] = None,
         treelite_model: Optional[treelite.Model] = None,
-        is_classifier: bool = False,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
@@ -420,8 +468,7 @@ class ForestInference:
         device: str = "auto",
         device_id: Optional[int] = None,
     ):
-        self.raft_handle = RaftHandle() if raft_handle is None else raft_handle
-        self.is_classifier = is_classifier
+        self.handle = Handle() if handle is None else handle
         self.default_chunk_size = default_chunk_size
         self.align_bytes = align_bytes
         self.layout = layout
@@ -431,45 +478,15 @@ class ForestInference:
         self.treelite_model = treelite_model
         self._load(device=device, device_id=device_id)
 
-    @staticmethod
-    def _detect_current_device(
-        require: bool
-    ) -> Optional[int]:
-        """
-        Query the currently active GPU.
-
-        Parameters
-        ----------
-        require:
-            Whether to raise an exception when no GPU is available.
-
-        Returns
-        -------
-        int or None
-            ID of the currently active GPU device, or None if no GPU is available.
-        """
-        status, current_device_id = runtime.cudaGetDevice()
-        if status != runtime.cudaError_t.cudaSuccess:
-            if not require:
-                return None
-            _, name = runtime.cudaGetErrorName(status)
-            _, msg = runtime.cudaGetErrorString(status)
-            name, msg = name.decode("utf-8"), msg.decode("utf-8")
-            raise RuntimeError(
-                f"Failed to detect a GPU device. Diagnostic:\n"
-                f"    {name}: {msg}"
-            )
-        return current_device_id
-
     def _load(self, device, device_id):
         if device == "auto":
             # Auto mode: Use GPU if available; use CPU otherwise.
-            device_id = self._detect_current_device(require=False)
+            device_id = _detect_current_device(require=False)
             device = "cpu" if device_id is None else "gpu"
         elif device == "gpu" and device_id is None:
             # If no device ID is explicitly given, use the currently
             # active device
-            device_id = self._detect_current_device(require=True)
+            device_id = _detect_current_device(require=True)
 
         self.device_id = device_id if device == "gpu" else -1
 
@@ -481,7 +498,7 @@ class ForestInference:
             else:
                 raise ValueError("treelite_model should be either treelite.Model or bytes")
             impl = ForestInference_impl(
-                self.raft_handle,
+                self.handle,
                 treelite_model_bytes,
                 layout=self.layout,
                 align_bytes=self.align_bytes,
@@ -718,13 +735,12 @@ def load_model(
     *,
     model_type: Optional[str] = None,
     device: str = "auto",
-    is_classifier: bool = False,
     layout: str = "depth_first",
     default_chunk_size: Optional[int] = None,
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    raft_handle: Optional[RaftHandle] = None,
+    handle: Optional[Handle] = None,
 ) -> ForestInference:
     """Load a model into cuForest from a serialized model file.
 
@@ -742,8 +758,6 @@ def load_model(
     device: {"auto", "gpu", "cpu"}, default="auto"
         Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
         be selected if it is available.
-    is_classifier : boolean, default=False
-        True for classification models, False for regressors
     layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
         The in-memory layout to be used during inference for nodes of the
         forest model. This parameter is available purely for runtime
@@ -767,14 +781,17 @@ def load_model(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    raft_handle : pylibraft.common.handle or None
-        For GPU execution, the RAFT handle containing the stream or stream
+    handle : cuforest.Handle or None
+        For GPU execution, the cuForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
     model_path = pathlib.Path(model_file)
     if not model_path.exists():
-        raise ValueError(f"Model file {model_file} does not exist")
+        raise FileNotFoundError(f"Error: Model file '{model_file}' not found.")
+    # TODO(hcho3): Change this to use the match statement
+    #              once Cython supports structural pattern matching.
+    #              See https://github.com/cython/cython/issues/4029
     if model_type is None:
         extension = model_path.suffix
         if extension == ".json":
@@ -801,9 +818,8 @@ def load_model(
         raise ValueError(f"Unknown model type: {model_type}")
 
     return ForestInference(
-        raft_handle=raft_handle,
+        handle=handle,
         treelite_model=tl_model,
-        is_classifier=is_classifier,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
@@ -817,13 +833,12 @@ def load_from_sklearn(
     skl_model: Any,
     *,
     device: str = "auto",
-    is_classifier: bool = False,
     layout: str = "depth_first",
     default_chunk_size: Optional[int] = None,
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    raft_handle: Optional[RaftHandle] = None,
+    handle: Optional[Handle] = None,
 ) -> ForestInference:
     """Load a Scikit-Learn forest model to cuForest
 
@@ -834,8 +849,6 @@ def load_from_sklearn(
     device: {"auto", "gpu", "cpu"}, default="auto"
         Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
         be selected if it is available.
-    is_classifier : boolean, default=False
-        True for classification models, False for regressors
     layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
         The in-memory layout to be used during inference for nodes of the
         forest model. This parameter is available purely for runtime
@@ -859,16 +872,15 @@ def load_from_sklearn(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    raft_handle : pylibraft.common.handle or None
-        For GPU execution, the RAFT handle containing the stream or stream
+    handle : cuforest.Handle or None
+        For GPU execution, the cuForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
     tl_model = treelite.sklearn.import_model(skl_model)
     return ForestInference(
-        raft_handle=raft_handle,
+        handle=handle,
         treelite_model=tl_model,
-        is_classifier=is_classifier,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
@@ -882,13 +894,12 @@ def load_from_treelite_model(
     tl_model: treelite.Model,
     *,
     device: str = "auto",
-    is_classifier: bool = False,
     layout: str = "depth_first",
     default_chunk_size: Optional[int] = None,
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    raft_handle: Optional[RaftHandle] = None,
+    handle: Optional[Handle] = None,
 ) -> ForestInference:
     """Load a Treelite forest model to cuForest
 
@@ -899,8 +910,6 @@ def load_from_treelite_model(
     device: {"auto", "gpu", "cpu"}, default="auto"
         Whether to use GPU or CPU for inferencing. If set to "auto", GPU will
         be selected if it is available.
-    is_classifier : boolean, default=False
-        True for classification models, False for regressors
     layout : {"breadth_first", "depth_first", "layered"}, default="depth_first"
         The in-memory layout to be used during inference for nodes of the
         forest model. This parameter is available purely for runtime
@@ -924,15 +933,14 @@ def load_from_treelite_model(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    raft_handle : pylibraft.common.handle or None
-        For GPU execution, the RAFT handle containing the stream or stream
+    handle : cuforest.Handle or None
+        For GPU execution, the cuForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
     return ForestInference(
-        raft_handle=raft_handle,
+        handle=handle,
         treelite_model=tl_model,
-        is_classifier=is_classifier,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
