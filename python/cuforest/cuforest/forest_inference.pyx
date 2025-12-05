@@ -790,31 +790,29 @@ def load_model(
     if not model_path.exists():
         raise FileNotFoundError(f"Error: Model file '{model_file}' not found.")
     if model_type is None:
-        match model_path.suffix:
-            case ".json":
-                model_type = "xgboost_json"
-            case ".ubj":
-                model_type = "xgboost_ubj"
-            case ".model":
-                model_type = "xgboost"
-            case ".txt":
-                model_type = "lightgbm"
-            case _:
-                model_type = "treelite_checkpoint"
-
-    match model_type:
-        case "treelite_checkpoint":
-            tl_model = treelite.frontend.Model.deserialize(model_path)
-        case "xgboost_ubj":
-            tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="ubjson")
-        case "xgboost_json":
-            tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="json")
-        case "xgboost":
-            tl_model = treelite.frontend.load_xgboost_model_legacy_binary(model_path)
-        case "lightgbm":
-            tl_model = treelite.frontend.load_lightgbm_model(model_path)
-        case _:
-            raise ValueError(f"Unknown model type: {model_type}")
+        extension = model_path.suffix
+        if extension == ".json":
+            model_type = "xgboost_json"
+        elif extension == ".ubj":
+            model_type = "xgboost_ubj"
+        elif extension == ".model":
+            model_type = "xgboost"
+        elif extension == ".txt":
+            model_type = "lightgbm"
+        else:
+            model_type = "treelite_checkpoint"
+    if model_type == "treelite_checkpoint":
+        tl_model = treelite.frontend.Model.deserialize(model_path)
+    elif model_type == "xgboost_ubj":
+        tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="ubjson")
+    elif model_type == "xgboost_json":
+        tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="json")
+    elif model_type == "xgboost":
+        tl_model = treelite.frontend.load_xgboost_model_legacy_binary(model_path)
+    elif model_type == "lightgbm":
+        tl_model = treelite.frontend.load_lightgbm_model(model_path)
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
 
     return ForestInference(
         handle=handle,
