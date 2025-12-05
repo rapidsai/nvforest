@@ -788,7 +788,7 @@ def load_model(
     """
     model_path = pathlib.Path(model_file)
     if not model_path.exists():
-        raise ValueError(f"Model file {model_file} does not exist")
+        raise FileNotFoundError(f"Error: Model file '{model_file}' not found.")
     if model_type is None:
         match model_path.suffix:
             case ".json":
