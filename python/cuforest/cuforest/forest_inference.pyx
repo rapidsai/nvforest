@@ -87,6 +87,36 @@ def _infer_is_classifier(treelite_model: treelite.Model) -> bool:
     )
 
 
+def _detect_current_device(
+    require: bool
+) -> Optional[int]:
+    """
+    Query the currently active GPU.
+
+    Parameters
+    ----------
+    require:
+        Whether to raise an exception when no GPU is available.
+
+    Returns
+    -------
+    int or None
+        ID of the currently active GPU device, or None if no GPU is available.
+    """
+    status, current_device_id = runtime.cudaGetDevice()
+    if status != runtime.cudaError_t.cudaSuccess:
+        if not require:
+            return None
+        _, name = runtime.cudaGetErrorName(status)
+        _, msg = runtime.cudaGetErrorString(status)
+        name, msg = name.decode("utf-8"), msg.decode("utf-8")
+        raise RuntimeError(
+            f"Failed to detect a GPU device. Diagnostic:\n"
+            f"    {name}: {msg}"
+        )
+    return current_device_id
+
+
 cdef class ForestInference_impl():
     cdef forest_model model
     cdef raft_proto_handle_t raft_proto_handle
@@ -448,45 +478,15 @@ class ForestInference:
         self.treelite_model = treelite_model
         self._load(device=device, device_id=device_id)
 
-    @staticmethod
-    def _detect_current_device(
-        require: bool
-    ) -> Optional[int]:
-        """
-        Query the currently active GPU.
-
-        Parameters
-        ----------
-        require:
-            Whether to raise an exception when no GPU is available.
-
-        Returns
-        -------
-        int or None
-            ID of the currently active GPU device, or None if no GPU is available.
-        """
-        status, current_device_id = runtime.cudaGetDevice()
-        if status != runtime.cudaError_t.cudaSuccess:
-            if not require:
-                return None
-            _, name = runtime.cudaGetErrorName(status)
-            _, msg = runtime.cudaGetErrorString(status)
-            name, msg = name.decode("utf-8"), msg.decode("utf-8")
-            raise RuntimeError(
-                f"Failed to detect a GPU device. Diagnostic:\n"
-                f"    {name}: {msg}"
-            )
-        return current_device_id
-
     def _load(self, device, device_id):
         if device == "auto":
             # Auto mode: Use GPU if available; use CPU otherwise.
-            device_id = self._detect_current_device(require=False)
+            device_id = _detect_current_device(require=False)
             device = "cpu" if device_id is None else "gpu"
         elif device == "gpu" and device_id is None:
             # If no device ID is explicitly given, use the currently
             # active device
-            device_id = self._detect_current_device(require=True)
+            device_id = _detect_current_device(require=True)
 
         self.device_id = device_id if device == "gpu" else -1
 
