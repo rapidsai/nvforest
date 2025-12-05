@@ -15,6 +15,15 @@ else:
 
 from cuforest._version import __git_commit__, __version__
 
-from cuforest.forest_inference import ForestInference, load_model, load_from_sklearn, load_from_treelite_model
+from cuforest.forest_inference import (
+    ForestInference, load_model, load_from_sklearn, load_from_treelite_model
+)
+from cuforest.handle import Handle
 
-__all__ = ["ForestInference", "load_model", "load_from_sklearn", "load_from_treelite_model"]
+__all__ = [
+    "ForestInference",
+    "Handle",
+    "load_model",
+    "load_from_sklearn",
+    "load_from_treelite_model",
+]

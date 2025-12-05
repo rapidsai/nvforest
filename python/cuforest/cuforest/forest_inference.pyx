@@ -9,9 +9,9 @@ from typing import Union, Optional, Any
 from cuda.bindings import runtime
 import treelite
 import numpy as np
-from pylibraft.common.handle import Handle as RaftHandle
 
 from cuforest.detail.treelite import safe_treelite_call
+from cuforest.handle import Handle
 
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
@@ -459,7 +459,7 @@ class ForestInference:
     def __init__(
         self,
         *,
-        raft_handle: Optional[RaftHandle] = None,
+        handle: Optional[Handle] = None,
         treelite_model: Optional[treelite.Model] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
@@ -468,7 +468,7 @@ class ForestInference:
         device: str = "auto",
         device_id: Optional[int] = None,
     ):
-        self.raft_handle = RaftHandle() if raft_handle is None else raft_handle
+        self.handle = Handle() if handle is None else handle
         self.default_chunk_size = default_chunk_size
         self.align_bytes = align_bytes
         self.layout = layout
@@ -498,7 +498,7 @@ class ForestInference:
             else:
                 raise ValueError("treelite_model should be either treelite.Model or bytes")
             impl = ForestInference_impl(
-                self.raft_handle,
+                self.handle,
                 treelite_model_bytes,
                 layout=self.layout,
                 align_bytes=self.align_bytes,
@@ -740,7 +740,7 @@ def load_model(
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    raft_handle: Optional[RaftHandle] = None,
+    handle: Optional[Handle] = None,
 ) -> ForestInference:
     """Load a model into cuForest from a serialized model file.
 
@@ -781,8 +781,8 @@ def load_model(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    raft_handle : pylibraft.common.handle or None
-        For GPU execution, the RAFT handle containing the stream or stream
+    handle : cuforest.Handle or None
+        For GPU execution, the cuForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
@@ -817,7 +817,7 @@ def load_model(
             raise ValueError(f"Unknown model type: {model_type}")
 
     return ForestInference(
-        raft_handle=raft_handle,
+        handle=handle,
         treelite_model=tl_model,
         layout=layout,
         default_chunk_size=default_chunk_size,
@@ -837,7 +837,7 @@ def load_from_sklearn(
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    raft_handle: Optional[RaftHandle] = None,
+    handle: Optional[Handle] = None,
 ) -> ForestInference:
     """Load a Scikit-Learn forest model to cuForest
 
@@ -871,14 +871,14 @@ def load_from_sklearn(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    raft_handle : pylibraft.common.handle or None
-        For GPU execution, the RAFT handle containing the stream or stream
+    handle : cuforest.Handle or None
+        For GPU execution, the cuForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
     tl_model = treelite.sklearn.import_model(skl_model)
     return ForestInference(
-        raft_handle=raft_handle,
+        handle=handle,
         treelite_model=tl_model,
         layout=layout,
         default_chunk_size=default_chunk_size,
@@ -898,7 +898,7 @@ def load_from_treelite_model(
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    raft_handle: Optional[RaftHandle] = None,
+    handle: Optional[Handle] = None,
 ) -> ForestInference:
     """Load a Treelite forest model to cuForest
 
@@ -932,13 +932,13 @@ def load_from_treelite_model(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    raft_handle : pylibraft.common.handle or None
-        For GPU execution, the RAFT handle containing the stream or stream
+    handle : cuforest.Handle or None
+        For GPU execution, the cuForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
     return ForestInference(
-        raft_handle=raft_handle,
+        handle=handle,
         treelite_model=tl_model,
         layout=layout,
         default_chunk_size=default_chunk_size,
