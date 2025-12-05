@@ -789,6 +789,9 @@ def load_model(
     model_path = pathlib.Path(model_file)
     if not model_path.exists():
         raise FileNotFoundError(f"Error: Model file '{model_file}' not found.")
+    # TODO(hcho3): Change this to use the match statement
+    #              once Cython supports structural pattern matching.
+    #              See https://github.com/cython/cython/issues/4029
     if model_type is None:
         extension = model_path.suffix
         if extension == ".json":
