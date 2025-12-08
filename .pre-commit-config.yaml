@@ -1,0 +1,112 @@
+---
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-License-Identifier: Apache-2.0
+
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v5.0.0
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.14.3
+      hooks:
+          - id: ruff-check
+            args: [--fix]
+          - id: ruff-format
+    - repo: https://github.com/pycqa/isort
+      rev: 5.13.2
+      hooks:
+          - id: isort
+            files: python/.*
+            args: ["--settings-path", "python/cuforest/pyproject.toml"]
+    - repo: https://github.com/MarcoGorelli/cython-lint
+      rev: v0.16.6
+      hooks:
+          - id: cython-lint
+    - repo: https://github.com/pre-commit/mirrors-clang-format
+      rev: v20.1.4
+      hooks:
+          - id: clang-format
+            types_or: [c, c++, cuda]
+            args: ["-fallback-style=none", "-style=file", "-i"]
+    - repo: https://github.com/codespell-project/codespell
+      rev: v2.2.2
+      hooks:
+          - id: codespell
+            additional_dependencies: [tomli]
+            args: ["--toml", "pyproject.toml"]
+    - repo: local
+      hooks:
+          - id: no-deprecationwarning
+            name: no-deprecationwarning
+            description: 'Enforce that DeprecationWarning is not introduced (use FutureWarning instead)'
+            entry: '(category=|\s)DeprecationWarning[,)]'
+            language: pygrep
+            types_or: [python, cython]
+            exclude: (^|/)tests?/
+          - id: cmake-format
+            name: cmake-format
+            entry: ./cpp/scripts/run-cmake-format.sh cmake-format
+            language: python
+            types: [cmake]
+            exclude: .*/thirdparty/.*
+            # Note that pre-commit autoupdate does not update the versions
+            # of dependencies, so we'll have to update this manually.
+            additional_dependencies:
+              - cmakelang==0.6.13
+            verbose: true
+            require_serial: true
+          - id: cmake-lint
+            name: cmake-lint
+            entry: ./cpp/scripts/run-cmake-format.sh cmake-lint
+            language: python
+            types: [cmake]
+            # Note that pre-commit autoupdate does not update the versions
+            # of dependencies, so we'll have to update this manually.
+            additional_dependencies:
+              - cmakelang==0.6.13
+            verbose: true
+            require_serial: true
+            exclude: .*/thirdparty/.*
+          - id: no-import-in-pxd
+            name: no-import-in-pxd
+            description: "Don't use `import` in .pxd files, only `cimport` statements make sense here"
+            entry: '^import | import '
+            language: pygrep
+            files: "^.*.pxd$"
+    - repo: https://github.com/rapidsai/pre-commit-hooks
+      rev: v1.1.0
+      hooks:
+        - id: verify-copyright
+          name: verify-copyright-cuforest
+          args: [--fix, --spdx]
+          files: |
+            (?x)
+              [.](cmake|c|cpp|cu|cuh|h|hpp|sh|pxd|py|pyx|bat)$|
+              CMakeLists[.]txt$|
+              CMakeLists_standalone[.]txt$|
+              [.]flake8[.]cython$|
+              meta[.]yaml$|
+              ^[.]pre-commit-config[.]yaml$|
+              [.]flake8$|
+              pyproject[.]toml$|
+              recipe[.]yaml$|
+              Makefile$|
+              dependencies[.]yaml$|
+              pytest[.]ini$
+        - id: verify-alpha-spec
+    - repo: https://github.com/rapidsai/dependency-file-generator
+      rev: v1.20.0
+      hooks:
+          - id: rapids-dependency-file-generator
+            args: ["--clean", "--warn-all", "--strict"]
+    - repo: https://github.com/shellcheck-py/shellcheck-py
+      rev: v0.10.0.1
+      hooks:
+        - id: shellcheck
+          args: ["--severity=warning"]
+
+default_language_version:
+    python: python3
+

@@ -1,0 +1,19 @@
+# https://github.com/actions/labeler#common-examples
+# Labels for automatic PR labeling
+
+Cython / Python:
+  - 'python/**'
+
+CUDA/C++:
+  - 'cpp/**'
+
+CMake:
+  - '**/CMakeLists.txt'
+  - '**/cmake/**'
+
+ci:
+  - 'ci/**'
+
+conda:
+  - 'conda/**'
+
