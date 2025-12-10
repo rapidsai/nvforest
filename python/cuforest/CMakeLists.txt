@@ -70,7 +70,7 @@ set(linked_libraries "cuforest::${CUFOREST_CPP_TARGET}" "${CUFOREST_PYTHON_TREEL
 
 rapids_cython_create_modules(
   CXX
-  SOURCE_FILES "cuforest/forest_inference.pyx"
+  SOURCE_FILES "cuforest/forest_inference_impl.pyx"
   LINKED_LIBRARIES "${linked_libraries}"
   INSTALL_DIR cuforest
   MODULE_PREFIX cuforest_

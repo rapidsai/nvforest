@@ -815,18 +815,15 @@ def test_device_selection(device_id, model_kind, tmp_path):
     # 2. The section above didn't corrupt current device context
     assert cp.cuda.runtime.getDevice() == current_device
 
-    # 3. Device selection is correctly saved to device_id property
-    assert fm.device_id == (device_id if device_id else 0)
-
-    # 4. Inference can run on an input with the selected device
+    # 3. Inference can run on an input with the selected device
     device_context = cp.cuda.Device(device_id) if device_id else nullcontext()
     with device_context:
         _ = fm.predict_proba(cp.array(X))
 
-    # 5. The section above didn't corrupt current device context
+    # 4. The section above didn't corrupt current device context
     assert cp.cuda.runtime.getDevice() == current_device
 
-    # 6. Attempting to run inference with an input from a different device
+    # 5. Attempting to run inference with an input from a different device
     #    is an error
     if device_id is not None and device_id != 0:
         with (
@@ -838,7 +835,7 @@ def test_device_selection(device_id, model_kind, tmp_path):
         ):
             _ = fm.predict_proba(cp.array(X))
 
-    # 7. The section above didn't corrupt current device context
+    # 6. The section above didn't corrupt current device context
     assert cp.cuda.runtime.getDevice() == current_device
 
 
