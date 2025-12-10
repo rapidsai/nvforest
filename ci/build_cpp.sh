@@ -15,7 +15,8 @@ rapids-logger "Begin cpp build"
 
 sccache --stop-server 2>/dev/null || true
 
-RAPIDS_PACKAGE_VERSION=$(rapids-generate-version)
+# TODO(hcho3): Use rapids-generate-version once cuForest has a git tag
+RAPIDS_PACKAGE_VERSION=$(cat VERSION)
 export RAPIDS_PACKAGE_VERSION
 
 # populates `RATTLER_CHANNELS` array and `RATTLER_ARGS` array
