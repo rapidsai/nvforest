@@ -1,18 +1,18 @@
-from typing import Union, Optional, Any
 import pathlib
+from typing import Any, Optional, Union
 
 import treelite
 
-from cuforest.handle import Handle
 from cuforest.base import ForestInference
 from cuforest.forest_inference import (
-    _infer_is_classifier,
-    _infer_device,
     CPUForestInferenceClassifier,
     CPUForestInferenceRegressor,
     GPUForestInferenceClassifier,
     GPUForestInferenceRegressor,
+    _infer_device,
+    _infer_is_classifier,
 )
+from cuforest.handle import Handle
 
 
 def _get_forest_inference_class(device, is_classifier) -> type:
@@ -55,6 +55,7 @@ def _make_forest_inference_object(
         kwargs["device_id"] = device_id
 
     return _get_forest_inference_class(device, is_classifier)(**kwargs)
+
 
 def load_model(
     model_file: Union[str, pathlib.Path],
@@ -131,11 +132,17 @@ def load_model(
         case "treelite_checkpoint":
             tl_model = treelite.frontend.Model.deserialize(model_path)
         case "xgboost_ubj":
-            tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="ubjson")
+            tl_model = treelite.frontend.load_xgboost_model(
+                model_path, format_choice="ubjson"
+            )
         case "xgboost_json":
-            tl_model = treelite.frontend.load_xgboost_model(model_path, format_choice="json")
+            tl_model = treelite.frontend.load_xgboost_model(
+                model_path, format_choice="json"
+            )
         case "xgboost":
-            tl_model = treelite.frontend.load_xgboost_model_legacy_binary(model_path)
+            tl_model = treelite.frontend.load_xgboost_model_legacy_binary(
+                model_path
+            )
         case "lightgbm":
             tl_model = treelite.frontend.load_lightgbm_model(model_path)
         case _:

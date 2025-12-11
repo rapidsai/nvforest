@@ -1,13 +1,13 @@
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
-from cuda.bindings import runtime
 import treelite
+from cuda.bindings import runtime
 
 from cuforest.base import ForestInferenceClassifier, ForestInferenceRegressor
-from cuforest.typing import DataType
-from cuforest.handle import Handle
 from cuforest.forest_inference_impl import _ForestInferenceImpl
+from cuforest.handle import Handle
+from cuforest.typing import DataType
 
 
 # TaskType enum class from Treelite
@@ -27,9 +27,7 @@ def _infer_is_classifier(treelite_model: treelite.Model) -> bool:
     )
 
 
-def _detect_current_device(
-    require: bool
-) -> Optional[int]:
+def _detect_current_device(require: bool) -> Optional[int]:
     """
     Query the currently active GPU.
 
@@ -89,7 +87,9 @@ class _ClassifierMixin:
         return result
 
 
-class CPUForestInferenceClassifier(ForestInferenceClassifier, _ClassifierMixin):
+class CPUForestInferenceClassifier(
+    ForestInferenceClassifier, _ClassifierMixin
+):
     def __init__(
         self,
         *,
@@ -237,7 +237,9 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor):
         return self.forest.precision
 
 
-class GPUForestInferenceClassifier(ForestInferenceClassifier, _ClassifierMixin):
+class GPUForestInferenceClassifier(
+    ForestInferenceClassifier, _ClassifierMixin
+):
     def __init__(
         self,
         *,
