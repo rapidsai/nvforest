@@ -29,9 +29,9 @@ from cuforest.detail.treelite cimport (
     TreeliteFreeModel,
     TreeliteModelHandle,
 )
-from cuforest.infer_kind cimport infer_kind
-from cuforest.postprocessing cimport element_op, row_op
-from cuforest.tree_layout cimport tree_layout as cuforest_tree_layout
+from cuforest.detail.infer_kind cimport infer_kind
+from cuforest.detail.postprocessing cimport element_op, row_op
+from cuforest.detail.tree_layout cimport tree_layout as cuforest_tree_layout
 
 
 cdef extern from "cuforest/forest_model.hpp" namespace "cuforest" nogil:

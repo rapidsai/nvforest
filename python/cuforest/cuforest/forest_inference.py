@@ -5,7 +5,7 @@ import treelite
 from cuda.bindings import runtime
 
 from cuforest.base import ForestInferenceClassifier, ForestInferenceRegressor
-from cuforest.forest_inference_impl import _ForestInferenceImpl
+from cuforest.detail.forest_inference import _ForestInferenceImpl
 from cuforest.handle import Handle
 from cuforest.typing import DataType
 
