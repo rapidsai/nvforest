@@ -72,14 +72,12 @@ rapids_cython_create_modules(
   CXX
   SOURCE_FILES "cuforest/forest_inference.pyx"
   LINKED_LIBRARIES "${linked_libraries}"
-  INSTALL_DIR cuforest
-  MODULE_PREFIX cuforest_
+  INSTALL_DIR cuforest MODULE_PREFIX cuforest_
 )
 
 rapids_cython_create_modules(
   CXX
   SOURCE_FILES "cuforest/detail/treelite.pyx"
   LINKED_LIBRARIES "${linked_libraries}"
-  INSTALL_DIR cuforest/detail
-  MODULE_PREFIX cuforest_
+  INSTALL_DIR cuforest/detail MODULE_PREFIX cuforest_
 )

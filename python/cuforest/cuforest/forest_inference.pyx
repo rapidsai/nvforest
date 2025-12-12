@@ -4,11 +4,11 @@
 #
 import pathlib
 from enum import Enum
-from typing import Union, Optional, Any
+from typing import Any, Optional, Union
 
-from cuda.bindings import runtime
-import treelite
 import numpy as np
+import treelite
+from cuda.bindings import runtime
 
 from cuforest.detail.treelite import safe_treelite_call
 from cuforest.handle import Handle
@@ -17,14 +17,14 @@ from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
 from pylibraft.common.handle cimport handle_t as raft_handle_t
 
-from cuforest.detail.raft_proto.handle cimport handle_t as raft_proto_handle_t
-from cuforest.detail.raft_proto.optional cimport nullopt, optional
 from cuforest.detail.raft_proto.cuda_stream cimport (
     cuda_stream as raft_proto_stream_t,
 )
 from cuforest.detail.raft_proto.device_type cimport (
     device_type as raft_proto_device_t,
 )
+from cuforest.detail.raft_proto.handle cimport handle_t as raft_proto_handle_t
+from cuforest.detail.raft_proto.optional cimport nullopt, optional
 from cuforest.detail.treelite cimport (
     TreeliteDeserializeModelFromBytes,
     TreeliteFreeModel,
@@ -33,6 +33,7 @@ from cuforest.detail.treelite cimport (
 from cuforest.infer_kind cimport infer_kind
 from cuforest.postprocessing cimport element_op, row_op
 from cuforest.tree_layout cimport tree_layout as cuforest_tree_layout
+
 
 cdef extern from "cuforest/forest_model.hpp" namespace "cuforest" nogil:
     cdef cppclass forest_model:

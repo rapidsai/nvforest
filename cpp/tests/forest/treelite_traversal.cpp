@@ -1,17 +1,6 @@
 /*
- * Copyright (c) 2023-2025, NVIDIA CORPORATION.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <cuforest/detail/integration/treelite.hpp>
@@ -410,7 +399,8 @@ TEST(ForestTraversal, depth_first)
   auto parents           = get_parents<traversal::forest_order::depth_first>();
   auto tree_indices      = get_tree_indices<traversal::forest_order::depth_first>();
   auto expected          = get_expected_for_each_result<traversal::forest_order::depth_first>();
-  EXPECT_EQ(get_categorical_count<traversal::forest_order::depth_first>(), SAMPLE_CATEGORICAL_COUNT);
+  EXPECT_EQ(get_categorical_count<traversal::forest_order::depth_first>(),
+            SAMPLE_CATEGORICAL_COUNT);
   for (auto i = std::size_t{}; i < expected.feature_or_output.size(); ++i) {
     EXPECT_EQ(feature_or_output[i], expected.feature_or_output[i]);
   }
@@ -432,7 +422,8 @@ TEST(ForestTraversal, breadth_first)
   auto parents           = get_parents<traversal::forest_order::breadth_first>();
   auto tree_indices      = get_tree_indices<traversal::forest_order::breadth_first>();
   auto expected          = get_expected_for_each_result<traversal::forest_order::breadth_first>();
-  EXPECT_EQ(get_categorical_count<traversal::forest_order::breadth_first>(), SAMPLE_CATEGORICAL_COUNT);
+  EXPECT_EQ(get_categorical_count<traversal::forest_order::breadth_first>(),
+            SAMPLE_CATEGORICAL_COUNT);
   for (auto i = std::size_t{}; i < expected.feature_or_output.size(); ++i) {
     EXPECT_EQ(feature_or_output[i], expected.feature_or_output[i]);
   }
@@ -449,11 +440,13 @@ TEST(ForestTraversal, breadth_first)
 
 TEST(ForestTraversal, layered_children_segregated)
 {
-  auto feature_or_output = get_feature_or_outputs<traversal::forest_order::layered_children_segregated>();
-  auto depths            = get_depths<traversal::forest_order::layered_children_segregated>();
-  auto parents           = get_parents<traversal::forest_order::layered_children_segregated>();
-  auto tree_indices      = get_tree_indices<traversal::forest_order::layered_children_segregated>();
-  auto expected = get_expected_for_each_result<traversal::forest_order::layered_children_segregated>();
+  auto feature_or_output =
+    get_feature_or_outputs<traversal::forest_order::layered_children_segregated>();
+  auto depths       = get_depths<traversal::forest_order::layered_children_segregated>();
+  auto parents      = get_parents<traversal::forest_order::layered_children_segregated>();
+  auto tree_indices = get_tree_indices<traversal::forest_order::layered_children_segregated>();
+  auto expected =
+    get_expected_for_each_result<traversal::forest_order::layered_children_segregated>();
   EXPECT_EQ(get_categorical_count<traversal::forest_order::layered_children_segregated>(),
             SAMPLE_CATEGORICAL_COUNT);
   for (auto i = std::size_t{}; i < expected.feature_or_output.size(); ++i) {
@@ -472,11 +465,13 @@ TEST(ForestTraversal, layered_children_segregated)
 
 TEST(ForestTraversal, layered_children_together)
 {
-  auto feature_or_output = get_feature_or_outputs<traversal::forest_order::layered_children_together>();
-  auto depths            = get_depths<traversal::forest_order::layered_children_together>();
-  auto parents           = get_parents<traversal::forest_order::layered_children_together>();
-  auto tree_indices      = get_tree_indices<traversal::forest_order::layered_children_together>();
-  auto expected          = get_expected_for_each_result<traversal::forest_order::layered_children_together>();
+  auto feature_or_output =
+    get_feature_or_outputs<traversal::forest_order::layered_children_together>();
+  auto depths       = get_depths<traversal::forest_order::layered_children_together>();
+  auto parents      = get_parents<traversal::forest_order::layered_children_together>();
+  auto tree_indices = get_tree_indices<traversal::forest_order::layered_children_together>();
+  auto expected =
+    get_expected_for_each_result<traversal::forest_order::layered_children_together>();
   EXPECT_EQ(get_categorical_count<traversal::forest_order::layered_children_together>(),
             SAMPLE_CATEGORICAL_COUNT);
   for (auto i = std::size_t{}; i < expected.feature_or_output.size(); ++i) {

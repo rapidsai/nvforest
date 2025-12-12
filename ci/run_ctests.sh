@@ -8,4 +8,3 @@ set -euo pipefail
 cd "${INSTALL_PREFIX:-${CONDA_PREFIX:-/usr}}/bin/gtests/libcuforest/"
 
 ctest --output-on-failure --no-tests=error "$@"
-

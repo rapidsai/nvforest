@@ -14,9 +14,11 @@ else:
     del libcuforest
 
 from cuforest._version import __git_commit__, __version__
-
 from cuforest.forest_inference import (
-    ForestInference, load_model, load_from_sklearn, load_from_treelite_model
+    ForestInference,
+    load_from_sklearn,
+    load_from_treelite_model,
+    load_model,
 )
 from cuforest.handle import Handle
 

@@ -44,4 +44,3 @@ timeout 20m ./ci/run_ctests.sh -j9 && EXITCODE=$? || EXITCODE=$?;
 
 rapids-logger "Test script exiting with value: $EXITCODE"
 exit "${EXITCODE}"
-

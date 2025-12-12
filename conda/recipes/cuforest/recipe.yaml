@@ -112,4 +112,3 @@ about:
   homepage: ${{ load_from_file("python/cuforest/pyproject.toml").project.urls.Homepage }}
   license: ${{ load_from_file("python/cuforest/pyproject.toml").project.license.text }}
   summary: ${{ load_from_file("python/cuforest/pyproject.toml").project.description }}
-

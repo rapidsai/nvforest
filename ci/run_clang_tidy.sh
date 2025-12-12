@@ -40,4 +40,3 @@ cmake \
 
 rapids-logger "Run clang-tidy"
 python cpp/scripts/run-clang-tidy.py
-

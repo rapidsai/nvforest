@@ -218,9 +218,7 @@ def test_regression(
     dvalidation = xgb.DMatrix(X_validation, label=y_validation)
     xgb_preds = bst.predict(dvalidation)
 
-    fm = cuforest.load_model(
-        model_path, precision="single", device=device
-    )
+    fm = cuforest.load_model(model_path, precision="single", device=device)
 
     fil_preds = _get_numpy_array(fm.predict(X_validation))
     fil_preds = np.reshape(fil_preds, np.shape(xgb_preds))
@@ -436,7 +434,9 @@ def test_performance_hyperparameters(
         device=device,
     )
 
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X, chunk_size=chunk_size))
+    cuforest_proba = _get_numpy_array(
+        fm.predict_proba(X, chunk_size=chunk_size)
+    )
     cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
 
     np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
@@ -464,9 +464,7 @@ def test_chunk_size(chunk_size, small_classifier_and_preds):
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
 def test_output_args(device, small_classifier_and_preds):
     model_path, model_type, X, xgb_preds = small_classifier_and_preds
-    fm = cuforest.load_model(
-        model_path, model_type=model_type, device=device
-    )
+    fm = cuforest.load_model(model_path, model_type=model_type, device=device)
     X = np.asarray(X)
     cuforest_preds = _get_numpy_array(fm.predict_proba(X))
     cuforest_preds = np.reshape(cuforest_preds, np.shape(xgb_preds))
@@ -567,9 +565,7 @@ def test_lightgbm(device, tmp_path, num_classes, n_categorical):
     )
     lgm.fit(X_fit, y)
     lgm.booster_.save_model(model_path)
-    fm = cuforest.load_model(
-        model_path, model_type="lightgbm", device=device
-    )
+    fm = cuforest.load_model(model_path, model_type="lightgbm", device=device)
     gbm_proba = lgm.predict_proba(X_predict)
     cuforest_proba = _get_numpy_array(fm.predict_proba(X_predict))
     # Given a binary classifier, cuForest produces the probability score

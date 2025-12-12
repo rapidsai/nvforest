@@ -82,7 +82,7 @@ repos:
             pass_filenames: false
             language: python
     - repo: https://github.com/rapidsai/pre-commit-hooks
-      rev: v1.1.0
+      rev: v1.2.1
       hooks:
         - id: verify-copyright
           name: verify-copyright

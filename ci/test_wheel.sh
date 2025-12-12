@@ -53,4 +53,3 @@ timeout 1h python -m pytest \
 
 rapids-logger "Test script exiting with value: $EXITCODE"
 exit ${EXITCODE}
-

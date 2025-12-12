@@ -8,4 +8,3 @@ python -m pytest \
   --cache-clear \
   "$@" \
   python/cuforest/tests/
-

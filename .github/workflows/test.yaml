@@ -61,4 +61,3 @@ jobs:
       sha: ${{ inputs.sha }}
       script: ci/test_wheel.sh
       sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
-

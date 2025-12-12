@@ -20,4 +20,3 @@ rapids-logger "validate packages with 'twine'"
 twine check \
     --strict \
     "$(echo "${wheel_dir_relative_path}"/*.whl)"
-
