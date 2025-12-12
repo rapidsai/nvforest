@@ -8,14 +8,16 @@ from typing import Optional, Union
 import numpy as np
 import treelite
 
+from cuforest._handle import Handle
+from cuforest._typing import DataType
 from cuforest.detail.treelite import safe_treelite_call
-from cuforest.handle import Handle
-from cuforest.typing import DataType
 
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
 from pylibraft.common.handle cimport handle_t as raft_handle_t
 
+from cuforest.detail.infer_kind cimport infer_kind
+from cuforest.detail.postprocessing cimport element_op, row_op
 from cuforest.detail.raft_proto.cuda_stream cimport (
     cuda_stream as raft_proto_stream_t,
 )
@@ -24,14 +26,12 @@ from cuforest.detail.raft_proto.device_type cimport (
 )
 from cuforest.detail.raft_proto.handle cimport handle_t as raft_proto_handle_t
 from cuforest.detail.raft_proto.optional cimport nullopt, optional
+from cuforest.detail.tree_layout cimport tree_layout as cuforest_tree_layout
 from cuforest.detail.treelite cimport (
     TreeliteDeserializeModelFromBytes,
     TreeliteFreeModel,
     TreeliteModelHandle,
 )
-from cuforest.detail.infer_kind cimport infer_kind
-from cuforest.detail.postprocessing cimport element_op, row_op
-from cuforest.detail.tree_layout cimport tree_layout as cuforest_tree_layout
 
 
 cdef extern from "cuforest/forest_model.hpp" namespace "cuforest" nogil:

@@ -4,10 +4,10 @@ from typing import Optional
 import treelite
 from cuda.bindings import runtime
 
-from cuforest.base import ForestInferenceClassifier, ForestInferenceRegressor
+from cuforest._base import ForestInferenceClassifier, ForestInferenceRegressor
+from cuforest._handle import Handle
+from cuforest._typing import DataType
 from cuforest.detail.forest_inference import _ForestInferenceImpl
-from cuforest.handle import Handle
-from cuforest.typing import DataType
 
 
 # TaskType enum class from Treelite

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from cuforest.typing import DataType
+from cuforest._typing import DataType
 
 
 class ForestInference(ABC):

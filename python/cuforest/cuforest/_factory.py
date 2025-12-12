@@ -3,8 +3,8 @@ from typing import Any, Optional, Union
 
 import treelite
 
-from cuforest.base import ForestInference
-from cuforest.forest_inference import (
+from cuforest._base import ForestInference
+from cuforest._forest_inference import (
     CPUForestInferenceClassifier,
     CPUForestInferenceRegressor,
     GPUForestInferenceClassifier,
@@ -12,7 +12,7 @@ from cuforest.forest_inference import (
     _infer_device,
     _infer_is_classifier,
 )
-from cuforest.handle import Handle
+from cuforest._handle import Handle
 
 
 def _get_forest_inference_class(device, is_classifier) -> type:
