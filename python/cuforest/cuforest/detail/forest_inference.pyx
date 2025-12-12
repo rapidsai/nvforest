@@ -271,7 +271,7 @@ cdef class ForestInference_impl():
         return preds
 
 
-class _ForestInferenceImpl:
+class ForestInferenceImpl:
     def __init__(
         self,
         *,

@@ -7,7 +7,7 @@ from cuda.bindings import runtime
 from cuforest._base import ForestInferenceClassifier, ForestInferenceRegressor
 from cuforest._handle import Handle
 from cuforest._typing import DataType
-from cuforest.detail.forest_inference import _ForestInferenceImpl
+from cuforest.detail.forest_inference import ForestInferenceImpl
 
 
 # TaskType enum class from Treelite
@@ -19,7 +19,7 @@ class TaskTypeEnum(Enum):
     kIsolationForest = 4
 
 
-def _infer_is_classifier(treelite_model: treelite.Model) -> bool:
+def infer_is_classifier(treelite_model: treelite.Model) -> bool:
     header = treelite_model.get_header_accessor()
     return header.get_field("task_type") in (
         TaskTypeEnum.kBinaryClf.value,
@@ -27,7 +27,7 @@ def _infer_is_classifier(treelite_model: treelite.Model) -> bool:
     )
 
 
-def _detect_current_device(require: bool) -> Optional[int]:
+def detect_current_device(require: bool) -> Optional[int]:
     """
     Query the currently active GPU.
 
@@ -55,24 +55,24 @@ def _detect_current_device(require: bool) -> Optional[int]:
     return current_device_id
 
 
-def _infer_device(
+def infer_device(
     device: str,
     device_id: Optional[int],
 ) -> tuple[str, int]:
     if device == "auto":
         # Auto mode: Use GPU if available; use CPU otherwise.
-        device_id = _detect_current_device(require=False)
+        device_id = detect_current_device(require=False)
         device = "cpu" if device_id is None else "gpu"
     elif device == "gpu" and device_id is None:
         # If no device ID is explicitly given, use the currently
         # active device
-        device_id = _detect_current_device(require=True)
+        device_id = detect_current_device(require=True)
     assert device in ("gpu", "cpu")
     return device, device_id
 
 
-class _ClassifierMixin:
-    def _get_class_assignment(
+class ClassifierMixin:
+    def get_class_assignment(
         self,
         raw_out: DataType,
         threshold: Optional[float] = None,
@@ -87,9 +87,7 @@ class _ClassifierMixin:
         return result
 
 
-class CPUForestInferenceClassifier(
-    ForestInferenceClassifier, _ClassifierMixin
-):
+class CPUForestInferenceClassifier(ForestInferenceClassifier, ClassifierMixin):
     def __init__(
         self,
         *,
@@ -100,9 +98,9 @@ class CPUForestInferenceClassifier(
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
     ):
-        if not _infer_is_classifier(treelite_model):
+        if not infer_is_classifier(treelite_model):
             raise ValueError(f"treelite_model must be a classifier.")
-        self.forest = _ForestInferenceImpl(
+        self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
             device_id=-1,
@@ -121,7 +119,7 @@ class CPUForestInferenceClassifier(
         threshold: Optional[float] = None,
     ) -> DataType:
         raw_out = self.forest.predict(X, chunk_size=chunk_size)
-        return self._get_class_assignment(raw_out, threshold=threshold)
+        return self.get_class_assignment(raw_out, threshold=threshold)
 
     def predict_proba(
         self,
@@ -179,9 +177,9 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor):
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
     ):
-        if _infer_is_classifier(treelite_model):
+        if infer_is_classifier(treelite_model):
             raise ValueError(f"treelite_model must be a regressor.")
-        self.forest = _ForestInferenceImpl(
+        self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
             device_id=-1,
@@ -237,9 +235,7 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor):
         return self.forest.precision
 
 
-class GPUForestInferenceClassifier(
-    ForestInferenceClassifier, _ClassifierMixin
-):
+class GPUForestInferenceClassifier(ForestInferenceClassifier, ClassifierMixin):
     def __init__(
         self,
         *,
@@ -251,9 +247,9 @@ class GPUForestInferenceClassifier(
         precision: Optional[str] = None,
         device_id: int,
     ):
-        if not _infer_is_classifier(treelite_model):
+        if not infer_is_classifier(treelite_model):
             raise ValueError(f"treelite_model must be a classifier.")
-        self.forest = _ForestInferenceImpl(
+        self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
             device_id=device_id,
@@ -272,7 +268,7 @@ class GPUForestInferenceClassifier(
         threshold: Optional[float] = None,
     ) -> DataType:
         raw_out = self.forest.predict(X, chunk_size=chunk_size)
-        return self._get_class_assignment(raw_out, threshold=threshold)
+        return self.get_class_assignment(raw_out, threshold=threshold)
 
     def predict_proba(
         self,
@@ -331,9 +327,9 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor):
         precision: Optional[str] = None,
         device_id: int,
     ):
-        if _infer_is_classifier(treelite_model):
+        if infer_is_classifier(treelite_model):
             raise ValueError(f"treelite_model must be a regressor.")
-        self.forest = _ForestInferenceImpl(
+        self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
             device_id=device_id,

@@ -9,13 +9,13 @@ from cuforest._forest_inference import (
     CPUForestInferenceRegressor,
     GPUForestInferenceClassifier,
     GPUForestInferenceRegressor,
-    _infer_device,
-    _infer_is_classifier,
+    infer_device,
+    infer_is_classifier,
 )
 from cuforest._handle import Handle
 
 
-def _get_forest_inference_class(device, is_classifier) -> type:
+def get_forest_inference_class(device, is_classifier) -> type:
     match (device, is_classifier):
         case ("cpu", True):
             return CPUForestInferenceClassifier
@@ -29,7 +29,7 @@ def _get_forest_inference_class(device, is_classifier) -> type:
             raise ValueError(f"Unknown device configuration: '{device}'")
 
 
-def _make_forest_inference_object(
+def make_forest_inference_object(
     *,
     treelite_model: treelite.Model,
     device: str,
@@ -40,8 +40,8 @@ def _make_forest_inference_object(
     align_bytes: Optional[int],
     precision: Optional[str],
 ) -> ForestInference:
-    device, device_id = _infer_device(device, device_id)
-    is_classifier = _infer_is_classifier(treelite_model)
+    device, device_id = infer_device(device, device_id)
+    is_classifier = infer_is_classifier(treelite_model)
 
     kwargs = dict(
         treelite_model=treelite_model,
@@ -54,7 +54,7 @@ def _make_forest_inference_object(
     if device == "gpu":
         kwargs["device_id"] = device_id
 
-    return _get_forest_inference_class(device, is_classifier)(**kwargs)
+    return get_forest_inference_class(device, is_classifier)(**kwargs)
 
 
 def load_model(
@@ -148,7 +148,7 @@ def load_model(
         case _:
             raise ValueError(f"Unknown model type: {model_type}")
 
-    return _make_forest_inference_object(
+    return make_forest_inference_object(
         treelite_model=tl_model,
         device=device,
         device_id=device_id,
@@ -210,7 +210,7 @@ def load_from_sklearn(
     """
     tl_model = treelite.sklearn.import_model(skl_model)
 
-    return _make_forest_inference_object(
+    return make_forest_inference_object(
         treelite_model=tl_model,
         device=device,
         device_id=device_id,
@@ -270,7 +270,7 @@ def load_from_treelite_model(
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
-    return _make_forest_inference_object(
+    return make_forest_inference_object(
         treelite_model=tl_model,
         device=device,
         device_id=device_id,
