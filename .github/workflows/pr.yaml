@@ -77,6 +77,7 @@ jobs:
     uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@main
     with:
       enable_check_generated_files: false
+      enable_check_version_against_tag: false # TODO: Take this out after first release
       ignored_pr_jobs: >-
         telemetry-summarize
   clang-tidy:
