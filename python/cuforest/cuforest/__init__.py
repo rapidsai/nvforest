@@ -13,17 +13,25 @@ else:
     libcuforest.load_library()
     del libcuforest
 
-from cuforest._version import __git_commit__, __version__
-from cuforest.forest_inference import (
-    ForestInference,
+from cuforest._factory import (
     load_from_sklearn,
     load_from_treelite_model,
     load_model,
 )
-from cuforest.handle import Handle
+from cuforest._forest_inference import (
+    CPUForestInferenceClassifier,
+    CPUForestInferenceRegressor,
+    GPUForestInferenceClassifier,
+    GPUForestInferenceRegressor,
+)
+from cuforest._handle import Handle
+from cuforest._version import __git_commit__, __version__
 
 __all__ = [
-    "ForestInference",
+    "CPUForestInferenceClassifier",
+    "CPUForestInferenceRegressor",
+    "GPUForestInferenceClassifier",
+    "GPUForestInferenceRegressor",
     "Handle",
     "load_model",
     "load_from_sklearn",
