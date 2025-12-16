@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from enum import Enum
 from typing import Optional
 
@@ -49,8 +52,7 @@ def detect_current_device(require: bool) -> Optional[int]:
         _, msg = runtime.cudaGetErrorString(status)
         name, msg = name.decode("utf-8"), msg.decode("utf-8")
         raise RuntimeError(
-            f"Failed to detect a GPU device. Diagnostic:\n"
-            f"    {name}: {msg}"
+            f"Failed to detect a GPU device. Diagnostic:\n    {name}: {msg}"
         )
     return current_device_id
 
@@ -99,7 +101,7 @@ class CPUForestInferenceClassifier(ForestInferenceClassifier, ClassifierMixin):
         precision: Optional[str] = None,
     ):
         if not infer_is_classifier(treelite_model):
-            raise ValueError(f"treelite_model must be a classifier.")
+            raise ValueError("treelite_model must be a classifier.")
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
@@ -178,7 +180,7 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor):
         precision: Optional[str] = None,
     ):
         if infer_is_classifier(treelite_model):
-            raise ValueError(f"treelite_model must be a regressor.")
+            raise ValueError("treelite_model must be a regressor.")
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
@@ -248,7 +250,7 @@ class GPUForestInferenceClassifier(ForestInferenceClassifier, ClassifierMixin):
         device_id: int,
     ):
         if not infer_is_classifier(treelite_model):
-            raise ValueError(f"treelite_model must be a classifier.")
+            raise ValueError("treelite_model must be a classifier.")
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
@@ -328,7 +330,7 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor):
         device_id: int,
     ):
         if infer_is_classifier(treelite_model):
-            raise ValueError(f"treelite_model must be a regressor.")
+            raise ValueError("treelite_model must be a regressor.")
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
