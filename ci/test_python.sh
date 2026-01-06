@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 
 set -euo pipefail
@@ -59,7 +59,6 @@ timeout 1h ./ci/run_cuforest_pytests.sh \
   --numprocesses=8 \
   --dist=worksteal \
   --junitxml="${RAPIDS_TESTS_DIR}/junit-cuforest.xml" \
-  --cov-config=../.coveragerc \
   --cov=cuforest \
   --cov-report=xml:"${RAPIDS_COVERAGE_DIR}/cuforest-coverage.xml"
 
