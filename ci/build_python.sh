@@ -11,8 +11,6 @@ export CMAKE_GENERATOR=Ninja
 
 rapids-print-env
 
-rapids-generate-version > ./VERSION
-
 rapids-logger "Begin py build"
 
 CPP_CHANNEL=$(rapids-download-conda-from-github cpp)
