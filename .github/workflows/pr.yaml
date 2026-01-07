@@ -13,7 +13,7 @@ jobs:
       # - check-nightly-ci
       - changed-files
       - checks
-      # - clang-tidy
+      - clang-tidy
       # - conda-cpp-build
       # - conda-cpp-tests
       # - conda-cpp-checks
@@ -80,16 +80,16 @@ jobs:
       enable_check_version_against_tag: false # TODO: Take this out after first release
       ignored_pr_jobs: >-
         telemetry-summarize
-  # clang-tidy:
-  #   needs: checks
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/custom-job.yaml@cuda-13.1.0
-  #   with:
-  #     build_type: pull-request
-  #     node_type: "cpu8"
-  #     arch: "amd64"
-  #     container_image: "rapidsai/ci-conda:26.02-latest"
-  #     script: "ci/run_clang_tidy.sh"
+  clang-tidy:
+    needs: checks
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/custom-job.yaml@cuda-13.1.0
+    with:
+      build_type: pull-request
+      node_type: "cpu8"
+      arch: "amd64"
+      container_image: "rapidsai/ci-conda:26.02-latest"
+      script: "ci/run_clang_tidy.sh"
   # conda-cpp-build:
   #   needs: checks
   #   secrets: inherit
