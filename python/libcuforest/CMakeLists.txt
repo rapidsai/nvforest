@@ -48,8 +48,7 @@ set(CUDA_STATIC_MATH_LIBRARIES OFF)
 
 add_subdirectory(../../cpp cuforest-cpp)
 
-# assumes libcuforest++ is installed 2 levels deep, e.g.
-# site-packages/cuforest/lib64/libcuforest++.so
+# assumes libcuforest++ is installed 2 levels deep, e.g. site-packages/cuforest/lib64/libcuforest++.so
 if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL 13.0)
   # starting with CTK 13 wheels, all libraries except NCCL are grouped in this 'nvidia/cu13/lib' directory
   set(rpaths "$ORIGIN/../../nvidia/cu13/lib")

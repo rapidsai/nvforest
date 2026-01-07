@@ -25,8 +25,7 @@ function(find_and_configure_treelite)
     GIT_REPOSITORY https://github.com/dmlc/treelite.git
     GIT_TAG ${PKG_PINNED_TAG}
     EXCLUDE_FROM_ALL ${PKG_EXCLUDE_FROM_ALL}
-    OPTIONS "USE_OPENMP ON" "Treelite_BUILD_STATIC_LIBS ${PKG_BUILD_STATIC_LIBS}"
-  )
+    OPTIONS "USE_OPENMP ON" "Treelite_BUILD_STATIC_LIBS ${PKG_BUILD_STATIC_LIBS}")
 
   list(APPEND TREELITE_LIBS_NO_PREFIX treelite)
   if(Treelite_ADDED AND PKG_BUILD_STATIC_LIBS)
@@ -35,26 +34,20 @@ function(find_and_configure_treelite)
 
   set(Treelite_ADDED
       ${Treelite_ADDED}
-      PARENT_SCOPE
-  )
+      PARENT_SCOPE)
   set(TREELITE_LIBS
       ${TREELITE_LIBS}
-      PARENT_SCOPE
-  )
+      PARENT_SCOPE)
   if(Treelite_ADDED)
     if(NOT PKG_BUILD_STATIC_LIBS)
-      target_include_directories(
-        treelite PUBLIC $<BUILD_INTERFACE:${Treelite_SOURCE_DIR}/include>
-                        $<BUILD_INTERFACE:${Treelite_BINARY_DIR}/include>
-      )
+      target_include_directories(treelite PUBLIC $<BUILD_INTERFACE:${Treelite_SOURCE_DIR}/include>
+                                                 $<BUILD_INTERFACE:${Treelite_BINARY_DIR}/include>)
       if(NOT TARGET treelite::treelite)
         add_library(treelite::treelite ALIAS treelite)
       endif()
     else()
-      target_include_directories(
-        treelite_static PUBLIC $<BUILD_INTERFACE:${Treelite_SOURCE_DIR}/include>
-                               $<BUILD_INTERFACE:${Treelite_BINARY_DIR}/include>
-      )
+      target_include_directories(treelite_static PUBLIC $<BUILD_INTERFACE:${Treelite_SOURCE_DIR}/include>
+                                                        $<BUILD_INTERFACE:${Treelite_BINARY_DIR}/include>)
       if(NOT TARGET treelite::treelite_static)
         add_library(treelite::treelite_static ALIAS treelite_static)
       endif()
@@ -64,22 +57,23 @@ function(find_and_configure_treelite)
       BUILD Treelite
       EXPORT_SET TreeliteTargets
       GLOBAL_TARGETS ${TREELITE_LIBS_NO_PREFIX}
-      NAMESPACE treelite::
-    )
+      NAMESPACE treelite::)
   endif()
 
-  # We generate the treelite-config files when we built treelite locally, so always do
-  # `find_dependency`
+  # We generate the treelite-config files when we built treelite locally, so always do `find_dependency`
   rapids_export_package(BUILD Treelite cuforest-exports)
 
   # Tell cmake where it can find the generated treelite-config.cmake we wrote.
   include("${rapids-cmake-dir}/export/find_package_root.cmake")
-  rapids_export_find_package_root(
-    BUILD Treelite [=[${CMAKE_CURRENT_LIST_DIR}]=] EXPORT_SET cuforest-exports
-  )
+  rapids_export_find_package_root(BUILD Treelite [=[${CMAKE_CURRENT_LIST_DIR}]=] EXPORT_SET cuforest-exports)
 endfunction()
 
 find_and_configure_treelite(
-  VERSION 4.6.1 PINNED_TAG e14222bfdf02cba3ece0f3692f3574711cab0fc2 EXCLUDE_FROM_ALL ${CUFOREST}
-  BUILD_STATIC_LIBS ${CUFOREST_USE_TREELITE_STATIC}
-)
+  VERSION
+  4.6.1
+  PINNED_TAG
+  e14222bfdf02cba3ece0f3692f3574711cab0fc2
+  EXCLUDE_FROM_ALL
+  ${CUFOREST}
+  BUILD_STATIC_LIBS
+  ${CUFOREST_USE_TREELITE_STATIC})
