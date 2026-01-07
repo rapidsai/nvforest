@@ -1,10 +1,9 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2018-2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
 
 import pytest
-
 
 # =============================================================================
 # Pytest Hooks and Configuration
@@ -73,9 +72,7 @@ def pytest_collection_modifyitems(config, items):
 
     # Mark the tests as "skip" if needed
     if not should_run_unit:
-        skip_unit = pytest.mark.skip(
-            reason="Unit tests run with --run_unit flag."
-        )
+        skip_unit = pytest.mark.skip(reason="Unit tests run with --run_unit flag.")
         for item in items:
             if "unit" in item.keywords:
                 item.add_marker(skip_unit)

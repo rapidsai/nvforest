@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 
 set -euo pipefail
@@ -53,4 +53,3 @@ timeout 1h python -m pytest \
 
 rapids-logger "Test script exiting with value: $EXITCODE"
 exit ${EXITCODE}
-

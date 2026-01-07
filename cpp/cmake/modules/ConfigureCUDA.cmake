@@ -1,38 +1,37 @@
-#=============================================================================
-# Copyright (c) 2018-2025, NVIDIA CORPORATION.
+# =============================================================================
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026, NVIDIA CORPORATION. SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#=============================================================================
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+# =============================================================================
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    list(APPEND CUFOREST_CXX_FLAGS -Wall -Werror -Wno-unknown-pragmas)
-    if(CUFOREST_BUILD_TESTS OR CUFOREST_BUILD_BENCHMARKS)
-        # Suppress parentheses warning which causes gmock to fail
-        list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=-Wno-parentheses)
-    endif()
+  list(APPEND CUFOREST_CXX_FLAGS -Wall -Werror -Wno-unknown-pragmas)
+  if(CUFOREST_BUILD_TESTS OR CUFOREST_BUILD_BENCHMARKS)
+    # Suppress parentheses warning which causes gmock to fail
+    list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=-Wno-parentheses)
+  endif()
 endif()
 
 list(APPEND CUFOREST_CUDA_FLAGS --expt-extended-lambda --expt-relaxed-constexpr)
 
 # set warnings as errors
 if(CUDA_WARNINGS_AS_ERRORS)
-    list(APPEND CUFOREST_CUDA_FLAGS -Werror=all-warnings)
+  list(APPEND CUFOREST_CUDA_FLAGS -Werror=all-warnings)
 endif()
 list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=-Wall,-Werror,-Wno-error=deprecated-declarations,-Wno-error=sign-compare)
 
 if(DISABLE_DEPRECATION_WARNINGS)
-    list(APPEND CUFOREST_CXX_FLAGS -Wno-deprecated-declarations -DRAFT_HIDE_DEPRECATION_WARNINGS)
-    list(APPEND CUFOREST_CUDA_FLAGS -Wno-deprecated-declarations -Xcompiler=-Wno-deprecated-declarations -DRAFT_HIDE_DEPRECATION_WARNINGS)
+  list(APPEND CUFOREST_CXX_FLAGS -Wno-deprecated-declarations -DRAFT_HIDE_DEPRECATION_WARNINGS)
+  list(APPEND CUFOREST_CUDA_FLAGS -Wno-deprecated-declarations -Xcompiler=-Wno-deprecated-declarations
+       -DRAFT_HIDE_DEPRECATION_WARNINGS)
 endif()
 
 # make sure we produce smallest binary size
@@ -49,11 +48,11 @@ if(CUDA_ENABLE_KERNEL_INFO)
 endif()
 
 if(OpenMP_FOUND)
-    list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=${OpenMP_CXX_FLAGS})
+  list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=${OpenMP_CXX_FLAGS})
 endif()
 
 # Debug options
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-    message(VERBOSE "CUFOREST: Building with debugging flags")
-    list(APPEND CUFOREST_CUDA_FLAGS -G -Xcompiler=-rdynamic)
+  message(VERBOSE "CUFOREST: Building with debugging flags")
+  list(APPEND CUFOREST_CUDA_FLAGS -G -Xcompiler=-rdynamic)
 endif()

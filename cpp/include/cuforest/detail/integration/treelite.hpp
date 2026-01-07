@@ -1,22 +1,11 @@
 /*
- * Copyright (c) 2024-2025, NVIDIA CORPORATION.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION.
+ * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-#include <cuforest/exceptions.hpp>
 #include <cuforest/detail/traversal/traversal_forest.hpp>
 #include <cuforest/detail/traversal/traversal_node.hpp>
+#include <cuforest/exceptions.hpp>
 
 #include <treelite/tree.h>
 
@@ -138,7 +127,8 @@ template <typename tl_threshold_t, typename tl_output_t>
 struct treelite_traversal_forest
   : public traversal::traversal_forest<treelite_traversal_node<tl_threshold_t, tl_output_t>> {
  private:
-  using base_type = traversal::traversal_forest<treelite_traversal_node<tl_threshold_t, tl_output_t>>;
+  using base_type =
+    traversal::traversal_forest<treelite_traversal_node<tl_threshold_t, tl_output_t>>;
 
  public:
   using node_type     = typename base_type::node_type;
@@ -147,7 +137,8 @@ struct treelite_traversal_forest
   using node_uid_type = typename base_type::node_uid_type;
 
   treelite_traversal_forest(treelite::ModelPreset<tl_threshold_t, tl_output_t> const& tl_model)
-    : traversal::traversal_forest<treelite_traversal_node<tl_threshold_t, tl_output_t>>{[&tl_model]() {
+    : traversal::traversal_forest<
+        treelite_traversal_node<tl_threshold_t, tl_output_t>>{[&tl_model]() {
         auto result = std::vector<node_uid_type>{};
         result.reserve(tl_model.GetNumTree());
         for (auto i = std::size_t{}; i < tl_model.GetNumTree(); ++i) {
