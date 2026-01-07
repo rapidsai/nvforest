@@ -50,7 +50,7 @@ jobs:
   #         max_days_without_success: 14
   changed-files:
     secrets: inherit
-    needs: telemetry-setup
+    # needs: telemetry-setup
     uses: rapidsai/shared-workflows/.github/workflows/changed-files.yaml@main
     with:
       files_yaml: |
@@ -73,7 +73,7 @@ jobs:
           - '!docs/**'
   checks:
     secrets: inherit
-    needs: telemetry-setup
+    # needs: telemetry-setup
     uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@main
     with:
       enable_check_generated_files: false
