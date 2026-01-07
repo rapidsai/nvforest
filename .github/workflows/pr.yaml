@@ -14,7 +14,7 @@ jobs:
       - changed-files
       - checks
       - clang-tidy
-      # - conda-cpp-build
+      - conda-cpp-build
       # - conda-cpp-tests
       # - conda-cpp-checks
       # - conda-python-build
@@ -90,15 +90,15 @@ jobs:
       arch: "amd64"
       container_image: "rapidsai/ci-conda:26.02-latest"
       script: "ci/run_clang_tidy.sh"
-  # conda-cpp-build:
-  #   needs: checks
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-build.yaml@cuda-13.1.0
-  #   with:
-  #     build_type: pull-request
-  #     node_type: cpu16
-  #     script: ci/build_cpp.sh
-  #     sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
+  conda-cpp-build:
+    needs: checks
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-build.yaml@cuda-13.1.0
+    with:
+      build_type: pull-request
+      node_type: cpu16
+      script: ci/build_cpp.sh
+      sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
   # conda-cpp-tests:
   #   needs: [conda-cpp-build, changed-files]
   #   secrets: inherit
