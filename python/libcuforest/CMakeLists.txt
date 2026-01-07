@@ -1,6 +1,6 @@
 # =============================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 # cmake-format: on
 # =============================================================================
@@ -15,11 +15,10 @@ rapids_cuda_init_architectures(libcuforest-python)
 project(
   libcuforest-python
   VERSION "${RAPIDS_VERSION}"
-  LANGUAGES CXX CUDA
-)
+  LANGUAGES CXX CUDA)
 
-# Check if cuForest is already available. If so, it is the user's responsibility to ensure that the
-# CMake package is also available at build time of the Python cuForest package.
+# Check if cuForest is already available. If so, it is the user's responsibility to ensure that the CMake package is
+# also available at build time of the Python cuForest package.
 find_package(cuforest "${RAPIDS_VERSION}")
 
 if(cuforest_FOUND)
@@ -51,23 +50,16 @@ add_subdirectory(../../cpp cuforest-cpp)
 
 # assumes libcuforest++ is installed 2 levels deep, e.g. site-packages/cuforest/lib64/libcuforest++.so
 if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL 13.0)
-  # starting with CTK 13 wheels, all libraries except NCCL are grouped in this 'nvidia/cu13/lib'
-  # directory
+  # starting with CTK 13 wheels, all libraries except NCCL are grouped in this 'nvidia/cu13/lib' directory
   set(rpaths "$ORIGIN/../../nvidia/cu13/lib")
 else()
   set(rpaths
-      "$ORIGIN/../../nvidia/cublas/lib"
-      "$ORIGIN/../../nvidia/cufft/lib"
-      "$ORIGIN/../../nvidia/curand/lib"
-      "$ORIGIN/../../nvidia/cusolver/lib"
-      "$ORIGIN/../../nvidia/cusparse/lib"
-      "$ORIGIN/../../nvidia/nvjitlink/lib"
-  )
+      "$ORIGIN/../../nvidia/cublas/lib" "$ORIGIN/../../nvidia/cufft/lib" "$ORIGIN/../../nvidia/curand/lib"
+      "$ORIGIN/../../nvidia/cusolver/lib" "$ORIGIN/../../nvidia/cusparse/lib" "$ORIGIN/../../nvidia/nvjitlink/lib")
 endif()
 list(APPEND rpaths "$ORIGIN/../../nvidia/nccl/lib")
 
 set_property(
   TARGET ${CUFOREST_CPP_TARGET}
   PROPERTY INSTALL_RPATH ${rpaths}
-  APPEND
-)
+  APPEND)
