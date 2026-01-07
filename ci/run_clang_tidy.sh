@@ -32,6 +32,7 @@ rapids-print-env
 LIBCUFOREST_BUILD_DIR=${LIBCUFOREST_BUILD_DIR:=${PWD}/cpp/build}
 
 cmake \
+    -G Ninja \
     -S cpp \
     -B "${LIBCUFOREST_BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
