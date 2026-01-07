@@ -1,0 +1,25 @@
+# catch-all codeowner for any files not matched by the rules below
+* @rapidsai/packaging-codeowners
+
+# cpp code owners
+cpp/               @rapidsai/cuforest-cpp-codeowners
+
+# python code owners
+python/            @rapidsai/cuforest-python-codeowners
+
+# cmake code owners
+CMakeLists.txt @rapidsai/cuforest-cpp-codeowners
+*.cmake        @rapidsai/cuforest-cpp-codeowners
+**/cmake/      @rapidsai/cuforest-cpp-codeowners
+
+# CI code owners
+/.github/                @rapidsai/ci-codeowners
+/ci/                     @rapidsai/ci-codeowners
+/VERSION                 @rapidsai/ci-codeowners
+
+# packaging code owners
+/.pre-commit-config.yaml   @rapidsai/packaging-codeowners
+/conda/                    @rapidsai/packaging-codeowners
+dependencies.yaml          @rapidsai/packaging-codeowners
+/build.sh                  @rapidsai/packaging-codeowners
+pyproject.toml             @rapidsai/packaging-codeowners

@@ -1,9 +1,17 @@
-# =============================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2019-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2019-2026, NVIDIA CORPORATION. SPDX-License-Identifier: Apache-2.0
 # SPDX-License-Identifier: Apache-2.0
 # cmake-format: on
-# =============================================================================
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
 
 find_package(Doxygen 1.9.1)
 
@@ -25,8 +33,7 @@ function(add_doxygen_target)
       ${dox_OUT_DOXYFILE}
       WORKING_DIRECTORY ${dox_CWD}
       VERBATIM
-      COMMENT "Generate doxygen docs"
-    )
+      COMMENT "Generate doxygen docs")
   else()
     message("add_doxygen_target: doxygen exe not found")
   endif()

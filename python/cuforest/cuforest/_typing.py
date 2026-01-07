@@ -1,8 +1,13 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION. All rights reserved.
+#
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
+#
 
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
-DataType = Union[np.ndarray, "cupy.ndarray"]  # noqa: F821
+if TYPE_CHECKING:
+    import cupy
+
+DataType = Union[np.ndarray, "cupy.ndarray"]

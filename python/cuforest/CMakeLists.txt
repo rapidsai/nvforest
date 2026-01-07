@@ -18,31 +18,29 @@ list(APPEND language_list "CUDA")
 project(
   cuforest-python
   VERSION "${RAPIDS_VERSION}"
-  LANGUAGES ${language_list}
-)
+  LANGUAGES ${language_list})
 
-# ##################################################################################################
+# ######################################################################################################################
 # * User Options  --------------------------------------------------------------
 option(USE_LIBCUFOREST_WHEEL "Use libcuforest wheel to provide some dependencies" OFF)
 
 set(CUFOREST_CPP_TARGET "cuforest++")
 set(CUFOREST_CPP_SRC "../../cpp")
 
-# ##################################################################################################
+# ######################################################################################################################
 # * Process User Options  ------------------------------------------------------
 
 include(rapids-cpm)
 include(rapids-export)
 rapids_cpm_init()
 
-# --- treelite --- # Need to call get_treelite explicitly because we need the correct
-# ${TREELITE_LIBS} definition for RF.
+# --- treelite --- # Need to call get_treelite explicitly because we need the correct ${TREELITE_LIBS} definition for
+# RF.
 #
-# And because cuforest Cython code needs the headers to satisfy calls like 'cdef extern from
-# "treelite/c_api.h"'
+# And because cuforest Cython code needs the headers to satisfy calls like 'cdef extern from "treelite/c_api.h"'
 
-# wheel builds use a static treelite, because the 'libtreelite.so' in 'treelite' wheels isn't
-# intended for dynamic linking by third-party projects (e.g. hides its symbols)
+# wheel builds use a static treelite, because the 'libtreelite.so' in 'treelite' wheels isn't intended for dynamic
+# linking by third-party projects (e.g. hides its symbols)
 if(USE_LIBCUFOREST_WHEEL)
   set(CUFOREST_PYTHON_TREELITE_TARGET treelite::treelite_static)
   set(CUFOREST_USE_TREELITE_STATIC ON)
@@ -58,7 +56,7 @@ include(${CUFOREST_CPP_SRC}/cmake/thirdparty/get_treelite.cmake)
 # --- libcuforest --- #
 find_package(cuforest "${RAPIDS_VERSION}" REQUIRED)
 
-# ##################################################################################################
+# ######################################################################################################################
 # * Build Cython artifacts -----------------------------------------------------
 
 message(VERBOSE "CUFOREST_PY: Building cuForest")
@@ -72,12 +70,10 @@ rapids_cython_create_modules(
   CXX
   SOURCE_FILES "cuforest/detail/forest_inference.pyx"
   LINKED_LIBRARIES "${linked_libraries}"
-  INSTALL_DIR cuforest/detail MODULE_PREFIX cuforest_
-)
+  INSTALL_DIR cuforest/detail MODULE_PREFIX cuforest_)
 
 rapids_cython_create_modules(
   CXX
   SOURCE_FILES "cuforest/detail/treelite.pyx"
   LINKED_LIBRARIES "${linked_libraries}"
-  INSTALL_DIR cuforest/detail MODULE_PREFIX cuforest_
-)
+  INSTALL_DIR cuforest/detail MODULE_PREFIX cuforest_)
