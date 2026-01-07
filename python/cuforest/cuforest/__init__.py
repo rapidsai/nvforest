@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -36,4 +36,6 @@ __all__ = [
     "load_model",
     "load_from_sklearn",
     "load_from_treelite_model",
+    "__git_commit__",
+    "__version__",
 ]

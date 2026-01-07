@@ -1,3 +1,8 @@
+#
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
+# SPDX-License-Identifier: Apache-2.0
+#
+
 import pathlib
 from typing import Any, Optional, Union
 
@@ -140,9 +145,7 @@ def load_model(
                 model_path, format_choice="json"
             )
         case "xgboost":
-            tl_model = treelite.frontend.load_xgboost_model_legacy_binary(
-                model_path
-            )
+            tl_model = treelite.frontend.load_xgboost_model_legacy_binary(model_path)
         case "lightgbm":
             tl_model = treelite.frontend.load_lightgbm_model(model_path)
         case _:

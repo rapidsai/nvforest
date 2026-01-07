@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 
 # cuforest build script
@@ -308,4 +308,3 @@ if (! hasArg --configure-only) && (completeBuild || hasArg cuforest); then
     SKBUILD_CMAKE_ARGS="-DCMAKE_MESSAGE_LOG_LEVEL=${CMAKE_LOG_LEVEL};${SKBUILD_EXTRA_CMAKE_ARGS}" \
         python -m pip install --no-build-isolation --no-deps --config-settings rapidsai.disable-cuda=true "${REPODIR}"/python/cuforest
 fi
-
