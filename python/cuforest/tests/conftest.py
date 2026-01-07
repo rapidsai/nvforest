@@ -72,7 +72,9 @@ def pytest_collection_modifyitems(config, items):
 
     # Mark the tests as "skip" if needed
     if not should_run_unit:
-        skip_unit = pytest.mark.skip(reason="Unit tests run with --run_unit flag.")
+        skip_unit = pytest.mark.skip(
+            reason="Unit tests run with --run_unit flag."
+        )
         for item in items:
             if "unit" in item.keywords:
                 item.add_marker(skip_unit)
