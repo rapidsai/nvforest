@@ -759,6 +759,14 @@ def test_missing_categorical(category_list):
 @pytest.mark.parametrize("device_id", [None, 0, 1, 2])
 @pytest.mark.parametrize("model_kind", ["sklearn", "xgboost"])
 def test_device_selection(device_id, model_kind, tmp_path):
+    import sklearn
+    from packaging.version import Version
+
+    if model_kind == "xgboost" and Version(sklearn.__version__) >= Version(
+        "1.8.0.dev0"
+    ):
+        pytest.skip("xgboost is incompatible with sklearn >= 1.8.0.dev0")
+
     current_device = cp.cuda.runtime.getDevice()
 
     if device_id is not None and device_id >= cp.cuda.runtime.getDeviceCount():
