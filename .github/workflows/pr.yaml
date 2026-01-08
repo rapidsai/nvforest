@@ -15,13 +15,13 @@ jobs:
       - checks
       - clang-tidy
       - conda-cpp-build
-      # - conda-cpp-tests
-      # - conda-cpp-checks
-      # - conda-python-build
+      - conda-cpp-tests
+      - conda-cpp-checks
+      - conda-python-build
       # - conda-python-tests
-      # - telemetry-setup
-      # - wheel-build-libcuforest
-      # - wheel-build-cuforest
+      - telemetry-setup
+      - wheel-build-libcuforest
+      - wheel-build-cuforest
       # - wheel-tests-cuforest
       # - devcontainer
     secrets: inherit
@@ -29,15 +29,15 @@ jobs:
     if: always()
     with:
       needs: ${{ toJSON(needs) }}
-  # telemetry-setup:
-  #   runs-on: ubuntu-latest
-  #   continue-on-error: true
-  #   env:
-  #     OTEL_SERVICE_NAME: "pr-cuforest"
-  #   steps:
-  #     - name: Telemetry setup
-  #       if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
-  #       uses: rapidsai/shared-actions/telemetry-dispatch-stash-base-env-vars@main
+  telemetry-setup:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      OTEL_SERVICE_NAME: "pr-cuforest"
+    steps:
+      - name: Telemetry setup
+        if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
+        uses: rapidsai/shared-actions/telemetry-dispatch-stash-base-env-vars@main
   # check-nightly-ci:
   #   runs-on: ubuntu-latest
   #   env:
@@ -50,7 +50,7 @@ jobs:
   #         max_days_without_success: 14
   changed-files:
     secrets: inherit
-    # needs: telemetry-setup
+    needs: telemetry-setup
     uses: rapidsai/shared-workflows/.github/workflows/changed-files.yaml@cuda-13.1.0
     with:
       files_yaml: |
@@ -73,7 +73,7 @@ jobs:
           - '!docs/**'
   checks:
     secrets: inherit
-    # needs: telemetry-setup
+    needs: telemetry-setup
     uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@cuda-13.1.0
     with:
       enable_check_generated_files: false
@@ -99,28 +99,28 @@ jobs:
       node_type: cpu16
       script: ci/build_cpp.sh
       sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
-  # conda-cpp-tests:
-  #   needs: [conda-cpp-build, changed-files]
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-tests.yaml@cuda-13.1.0
-  #   if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_cpp
-  #   with:
-  #     build_type: pull-request
-  #     script: ci/test_cpp.sh
-  #     sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
-  # conda-cpp-checks:
-  #   needs: conda-cpp-build
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-post-build-checks.yaml@cuda-13.1.0
-  #   with:
-  #     build_type: pull-request
-  # conda-python-build:
-  #   needs: conda-cpp-build
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@cuda-13.1.0
-  #   with:
-  #     build_type: pull-request
-  #     script: ci/build_python.sh
+  conda-cpp-tests:
+    needs: [conda-cpp-build, changed-files]
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-tests.yaml@cuda-13.1.0
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_cpp
+    with:
+      build_type: pull-request
+      script: ci/test_cpp.sh
+      sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
+  conda-cpp-checks:
+    needs: conda-cpp-build
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-post-build-checks.yaml@cuda-13.1.0
+    with:
+      build_type: pull-request
+  conda-python-build:
+    needs: conda-cpp-build
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@cuda-13.1.0
+    with:
+      build_type: pull-request
+      script: ci/build_python.sh
   # conda-python-tests:
   #   needs: [conda-python-build, changed-files]
   #   secrets: inherit
@@ -130,33 +130,33 @@ jobs:
   #     build_type: pull-request
   #     script: "ci/test_python.sh"
   #     sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
-  # wheel-build-libcuforest:
-  #   needs: checks
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@cuda-13.1.0
-  #   with:
-  #     build_type: pull-request
-  #     branch: ${{ inputs.branch }}
-  #     sha: ${{ inputs.sha }}
-  #     date: ${{ inputs.date }}
-  #     node_type: cpu16
-  #     script: ci/build_wheel_libcuforest.sh
-  #     # build for every combination of arch and CUDA version, but only for the latest Python
-  #     matrix_filter: group_by([.ARCH, (.CUDA_VER|split(".")|map(tonumber)|.[0])]) | map(max_by(.PY_VER|split(".")|map(tonumber)))
-  #     package-name: libcuforest
-  #     package-type: cpp
-  #     sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
-  # wheel-build-cuforest:
-  #   needs: [checks, wheel-build-libcuforest]
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@cuda-13.1.0
-  #   with:
-  #     build_type: pull-request
-  #     node_type: cpu8
-  #     script: ci/build_wheel_cuforest.sh
-  #     package-name: cuforest
-  #     package-type: python
-  #     sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
+  wheel-build-libcuforest:
+    needs: checks
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@cuda-13.1.0
+    with:
+      build_type: pull-request
+      branch: ${{ inputs.branch }}
+      sha: ${{ inputs.sha }}
+      date: ${{ inputs.date }}
+      node_type: cpu16
+      script: ci/build_wheel_libcuforest.sh
+      # build for every combination of arch and CUDA version, but only for the latest Python
+      matrix_filter: group_by([.ARCH, (.CUDA_VER|split(".")|map(tonumber)|.[0])]) | map(max_by(.PY_VER|split(".")|map(tonumber)))
+      package-name: libcuforest
+      package-type: cpp
+      sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
+  wheel-build-cuforest:
+    needs: [checks, wheel-build-libcuforest]
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@cuda-13.1.0
+    with:
+      build_type: pull-request
+      node_type: cpu8
+      script: ci/build_wheel_cuforest.sh
+      package-name: cuforest
+      package-type: python
+      sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
   # wheel-tests-cuforest:
   #   needs: [wheel-build-cuforest, changed-files]
   #   secrets: inherit
@@ -184,14 +184,14 @@ jobs:
   #       sccache --zero-stats;
   #       build-all -j0 --verbose -DBUILD_TESTS=ON 2>&1 | tee telemetry-artifacts/build.log;
   #       sccache --show-adv-stats | tee telemetry-artifacts/sccache-stats.txt;
-  # telemetry-summarize:
-  #   # This job must use a self-hosted runner to record telemetry traces.
-  #   runs-on: linux-amd64-cpu4
-  #   needs: pr-builder
-  #   if: ${{ vars.TELEMETRY_ENABLED == 'true' && !cancelled() }}
-  #   continue-on-error: true
-  #   steps:
-  #     - name: Telemetry summarize
-  #       uses: rapidsai/shared-actions/telemetry-dispatch-summarize@main
-  #   env:
-  #     GH_TOKEN: ${{ github.token }}
+  telemetry-summarize:
+    # This job must use a self-hosted runner to record telemetry traces.
+    runs-on: linux-amd64-cpu4
+    needs: pr-builder
+    if: ${{ vars.TELEMETRY_ENABLED == 'true' && !cancelled() }}
+    continue-on-error: true
+    steps:
+      - name: Telemetry summarize
+        uses: rapidsai/shared-actions/telemetry-dispatch-summarize@main
+    env:
+      GH_TOKEN: ${{ github.token }}
