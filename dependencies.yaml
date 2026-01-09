@@ -238,7 +238,7 @@ dependencies:
       - output_types: [conda, requirements, pyproject]
         packages:
           - &cython cython>=3.0.0
-          - treelite
+          - &treelite treelite>=4.6.1,<5.0.0a0
   py_run_cuforest:
     common:
       - output_types: [conda, requirements, pyproject]
@@ -249,7 +249,7 @@ dependencies:
           - packaging
           - rich
           - &scikit_learn scikit-learn>=1.5
-          - treelite
+          - *treelite
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
