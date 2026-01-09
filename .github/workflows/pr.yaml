@@ -22,7 +22,7 @@ jobs:
       - telemetry-setup
       - wheel-build-libcuforest
       - wheel-build-cuforest
-      # - wheel-tests-cuforest
+      - wheel-tests-cuforest
       # - devcontainer
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@cuda-13.1.0
@@ -158,15 +158,15 @@ jobs:
       package-name: cuforest
       package-type: python
       sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
-  # wheel-tests-cuforest:
-  #   needs: [wheel-build-cuforest, changed-files]
-  #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@cuda-13.1.0
-  #   if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
-  #   with:
-  #     build_type: pull-request
-  #     script: ci/test_wheel.sh
-  #     sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
+  wheel-tests-cuforest:
+    needs: [wheel-build-cuforest, changed-files]
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@cuda-13.1.0
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
+    with:
+      build_type: pull-request
+      script: ci/test_wheel.sh
+      sccache-dist-token-secret-name: GIST_REPO_READ_ORG_GITHUB_TOKEN
   # devcontainer:
   #   needs: telemetry-setup
   #   secrets: inherit
