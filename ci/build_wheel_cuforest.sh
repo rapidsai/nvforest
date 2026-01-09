@@ -33,7 +33,7 @@ EXCLUDE_ARGS=(
   --exclude "librmm.so"
 )
 
-export SKBUILD_CMAKE_ARGS="-DDISABLE_DEPRECATION_WARNINGS=ON"
+export SKBUILD_CMAKE_ARGS="-DDISABLE_DEPRECATION_WARNINGS=ON;-DUSE_LIBCUFOREST_WHEEL=ON"
 ./ci/build_wheel.sh "${package_name}" "${package_dir}"
 
 # repair wheels and write to the location that artifact-uploading code expects to find them
