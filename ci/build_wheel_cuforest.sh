@@ -31,7 +31,6 @@ EXCLUDE_ARGS=(
   --exclude "libnvJitLink.so.*"
   --exclude "librapids_logger.so"
   --exclude "librmm.so"
-  --exclude "libtreelite.so"
 )
 
 export SKBUILD_CMAKE_ARGS="-DDISABLE_DEPRECATION_WARNINGS=ON"
