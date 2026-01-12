@@ -27,6 +27,7 @@ dependencies:
 - ninja
 - numpy>=1.23,<3.0a0
 - packaging
+- pandas
 - pre-commit
 - pylibraft==26.02.*,>=0.0.0a0
 - pytest

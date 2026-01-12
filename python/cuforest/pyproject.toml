@@ -47,6 +47,7 @@ classifiers = [
 
 [project.optional-dependencies]
 test = [
+    "pandas",
     "pytest",
     "pytest-cov",
     "pytest-xdist",

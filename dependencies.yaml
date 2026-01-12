@@ -348,6 +348,7 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
+          - pandas
           - pytest
           - pytest-cov
           - pytest-xdist
