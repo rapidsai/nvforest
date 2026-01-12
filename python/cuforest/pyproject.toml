@@ -14,7 +14,7 @@ select = [
 ]
 
 # detect when package size grows significantly
-max_allowed_size_compressed = '75MB'
+max_allowed_size_compressed = '20M'
 
 [project]
 name = "cuforest"
