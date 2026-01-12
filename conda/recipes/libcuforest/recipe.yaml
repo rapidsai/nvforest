@@ -165,6 +165,7 @@ outputs:
           - cuda-cudart
           - cuda-version
           - libcublas
+          - libcufft
           - libcurand
           - libcusolver
           - libcusparse
