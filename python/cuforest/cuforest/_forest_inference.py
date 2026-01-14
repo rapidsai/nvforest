@@ -172,10 +172,8 @@ class OptimizeMixin:
             The random seed used for generating example data if none is
             provided.
         """
-        # Determine if we're on CPU or GPU
         is_gpu = self.forest.device == "gpu"
 
-        # Generate test data if not provided
         if data is None:
             rng = np.random.default_rng(seed)
             dtype = self.forest.get_dtype()
@@ -184,19 +182,16 @@ class OptimizeMixin:
                 np.finfo(dtype).max / 2,
                 (unique_batches, batch_size, self.forest.num_features),
             ).astype(dtype)
-            # Convert to GPU array if needed
             if is_gpu:
                 import cupy as cp
                 data = cp.asarray(data)
         else:
-            # Handle provided data
             if is_gpu:
                 import cupy as cp
                 data = cp.asarray(data)
             else:
                 data = np.asarray(data)
 
-        # Determine data shape
         if len(data.shape) == 3:
             unique_batches, batch_size, features = data.shape
         else:
@@ -204,20 +199,16 @@ class OptimizeMixin:
             batch_size, features = data.shape
             data = data[np.newaxis, ...]  # Add batch dimension
 
-        # Determine max chunk size based on device
         if max_chunk_size is None:
             max_chunk_size = 32 if is_gpu else 512
 
         max_chunk_size = min(max_chunk_size, batch_size)
 
-        # Get the predict method
         infer = getattr(self, predict_method)
 
-        # Initialize optimal values
         optimal_layout = "depth_first"
         optimal_chunk_size = 1
 
-        # Define search space
         valid_layouts = ("depth_first", "breadth_first", "layered")
         valid_chunk_sizes = []
         chunk_size = 1
@@ -256,7 +247,6 @@ class OptimizeMixin:
             if perf_counter() - loop_start > timeout:
                 break
 
-        # Set optimal values
         self.layout = optimal_layout
         self.default_chunk_size = optimal_chunk_size
 
