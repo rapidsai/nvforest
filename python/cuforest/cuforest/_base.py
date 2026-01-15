@@ -2,7 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from abc import ABC, abstractmethod
-from typing import Optional, Self
+from typing import Optional
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
 from cuforest._typing import DataType
 

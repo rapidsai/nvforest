@@ -6,7 +6,12 @@
 import itertools
 from enum import Enum
 from time import perf_counter
-from typing import Optional, Self
+from typing import Optional
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
 import numpy as np
 import treelite
