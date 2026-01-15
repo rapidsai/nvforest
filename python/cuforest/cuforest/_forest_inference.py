@@ -104,9 +104,8 @@ class _AutoIterations:
 
     def next(self):
         result = (
-            (10 ** (self.invocations // len(self.sequence)))
-            * self.sequence[self.invocations % len(self.sequence)]
-        )
+            10 ** (self.invocations // len(self.sequence))
+        ) * self.sequence[self.invocations % len(self.sequence)]
         self.invocations += 1
         return result
 
@@ -184,10 +183,12 @@ class OptimizeMixin:
             ).astype(dtype)
             if is_gpu:
                 import cupy as cp
+
                 data = cp.asarray(data)
         else:
             if is_gpu:
                 import cupy as cp
+
                 data = cp.asarray(data)
             else:
                 data = np.asarray(data)
@@ -267,7 +268,9 @@ class OptimizeMixin:
         self.forest.layout = value
 
 
-class CPUForestInferenceClassifier(ForestInferenceClassifier, ClassifierMixin, OptimizeMixin):
+class CPUForestInferenceClassifier(
+    ForestInferenceClassifier, ClassifierMixin, OptimizeMixin
+):
     def __init__(
         self,
         *,
@@ -407,7 +410,9 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
         return self.forest.precision
 
 
-class GPUForestInferenceClassifier(ForestInferenceClassifier, ClassifierMixin, OptimizeMixin):
+class GPUForestInferenceClassifier(
+    ForestInferenceClassifier, ClassifierMixin, OptimizeMixin
+):
     def __init__(
         self,
         *,

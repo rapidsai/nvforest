@@ -120,7 +120,9 @@ def test_optimize_classifier(device, small_classifier_model):
     # Verify that default_chunk_size is set to a power of 2
     assert fm.default_chunk_size is not None
     assert fm.default_chunk_size > 0
-    assert (fm.default_chunk_size & (fm.default_chunk_size - 1)) == 0  # power of 2
+    assert (
+        fm.default_chunk_size & (fm.default_chunk_size - 1)
+    ) == 0  # power of 2
 
     # Verify predictions still work after optimization
     cuforest_proba = _get_numpy_array(fm.predict_proba(X))
@@ -263,4 +265,6 @@ def test_optimize_sklearn_classifier():
     skl_proba = skl_model.predict_proba(X)
     cuforest_proba = _get_numpy_array(fm.predict_proba(X))
     cuforest_proba = np.reshape(cuforest_proba, skl_proba.shape)
-    np.testing.assert_allclose(cuforest_proba, skl_proba, atol=proba_atol[True])
+    np.testing.assert_allclose(
+        cuforest_proba, skl_proba, atol=proba_atol[True]
+    )
