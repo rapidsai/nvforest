@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -97,6 +100,21 @@ class ForestInference(ABC):
     def layout(self) -> str:
         pass
 
+    @layout.setter
+    @abstractmethod
+    def layout(self, value: str):
+        pass
+
+    @property
+    @abstractmethod
+    def default_chunk_size(self) -> Optional[int]:
+        pass
+
+    @default_chunk_size.setter
+    @abstractmethod
+    def default_chunk_size(self, value: Optional[int]):
+        pass
+
     @property
     @abstractmethod
     def align_bytes(self) -> Optional[int]:
@@ -110,6 +128,67 @@ class ForestInference(ABC):
     @property
     @abstractmethod
     def is_classifier(self) -> bool:
+        pass
+
+    @abstractmethod
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ):
+        """
+        Find the optimal layout and chunk size for this model.
+
+        The optimal value for layout and chunk size depends on the model,
+        batch size, and available hardware. In order to get the most
+        realistic performance distribution, example data can be provided. If
+        it is not, random data will be generated based on the indicated batch
+        size. After finding the optimal layout, the model will be reloaded if
+        necessary. The optimal chunk size will be used to set the default chunk
+        size used if none is passed to the predict call.
+
+        Parameters
+        ----------
+        data
+            Example data either of shape unique_batches x batch_size x features
+            or batch_size x features or None. If None, random data will be
+            generated instead.
+        batch_size : int
+            If example data is not provided, random data with this many rows
+            per batch will be used.
+        unique_batches : int
+            The number of unique batches to generate if random data are used.
+            Increasing this number decreases the chance that the optimal
+            configuration will be skewed by a single batch with unusual
+            performance characteristics.
+        timeout : float
+            Time in seconds to target for optimization. The optimization loop
+            will be repeatedly run a number of times increasing in the sequence
+            1, 2, 5, 10, 20, 50, ... until the time taken is at least the given
+            value. Note that for very large batch sizes and large models, the
+            total elapsed time may exceed this timeout; it is a soft target for
+            elapsed time. Setting the timeout to zero will run through the
+            indicated number of unique batches exactly once. Defaults to 0.2s.
+        predict_method : str
+            If desired, optimization can occur over one of the prediction
+            method variants (e.g. "predict_per_tree") rather than the
+            default `predict` method. To do so, pass the name of the method
+            here.
+        max_chunk_size : int or None
+            The maximum chunk size to explore during optimization. If not
+            set, a value will be picked based on the current device type.
+            Setting this to a lower value will reduce the optimization search
+            time but may not result in optimal performance.
+        seed : int
+            The random seed used for generating example data if none is
+            provided.
+        """
         pass
 
 

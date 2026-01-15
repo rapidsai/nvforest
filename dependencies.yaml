@@ -18,9 +18,7 @@ files:
       - depends_on_librmm
       - depends_on_pylibraft
       - depends_on_rapids_logger
-      - depends_on_rmm
       - develop
-      - docs
       - py_build_cuforest
       - py_run_cuforest
       - py_version
@@ -40,8 +38,6 @@ files:
       - depends_on_librmm
       - depends_on_pylibraft
       - depends_on_rapids_logger
-      - depends_on_rmm
-      - docs
       - py_build_cuforest
       - py_run_cuforest
       - py_version
@@ -75,14 +71,6 @@ files:
       - cuda_version
       - depends_on_libraft_headers
       - depends_on_librmm
-  docs:
-    output: none
-    includes:
-      - cuda_version
-      - docs
-      - py_version
-      - depends_on_cuforest
-      - depends_on_libcuforest
   test_cpp:
     output: none
     includes:
@@ -119,7 +107,6 @@ files:
       - depends_on_libraft
       - depends_on_librmm
       - depends_on_pylibraft
-      - depends_on_rmm
       - py_build_cuforest
   py_run_cuforest:
     output: pyproject
@@ -132,7 +119,6 @@ files:
       - depends_on_cupy
       - depends_on_libcuforest
       - depends_on_pylibraft
-      - depends_on_rmm
       - py_run_cuforest
   py_test_cuforest:
     output: pyproject
@@ -169,6 +155,7 @@ files:
     includes:
       - cuda_wheels
       - depends_on_libraft
+      - depends_on_librmm
       - depends_on_rapids_logger
 channels:
   - rapidsai-nightly
@@ -243,11 +230,8 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-          - joblib>=0.11
           - &numpy numpy>=1.23,<3.0a0
-          - scipy>=1.8.0
           - packaging
-          - rich
           - &scikit_learn scikit-learn>=1.5
           - *treelite
       - output_types: requirements
@@ -318,30 +302,6 @@ dependencies:
           - matrix:
             packages:
               - cuda-toolkit>=12,<14
-  docs:
-    common:
-      - output_types: [conda, requirements]
-        packages:
-          - graphviz
-          - ipython
-          - ipykernel
-          - nbsphinx
-          - numpydoc
-          # https://github.com/pydata/pydata-sphinx-theme/issues/1539
-          - pydata-sphinx-theme!=0.14.2
-          - recommonmark
-          - *scikit_learn
-          - sphinx
-          - sphinx-copybutton
-          - sphinx-markdown-tables
-          - pyyaml
-      - output_types: conda
-        packages:
-          - doxygen=1.9.1
-          - matplotlib-base
-      - output_types: requirements
-        packages:
-          - matplotlib
   py_version:
     specific:
       - output_types: conda
@@ -388,27 +348,11 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-          - certifi
-          - *cython
-          - hdbscan>=0.8.39,<0.8.40
-          - hypothesis>=6.0,<7
-          - nltk
-          # upstream sklearn docstring tests require numpydoc<1.9
-          - numpydoc<1.9
-          # 'nvidia-ml-py' provides the 'pynvml' module
-          - nvidia-ml-py>=12
-          - pyyaml
+          - pandas
           - pytest
-          - pytest-benchmark
-          - pytest-cases
           - pytest-cov
           - pytest-xdist
-          - seaborn
           - *scikit_learn
-          - statsmodels
-          - tenacity
-          - umap-learn==0.5.7
-          - pynndescent
   test_python_xgboost:
     common:
       - output_types: [conda]
@@ -417,10 +361,10 @@ dependencies:
           # included in the "devcontainers" key. The libxgboost package depends
           # on librmm but we do not want to have a package depending on librmm
           # in devcontainers since it should be built from source.
-          - &rapids-xgboost rapids-xgboost==26.02.*,>=0.0.0a0
+          - rapids-xgboost==26.02.*,>=0.0.0a0
       - output_types: [requirements, pyproject]
         packages:
-          - &xgboost xgboost>=2.1.0
+          - xgboost>=2.1.0
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, pyproject]
@@ -570,29 +514,3 @@ dependencies:
           # pip recognizes the index as a global option for the requirements.txt file
           # This index is needed for rapids_logger
           - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
-  depends_on_rmm:
-    common:
-      - output_types: conda
-        packages:
-          - &rmm_unsuffixed rmm==26.02.*,>=0.0.0a0
-      - output_types: requirements
-        packages:
-          # pip recognizes the index as a global option for the requirements.txt file
-          - --extra-index-url=https://pypi.nvidia.com
-          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
-    specific:
-      - output_types: [requirements, pyproject]
-        matrices:
-          - matrix:
-              cuda: "12.*"
-              cuda_suffixed: "true"
-            packages:
-              - rmm-cu12==26.02.*,>=0.0.0a0
-          - matrix:
-              cuda: "13.*"
-              cuda_suffixed: "true"
-            packages:
-              - rmm-cu13==26.02.*,>=0.0.0a0
-          - matrix:
-            packages:
-              - *rmm_unsuffixed

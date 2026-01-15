@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -287,7 +287,7 @@ class ForestInferenceImpl:
         # Assumption: The caller needs to pass in correct (device, device_id) pair
         # This function will not contain any logic for auto-detecting device.
         self.handle = Handle() if handle is None else handle
-        self.layout = layout
+        self._layout = layout
         self.precision = precision
         self.default_chunk_size = default_chunk_size
         self.device = device
@@ -302,25 +302,44 @@ class ForestInferenceImpl:
         #              once Cython supports structural pattern matching.
         #              See https://github.com/cython/cython/issues/4029
         if self.precision in ("native", None):
-            use_double_precision = None
+            self._use_double_precision = None
         elif self.precision in ("double", "float64"):
-            use_double_precision = True
+            self._use_double_precision = True
         elif self.precision in ("single", "float32"):
-            use_double_precision = False
+            self._use_double_precision = False
         else:
             raise ValueError(f"Unknown precision value: {self.precision}")
 
-        treelite_model_bytes = treelite_model.serialize_bytes()
+        # Store treelite model bytes for potential reload with different layout
+        self._treelite_model_bytes = treelite_model.serialize_bytes()
 
+        self._build_impl()
+
+    def _build_impl(self):
+        """Build the underlying ForestInference_impl with current settings."""
         self.impl = ForestInference_impl(
             self.handle,
-            treelite_model_bytes,
-            layout=self.layout,
+            self._treelite_model_bytes,
+            layout=self._layout,
             align_bytes=self.align_bytes,
-            use_double_precision=use_double_precision,
+            use_double_precision=self._use_double_precision,
             device=self.device,
             device_id=self.device_id
         )
+
+    def _reload_model(self):
+        """Reload the model with potentially new layout settings."""
+        self._build_impl()
+
+    @property
+    def layout(self) -> str:
+        return self._layout
+
+    @layout.setter
+    def layout(self, value: str):
+        if value != self._layout:
+            self._layout = value
+            self._reload_model()
 
     @property
     def num_outputs(self) -> int:
@@ -329,6 +348,14 @@ class ForestInferenceImpl:
     @property
     def num_trees(self) -> int:
         return self.impl.num_trees()
+
+    @property
+    def num_features(self) -> int:
+        return self.impl.num_features()
+
+    def get_dtype(self):
+        """Return the dtype (float32 or float64) used by the model."""
+        return self.impl.get_dtype()
 
     @property
     def row_postprocessing(self) -> str:

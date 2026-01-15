@@ -762,6 +762,7 @@ def test_device_selection(device_id, model_kind, tmp_path):
     import sklearn
     from packaging.version import Version
 
+    # TODO(hcho3): Remove this once Rapids adopts XGBoost 3.1.3
     if model_kind == "xgboost" and Version(sklearn.__version__) >= Version(
         "1.8.0.dev0"
     ):

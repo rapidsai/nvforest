@@ -25,7 +25,7 @@ jobs:
       - wheel-tests-cuforest
       # - devcontainer
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@main
     if: always()
     with:
       needs: ${{ toJSON(needs) }}
@@ -51,7 +51,7 @@ jobs:
   changed-files:
     secrets: inherit
     needs: telemetry-setup
-    uses: rapidsai/shared-workflows/.github/workflows/changed-files.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/changed-files.yaml@main
     with:
       files_yaml: |
         test_cpp:
@@ -74,7 +74,7 @@ jobs:
   checks:
     secrets: inherit
     needs: telemetry-setup
-    uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@main
     with:
       enable_check_generated_files: false
       enable_check_version_against_tag: false # TODO: Take this out after first release
@@ -83,7 +83,7 @@ jobs:
   clang-tidy:
     needs: checks
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/custom-job.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/custom-job.yaml@main
     with:
       build_type: pull-request
       node_type: "cpu8"
@@ -93,7 +93,7 @@ jobs:
   conda-cpp-build:
     needs: checks
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-build.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-build.yaml@main
     with:
       build_type: pull-request
       node_type: cpu16
@@ -102,7 +102,7 @@ jobs:
   conda-cpp-tests:
     needs: [conda-cpp-build, changed-files]
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-tests.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-tests.yaml@main
     if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_cpp
     with:
       build_type: pull-request
@@ -111,20 +111,20 @@ jobs:
   conda-cpp-checks:
     needs: conda-cpp-build
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-post-build-checks.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-post-build-checks.yaml@main
     with:
       build_type: pull-request
   conda-python-build:
     needs: conda-cpp-build
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@main
     with:
       build_type: pull-request
       script: ci/build_python.sh
   conda-python-tests:
     needs: [conda-python-build, changed-files]
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-python-tests.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/conda-python-tests.yaml@main
     if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
     with:
       build_type: pull-request
@@ -134,7 +134,7 @@ jobs:
   wheel-build-libcuforest:
     needs: checks
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
     with:
       build_type: pull-request
       branch: ${{ inputs.branch }}
@@ -150,7 +150,7 @@ jobs:
   wheel-build-cuforest:
     needs: [checks, wheel-build-libcuforest]
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
     with:
       build_type: pull-request
       node_type: cpu8
@@ -161,7 +161,7 @@ jobs:
   wheel-tests-cuforest:
     needs: [wheel-build-cuforest, changed-files]
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@cuda-13.1.0
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@main
     if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
     with:
       build_type: pull-request
@@ -170,7 +170,7 @@ jobs:
   # devcontainer:
   #   needs: telemetry-setup
   #   secrets: inherit
-  #   uses: rapidsai/shared-workflows/.github/workflows/build-in-devcontainer.yaml@cuda-13.1.0
+  #   uses: rapidsai/shared-workflows/.github/workflows/build-in-devcontainer.yaml@main
   #   with:
   #     arch: '["amd64", "arm64"]'
   #     cuda: '["13.0"]'
