@@ -113,7 +113,9 @@ class _AutoIterations:
 class OptimizeMixin:
     """Mixin class that provides the optimize method for ForestInference classes."""
 
-    def _create_with_layout(self, layout: str, default_chunk_size: Optional[int]) -> Self:
+    def _create_with_layout(
+        self, layout: str, default_chunk_size: Optional[int]
+    ) -> Self:
         """Create a new instance with the specified layout and chunk size.
 
         Subclasses must implement this method.
@@ -298,7 +300,9 @@ class CPUForestInferenceClassifier(
         self, layout: str, default_chunk_size: Optional[int]
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(self.forest.treelite_model_bytes)
+        tl_model = treelite.Model.deserialize_bytes(
+            self.forest.treelite_model_bytes
+        )
         return CPUForestInferenceClassifier(
             treelite_model=tl_model,
             handle=self.forest.handle,
@@ -416,7 +420,9 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
         self, layout: str, default_chunk_size: Optional[int]
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(self.forest.treelite_model_bytes)
+        tl_model = treelite.Model.deserialize_bytes(
+            self.forest.treelite_model_bytes
+        )
         return CPUForestInferenceRegressor(
             treelite_model=tl_model,
             handle=self.forest.handle,
@@ -527,7 +533,9 @@ class GPUForestInferenceClassifier(
         self, layout: str, default_chunk_size: Optional[int]
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(self.forest.treelite_model_bytes)
+        tl_model = treelite.Model.deserialize_bytes(
+            self.forest.treelite_model_bytes
+        )
         return GPUForestInferenceClassifier(
             treelite_model=tl_model,
             handle=self.forest.handle,
@@ -647,7 +655,9 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
         self, layout: str, default_chunk_size: Optional[int]
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(self.forest.treelite_model_bytes)
+        tl_model = treelite.Model.deserialize_bytes(
+            self.forest.treelite_model_bytes
+        )
         return GPUForestInferenceRegressor(
             treelite_model=tl_model,
             handle=self.forest.handle,

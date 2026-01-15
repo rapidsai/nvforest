@@ -195,7 +195,9 @@ def test_optimize_with_predict_per_tree(device, small_classifier_model):
     fm = cuforest.load_model(model_path, device=device)
 
     # Optimize for predict_per_tree method - returns a new instance
-    fm_opt = fm.optimize(data=X, timeout=0.1, predict_method="predict_per_tree")
+    fm_opt = fm.optimize(
+        data=X, timeout=0.1, predict_method="predict_per_tree"
+    )
 
     # Verify that optimization ran successfully
     assert fm_opt.layout in ("depth_first", "breadth_first", "layered")
@@ -269,7 +271,9 @@ def test_optimize_sklearn_classifier():
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
-def test_original_model_unchanged_after_optimize(device, small_classifier_model):
+def test_original_model_unchanged_after_optimize(
+    device, small_classifier_model
+):
     """Test that the original model is unchanged after calling optimize()."""
     model_path, X, xgb_preds = small_classifier_model
     fm = cuforest.load_model(model_path, device=device, layout="depth_first")
