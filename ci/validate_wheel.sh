@@ -23,7 +23,7 @@ if [[ "${package_dir}" == "python/libcuforest" ]]; then
             --max-allowed-size-compressed '90M'
         )
     else
-        PYDISTCHECK_ARGS=(
+        PYDISTCHECK_ARGS+=(
             --max-allowed-size-compressed '40M'
         )
     fi
