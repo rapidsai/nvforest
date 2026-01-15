@@ -113,7 +113,7 @@ class _AutoIterations:
 class OptimizeMixin:
     """Mixin class that provides the optimize method for ForestInference classes."""
 
-    def optimize(
+    def _optimize(
         self,
         *,
         data=None,
@@ -251,22 +251,6 @@ class OptimizeMixin:
         self.layout = optimal_layout
         self.default_chunk_size = optimal_chunk_size
 
-    @property
-    def default_chunk_size(self) -> Optional[int]:
-        return self.forest.default_chunk_size
-
-    @default_chunk_size.setter
-    def default_chunk_size(self, value: Optional[int]):
-        self.forest.default_chunk_size = value
-
-    @property
-    def layout(self) -> str:
-        return self.forest.layout
-
-    @layout.setter
-    def layout(self, value: str):
-        self.forest.layout = value
-
 
 class CPUForestInferenceClassifier(
     ForestInferenceClassifier, ClassifierMixin, OptimizeMixin
@@ -328,6 +312,27 @@ class CPUForestInferenceClassifier(
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
 
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ):
+        self._optimize(
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
+
     @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
@@ -343,6 +348,22 @@ class CPUForestInferenceClassifier(
     @property
     def precision(self) -> Optional[str]:
         return self.forest.precision
+
+    @property
+    def default_chunk_size(self) -> Optional[int]:
+        return self.forest.default_chunk_size
+
+    @default_chunk_size.setter
+    def default_chunk_size(self, value: Optional[int]):
+        self.forest.default_chunk_size = value
+
+    @property
+    def layout(self) -> str:
+        return self.forest.layout
+
+    @layout.setter
+    def layout(self, value: str):
+        self.forest.layout = value
 
 
 class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
@@ -393,6 +414,27 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
 
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ):
+        self._optimize(
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
+
     @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
@@ -408,6 +450,22 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
     @property
     def precision(self) -> Optional[str]:
         return self.forest.precision
+
+    @property
+    def default_chunk_size(self) -> Optional[int]:
+        return self.forest.default_chunk_size
+
+    @default_chunk_size.setter
+    def default_chunk_size(self, value: Optional[int]):
+        self.forest.default_chunk_size = value
+
+    @property
+    def layout(self) -> str:
+        return self.forest.layout
+
+    @layout.setter
+    def layout(self, value: str):
+        self.forest.layout = value
 
 
 class GPUForestInferenceClassifier(
@@ -471,6 +529,27 @@ class GPUForestInferenceClassifier(
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
 
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ):
+        self._optimize(
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
+
     @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
@@ -486,6 +565,22 @@ class GPUForestInferenceClassifier(
     @property
     def precision(self) -> Optional[str]:
         return self.forest.precision
+
+    @property
+    def default_chunk_size(self) -> Optional[int]:
+        return self.forest.default_chunk_size
+
+    @default_chunk_size.setter
+    def default_chunk_size(self, value: Optional[int]):
+        self.forest.default_chunk_size = value
+
+    @property
+    def layout(self) -> str:
+        return self.forest.layout
+
+    @layout.setter
+    def layout(self, value: str):
+        self.forest.layout = value
 
 
 class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
@@ -537,6 +632,27 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
 
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ):
+        self._optimize(
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
+
     @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
@@ -552,3 +668,19 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
     @property
     def precision(self) -> Optional[str]:
         return self.forest.precision
+
+    @property
+    def default_chunk_size(self) -> Optional[int]:
+        return self.forest.default_chunk_size
+
+    @default_chunk_size.setter
+    def default_chunk_size(self, value: Optional[int]):
+        self.forest.default_chunk_size = value
+
+    @property
+    def layout(self) -> str:
+        return self.forest.layout
+
+    @layout.setter
+    def layout(self, value: str):
+        self.forest.layout = value
