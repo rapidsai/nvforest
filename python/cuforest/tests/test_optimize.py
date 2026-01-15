@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Tests for the optimize() method and mutable layout/chunk_size functionality.
+# Tests for the optimize() method.
 
 import numpy as np
 import pytest
@@ -107,25 +107,28 @@ def small_classifier_model(tmp_path_factory):
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
 def test_optimize_classifier(device, small_classifier_model):
-    """Test that optimize() runs and sets layout and default_chunk_size."""
+    """Test that optimize() returns a new instance with optimal settings."""
     model_path, X, xgb_preds = small_classifier_model
     fm = cuforest.load_model(model_path, device=device)
 
-    # Run optimization with a short timeout
-    fm.optimize(data=X, timeout=0.1)
+    # Run optimization with a short timeout - returns a new instance
+    fm_opt = fm.optimize(data=X, timeout=0.1)
+
+    # Verify fm_opt is a new instance
+    assert fm_opt is not fm
 
     # Verify that layout is set to a valid value
-    assert fm.layout in ("depth_first", "breadth_first", "layered")
+    assert fm_opt.layout in ("depth_first", "breadth_first", "layered")
 
     # Verify that default_chunk_size is set to a power of 2
-    assert fm.default_chunk_size is not None
-    assert fm.default_chunk_size > 0
+    assert fm_opt.default_chunk_size is not None
+    assert fm_opt.default_chunk_size > 0
     assert (
-        fm.default_chunk_size & (fm.default_chunk_size - 1)
+        fm_opt.default_chunk_size & (fm_opt.default_chunk_size - 1)
     ) == 0  # power of 2
 
-    # Verify predictions still work after optimization
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X))
+    # Verify predictions still work on optimized model
+    cuforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
     cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
     np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
 
@@ -147,17 +150,21 @@ def test_optimize_regressor(device, tmp_path):
 
     fm = cuforest.load_model(model_path, device=device)
 
-    fm.optimize(data=X, timeout=0.1)
+    # optimize() returns a new instance
+    fm_opt = fm.optimize(data=X, timeout=0.1)
+
+    # Verify fm_opt is a new instance
+    assert fm_opt is not fm
 
     # Verify that layout and chunk_size are set
-    assert fm.layout in ("depth_first", "breadth_first", "layered")
-    assert fm.default_chunk_size is not None
-    assert fm.default_chunk_size > 0
+    assert fm_opt.layout in ("depth_first", "breadth_first", "layered")
+    assert fm_opt.default_chunk_size is not None
+    assert fm_opt.default_chunk_size > 0
 
     # Verify predictions still work
     dtest = xgb.DMatrix(X)
     xgb_preds = bst.predict(dtest)
-    fil_preds = _get_numpy_array(fm.predict(X))
+    fil_preds = _get_numpy_array(fm_opt.predict(X))
     fil_preds = np.reshape(fil_preds, xgb_preds.shape)
     np.testing.assert_almost_equal(fil_preds, xgb_preds, decimal=4)
 
@@ -168,15 +175,15 @@ def test_optimize_without_data(device, small_classifier_model):
     model_path, X, xgb_preds = small_classifier_model
     fm = cuforest.load_model(model_path, device=device)
 
-    # Run optimization without providing data
-    fm.optimize(batch_size=100, timeout=0.1, seed=42)
+    # Run optimization without providing data - returns a new instance
+    fm_opt = fm.optimize(batch_size=100, timeout=0.1, seed=42)
 
     # Verify that optimization set the values
-    assert fm.layout in ("depth_first", "breadth_first", "layered")
-    assert fm.default_chunk_size is not None
+    assert fm_opt.layout in ("depth_first", "breadth_first", "layered")
+    assert fm_opt.default_chunk_size is not None
 
-    # Verify predictions still work
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X))
+    # Verify predictions still work on the new instance
+    cuforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
     cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
     np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
 
@@ -187,55 +194,42 @@ def test_optimize_with_predict_per_tree(device, small_classifier_model):
     model_path, X, xgb_preds = small_classifier_model
     fm = cuforest.load_model(model_path, device=device)
 
-    # Optimize for predict_per_tree method
-    fm.optimize(data=X, timeout=0.1, predict_method="predict_per_tree")
+    # Optimize for predict_per_tree method - returns a new instance
+    fm_opt = fm.optimize(data=X, timeout=0.1, predict_method="predict_per_tree")
 
     # Verify that optimization ran successfully
-    assert fm.layout in ("depth_first", "breadth_first", "layered")
-    assert fm.default_chunk_size is not None
+    assert fm_opt.layout in ("depth_first", "breadth_first", "layered")
+    assert fm_opt.default_chunk_size is not None
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
-def test_layout_setter(device, small_classifier_model):
-    """Test that layout can be changed after model creation."""
+def test_model_layout_immutable(device, small_classifier_model):
+    """Test that layout is immutable (read-only property)."""
     model_path, X, xgb_preds = small_classifier_model
     fm = cuforest.load_model(model_path, device=device, layout="depth_first")
 
     # Verify initial layout
     assert fm.layout == "depth_first"
 
-    # Change layout
-    fm.layout = "breadth_first"
-    assert fm.layout == "breadth_first"
-
-    # Verify predictions still work after layout change
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X))
-    cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
-    np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
-
-    # Change to layered
-    fm.layout = "layered"
-    assert fm.layout == "layered"
-
-    # Verify predictions still work
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X))
-    cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
-    np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
+    # Attempting to set layout should raise AttributeError
+    with pytest.raises(AttributeError):
+        fm.layout = "breadth_first"
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
-def test_default_chunk_size_setter(device, small_classifier_model):
-    """Test that default_chunk_size can be set."""
+def test_load_with_different_layouts(device, small_classifier_model):
+    """Test loading models with different layout settings."""
     model_path, X, xgb_preds = small_classifier_model
-    fm = cuforest.load_model(model_path, device=device)
 
-    fm.default_chunk_size = 16
-    assert fm.default_chunk_size == 16
+    # Load with each layout type
+    for layout in ("depth_first", "breadth_first", "layered"):
+        fm = cuforest.load_model(model_path, device=device, layout=layout)
+        assert fm.layout == layout
 
-    # Predictions should use the default chunk size
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X))
-    cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
-    np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
+        # Verify predictions work with each layout
+        cuforest_proba = _get_numpy_array(fm.predict_proba(X))
+        cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
+        np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
 
 
 def test_optimize_sklearn_classifier():
@@ -255,16 +249,40 @@ def test_optimize_sklearn_classifier():
 
     fm = cuforest.load_from_sklearn(skl_model, device="cpu")
 
-    fm.optimize(data=X, timeout=0.1)
+    # optimize() returns a new instance
+    fm_opt = fm.optimize(data=X, timeout=0.1)
+
+    # Verify fm_opt is a new instance
+    assert fm_opt is not fm
 
     # Verify optimization worked
-    assert fm.layout in ("depth_first", "breadth_first", "layered")
-    assert fm.default_chunk_size is not None
+    assert fm_opt.layout in ("depth_first", "breadth_first", "layered")
+    assert fm_opt.default_chunk_size is not None
 
     # Verify predictions match sklearn
     skl_proba = skl_model.predict_proba(X)
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X))
+    cuforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
     cuforest_proba = np.reshape(cuforest_proba, skl_proba.shape)
     np.testing.assert_allclose(
         cuforest_proba, skl_proba, atol=proba_atol[True]
     )
+
+
+@pytest.mark.parametrize("device", ("cpu", "gpu"))
+def test_original_model_unchanged_after_optimize(device, small_classifier_model):
+    """Test that the original model is unchanged after calling optimize()."""
+    model_path, X, xgb_preds = small_classifier_model
+    fm = cuforest.load_model(model_path, device=device, layout="depth_first")
+
+    original_layout = fm.layout
+    original_chunk_size = fm.default_chunk_size
+
+    # optimize() returns a new instance
+    fm_opt = fm.optimize(data=X, timeout=0.1)
+
+    # Original model should be unchanged
+    assert fm.layout == original_layout
+    assert fm.default_chunk_size == original_chunk_size
+
+    # Optimized model may have different settings
+    assert fm_opt is not fm

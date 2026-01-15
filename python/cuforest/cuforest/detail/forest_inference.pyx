@@ -310,13 +310,9 @@ class ForestInferenceImpl:
         else:
             raise ValueError(f"Unknown precision value: {self.precision}")
 
-        # Store treelite model bytes for potential reload with different layout
+        # Store treelite model bytes for creating new instances with different settings
         self._treelite_model_bytes = treelite_model.serialize_bytes()
 
-        self._build_impl()
-
-    def _build_impl(self):
-        """Build the underlying ForestInference_impl with current settings."""
         self.impl = ForestInference_impl(
             self.handle,
             self._treelite_model_bytes,
@@ -327,19 +323,14 @@ class ForestInferenceImpl:
             device_id=self.device_id
         )
 
-    def _reload_model(self):
-        """Reload the model with potentially new layout settings."""
-        self._build_impl()
-
     @property
     def layout(self) -> str:
         return self._layout
 
-    @layout.setter
-    def layout(self, value: str):
-        if value != self._layout:
-            self._layout = value
-            self._reload_model()
+    @property
+    def treelite_model_bytes(self) -> bytes:
+        """Return the serialized treelite model bytes."""
+        return self._treelite_model_bytes
 
     @property
     def num_outputs(self) -> int:
