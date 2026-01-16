@@ -308,7 +308,7 @@ class CPUForestInferenceClassifier(
         tl_model = treelite.Model.deserialize_bytes(
             self.forest.treelite_model_bytes
         )
-        return CPUForestInferenceClassifier(
+        return type(self)(
             treelite_model=tl_model,
             handle=self.forest.handle,
             layout=layout,
@@ -428,7 +428,7 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
         tl_model = treelite.Model.deserialize_bytes(
             self.forest.treelite_model_bytes
         )
-        return CPUForestInferenceRegressor(
+        return type(self)(
             treelite_model=tl_model,
             handle=self.forest.handle,
             layout=layout,
@@ -541,7 +541,7 @@ class GPUForestInferenceClassifier(
         tl_model = treelite.Model.deserialize_bytes(
             self.forest.treelite_model_bytes
         )
-        return GPUForestInferenceClassifier(
+        return type(self)(
             treelite_model=tl_model,
             handle=self.forest.handle,
             layout=layout,
@@ -663,7 +663,7 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
         tl_model = treelite.Model.deserialize_bytes(
             self.forest.treelite_model_bytes
         )
-        return GPUForestInferenceRegressor(
+        return type(self)(
             treelite_model=tl_model,
             handle=self.forest.handle,
             layout=layout,
