@@ -304,7 +304,7 @@ class OptimizeMixin:
 
 
 class CPUForestInferenceClassifier(
-    ForestInferenceClassifier, ClassifierMixin, OptimizeMixin
+    OptimizeMixin, ForestInferenceClassifier, ClassifierMixin
 ):
     def __init__(
         self,
@@ -412,7 +412,7 @@ class CPUForestInferenceClassifier(
         return self.forest.layout
 
 
-class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
+class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def __init__(
         self,
         *,
@@ -510,7 +510,7 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
 
 
 class GPUForestInferenceClassifier(
-    ForestInferenceClassifier, ClassifierMixin, OptimizeMixin
+    OptimizeMixin, ForestInferenceClassifier, ClassifierMixin
 ):
     def __init__(
         self,
@@ -620,7 +620,7 @@ class GPUForestInferenceClassifier(
         return self.forest.layout
 
 
-class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
+class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def __init__(
         self,
         *,
