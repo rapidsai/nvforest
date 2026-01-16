@@ -118,8 +118,18 @@ class _AutoIterations:
 class OptimizeMixin:
     """Mixin class that provides the optimize method for ForestInference classes."""
 
+    @classmethod
     def _create_with_layout(
-        self, layout: str, default_chunk_size: Optional[int]
+        cls,
+        *,
+        treelite_model_bytes: bytes,
+        handle: Optional[Handle],
+        layout: str,
+        default_chunk_size: Optional[int],
+        align_bytes: Optional[int],
+        precision: Optional[str],
+        device: str,
+        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size.
 
@@ -238,7 +248,16 @@ class OptimizeMixin:
             if layout == self.layout:
                 test_instances[layout] = self
             else:
-                test_instances[layout] = self._create_with_layout(layout, None)
+                test_instances[layout] = type(self)._create_with_layout(
+                    treelite_model_bytes=self.forest.treelite_model_bytes,
+                    handle=self.forest.handle,
+                    layout=layout,
+                    default_chunk_size=None,
+                    align_bytes=self.forest.align_bytes,
+                    precision=self.forest.precision,
+                    device=self.forest.device,
+                    device_id=self.forest.device_id,
+                )
 
         all_params = list(itertools.product(valid_layouts, valid_chunk_sizes))
         auto_iterator = _AutoIterations()
@@ -272,7 +291,16 @@ class OptimizeMixin:
                 break
 
         # Return a new instance with optimal settings
-        return self._create_with_layout(optimal_layout, optimal_chunk_size)
+        return type(self)._create_with_layout(
+            treelite_model_bytes=self.forest.treelite_model_bytes,
+            handle=self.forest.handle,
+            layout=optimal_layout,
+            default_chunk_size=optimal_chunk_size,
+            align_bytes=self.forest.align_bytes,
+            precision=self.forest.precision,
+            device=self.forest.device,
+            device_id=self.forest.device_id,
+        )
 
 
 class CPUForestInferenceClassifier(
@@ -301,20 +329,28 @@ class CPUForestInferenceClassifier(
             precision=precision,
         )
 
+    @classmethod
     def _create_with_layout(
-        self, layout: str, default_chunk_size: Optional[int]
+        cls,
+        *,
+        treelite_model_bytes: bytes,
+        handle: Optional[Handle],
+        layout: str,
+        default_chunk_size: Optional[int],
+        align_bytes: Optional[int],
+        precision: Optional[str],
+        device: str,
+        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(
-            self.forest.treelite_model_bytes
-        )
-        return type(self)(
+        tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
+        return cls(
             treelite_model=tl_model,
-            handle=self.forest.handle,
+            handle=handle,
             layout=layout,
             default_chunk_size=default_chunk_size,
-            align_bytes=self.forest.align_bytes,
-            precision=self.forest.precision,
+            align_bytes=align_bytes,
+            precision=precision,
         )
 
     def predict(
@@ -421,20 +457,28 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
             precision=precision,
         )
 
+    @classmethod
     def _create_with_layout(
-        self, layout: str, default_chunk_size: Optional[int]
+        cls,
+        *,
+        treelite_model_bytes: bytes,
+        handle: Optional[Handle],
+        layout: str,
+        default_chunk_size: Optional[int],
+        align_bytes: Optional[int],
+        precision: Optional[str],
+        device: str,
+        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(
-            self.forest.treelite_model_bytes
-        )
-        return type(self)(
+        tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
+        return cls(
             treelite_model=tl_model,
-            handle=self.forest.handle,
+            handle=handle,
             layout=layout,
             default_chunk_size=default_chunk_size,
-            align_bytes=self.forest.align_bytes,
-            precision=self.forest.precision,
+            align_bytes=align_bytes,
+            precision=precision,
         )
 
     def predict(
@@ -534,21 +578,29 @@ class GPUForestInferenceClassifier(
             precision=precision,
         )
 
+    @classmethod
     def _create_with_layout(
-        self, layout: str, default_chunk_size: Optional[int]
+        cls,
+        *,
+        treelite_model_bytes: bytes,
+        handle: Optional[Handle],
+        layout: str,
+        default_chunk_size: Optional[int],
+        align_bytes: Optional[int],
+        precision: Optional[str],
+        device: str,
+        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(
-            self.forest.treelite_model_bytes
-        )
-        return type(self)(
+        tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
+        return cls(
             treelite_model=tl_model,
-            handle=self.forest.handle,
+            handle=handle,
             layout=layout,
             default_chunk_size=default_chunk_size,
-            align_bytes=self.forest.align_bytes,
-            precision=self.forest.precision,
-            device_id=self.forest.device_id,
+            align_bytes=align_bytes,
+            precision=precision,
+            device_id=device_id,
         )
 
     def predict(
@@ -656,21 +708,29 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
             precision=precision,
         )
 
+    @classmethod
     def _create_with_layout(
-        self, layout: str, default_chunk_size: Optional[int]
+        cls,
+        *,
+        treelite_model_bytes: bytes,
+        handle: Optional[Handle],
+        layout: str,
+        default_chunk_size: Optional[int],
+        align_bytes: Optional[int],
+        precision: Optional[str],
+        device: str,
+        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
-        tl_model = treelite.Model.deserialize_bytes(
-            self.forest.treelite_model_bytes
-        )
-        return type(self)(
+        tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
+        return cls(
             treelite_model=tl_model,
-            handle=self.forest.handle,
+            handle=handle,
             layout=layout,
             default_chunk_size=default_chunk_size,
-            align_bytes=self.forest.align_bytes,
-            precision=self.forest.precision,
-            device_id=self.forest.device_id,
+            align_bytes=align_bytes,
+            precision=precision,
+            device_id=device_id,
         )
 
     def predict(
