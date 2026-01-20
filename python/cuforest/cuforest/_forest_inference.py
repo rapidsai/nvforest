@@ -137,7 +137,7 @@ class OptimizeMixin:
         """
         raise NotImplementedError
 
-    def _optimize(
+    def optimize(
         self,
         *,
         data=None,
@@ -304,7 +304,7 @@ class OptimizeMixin:
 
 
 class CPUForestInferenceClassifier(
-    ForestInferenceClassifier, ClassifierMixin, OptimizeMixin
+    OptimizeMixin, ForestInferenceClassifier, ClassifierMixin
 ):
     def __init__(
         self,
@@ -387,27 +387,6 @@ class CPUForestInferenceClassifier(
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
 
-    def optimize(
-        self,
-        *,
-        data=None,
-        batch_size: int = 1024,
-        unique_batches: int = 10,
-        timeout: float = 0.2,
-        predict_method: str = "predict",
-        max_chunk_size: Optional[int] = None,
-        seed: int = 0,
-    ) -> Self:
-        return self._optimize(
-            data=data,
-            batch_size=batch_size,
-            unique_batches=unique_batches,
-            timeout=timeout,
-            predict_method=predict_method,
-            max_chunk_size=max_chunk_size,
-            seed=seed,
-        )
-
     @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
@@ -433,7 +412,7 @@ class CPUForestInferenceClassifier(
         return self.forest.layout
 
 
-class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
+class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def __init__(
         self,
         *,
@@ -504,27 +483,6 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
         chunk_size: Optional[int] = None,
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
-
-    def optimize(
-        self,
-        *,
-        data=None,
-        batch_size: int = 1024,
-        unique_batches: int = 10,
-        timeout: float = 0.2,
-        predict_method: str = "predict",
-        max_chunk_size: Optional[int] = None,
-        seed: int = 0,
-    ) -> Self:
-        return self._optimize(
-            data=data,
-            batch_size=batch_size,
-            unique_batches=unique_batches,
-            timeout=timeout,
-            predict_method=predict_method,
-            max_chunk_size=max_chunk_size,
-            seed=seed,
-        )
 
     @property
     def num_outputs(self) -> int:
@@ -552,7 +510,7 @@ class CPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
 
 
 class GPUForestInferenceClassifier(
-    ForestInferenceClassifier, ClassifierMixin, OptimizeMixin
+    OptimizeMixin, ForestInferenceClassifier, ClassifierMixin
 ):
     def __init__(
         self,
@@ -637,27 +595,6 @@ class GPUForestInferenceClassifier(
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
 
-    def optimize(
-        self,
-        *,
-        data=None,
-        batch_size: int = 1024,
-        unique_batches: int = 10,
-        timeout: float = 0.2,
-        predict_method: str = "predict",
-        max_chunk_size: Optional[int] = None,
-        seed: int = 0,
-    ) -> Self:
-        return self._optimize(
-            data=data,
-            batch_size=batch_size,
-            unique_batches=unique_batches,
-            timeout=timeout,
-            predict_method=predict_method,
-            max_chunk_size=max_chunk_size,
-            seed=seed,
-        )
-
     @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
@@ -683,7 +620,7 @@ class GPUForestInferenceClassifier(
         return self.forest.layout
 
 
-class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
+class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def __init__(
         self,
         *,
@@ -756,27 +693,6 @@ class GPUForestInferenceRegressor(ForestInferenceRegressor, OptimizeMixin):
         chunk_size: Optional[int] = None,
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
-
-    def optimize(
-        self,
-        *,
-        data=None,
-        batch_size: int = 1024,
-        unique_batches: int = 10,
-        timeout: float = 0.2,
-        predict_method: str = "predict",
-        max_chunk_size: Optional[int] = None,
-        seed: int = 0,
-    ) -> Self:
-        return self._optimize(
-            data=data,
-            batch_size=batch_size,
-            unique_batches=unique_batches,
-            timeout=timeout,
-            predict_method=predict_method,
-            max_chunk_size=max_chunk_size,
-            seed=seed,
-        )
 
     @property
     def num_outputs(self) -> int:
