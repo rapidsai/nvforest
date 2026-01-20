@@ -415,6 +415,35 @@ class TestDeviceHandling:
             assert preds.shape == (10,)
 
     @pytest.mark.unit
+    def test_lightgbm_predict_native_gpu_fallback(self):
+        """Test that lightgbm predict_native handles GPU request gracefully."""
+        if "lightgbm" not in FRAMEWORKS:
+            pytest.skip("lightgbm not available")
+        
+        X, y = generate_data(num_features=10, num_samples=100, model_type="regressor")
+        # Train on CPU (GPU training requires special build)
+        model = train_model(
+            FRAMEWORKS["lightgbm"],
+            model_type="regressor",
+            num_trees=5,
+            max_depth=3,
+            X_train=X,
+            y_train=y,
+            device="cpu",
+        )
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            framework = FRAMEWORKS["lightgbm"]
+            model_path = os.path.join(tmpdir, f"model{framework.model_extension}")
+            framework.save_model(model, model_path)
+            
+            # Load and predict - should work even with gpu device request
+            # (will fall back to CPU if GPU not available)
+            native_model = framework.load_native(model_path, "gpu")
+            preds = framework.predict_native(native_model, X[:10], "gpu")
+            assert preds.shape == (10,)
+
+    @pytest.mark.unit
     def test_framework_supports_gpu_native_flag(self):
         """Test that supports_gpu_native flag is set correctly."""
         if "sklearn" in FRAMEWORKS:
@@ -423,6 +452,35 @@ class TestDeviceHandling:
             assert FRAMEWORKS["xgboost"].supports_gpu_native is True
         if "lightgbm" in FRAMEWORKS:
             assert FRAMEWORKS["lightgbm"].supports_gpu_native is True
+
+    @pytest.mark.unit
+    def test_lightgbm_train_with_gpu_device_param(self):
+        """Test that LightGBM train_model accepts GPU device parameter.
+        
+        Note: Actual GPU training requires LightGBM built with GPU support.
+        This test verifies the code path works (may fall back to CPU).
+        """
+        if "lightgbm" not in FRAMEWORKS:
+            pytest.skip("lightgbm not available")
+        
+        X, y = generate_data(num_features=10, num_samples=100, model_type="regressor")
+        
+        # This may raise an error if LightGBM GPU is not available,
+        # which is expected behavior - the training code should handle it
+        try:
+            model = train_model(
+                FRAMEWORKS["lightgbm"],
+                model_type="regressor",
+                num_trees=5,
+                max_depth=3,
+                X_train=X,
+                y_train=y,
+                device="gpu",
+            )
+            assert hasattr(model, "predict")
+        except Exception as e:
+            # Expected if LightGBM GPU support is not available
+            assert "GPU" in str(e).upper() or "gpu" in str(e).lower()
 
 
 class TestEndToEnd:

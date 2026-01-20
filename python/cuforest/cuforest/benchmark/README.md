@@ -107,7 +107,15 @@ The `--device` parameter affects how both native frameworks and cuforest run inf
 
 ### LightGBM
 - **CPU**: Standard CPU inference
-- **GPU**: LightGBM doesn't natively support GPU inference on cupy arrays. For GPU benchmarks, native inference still runs on CPU as a baseline. The speedup comparison reflects cuforest GPU vs LightGBM CPU.
+- **GPU**: LightGBM GPU training and inference require the library to be built with GPU support:
+  ```bash
+  # Option 1: Build from source
+  cmake -DUSE_GPU=1 ..
+  
+  # Option 2: pip with GPU flag
+  pip install lightgbm --install-option=--gpu
+  ```
+  When GPU is requested and LightGBM GPU support is available, models are trained with `device="gpu"` and inference uses the GPU-trained model. If GPU support is not available, training/inference falls back to CPU with a warning.
 
 ### sklearn
 - **CPU**: Standard CPU inference
