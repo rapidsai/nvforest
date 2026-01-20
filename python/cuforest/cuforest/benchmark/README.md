@@ -93,6 +93,28 @@ python -m cuforest.benchmark.analyze data/final_results.csv --device gpu --summa
 | `num_trees` | 16 |
 | `batch_size` | 1024 |
 
+## Device Handling
+
+The `--device` parameter affects how both native frameworks and cuforest run inference:
+
+### cuforest
+- **CPU**: Uses CPU inference backend
+- **GPU**: Uses GPU inference backend with cupy arrays
+
+### XGBoost
+- **CPU**: Standard CPU inference with DMatrix
+- **GPU**: Models are trained with `device="cuda"` and use `inplace_predict` for GPU inference
+
+### LightGBM
+- **CPU**: Standard CPU inference
+- **GPU**: LightGBM doesn't natively support GPU inference on cupy arrays. For GPU benchmarks, native inference still runs on CPU as a baseline. The speedup comparison reflects cuforest GPU vs LightGBM CPU.
+
+### sklearn
+- **CPU**: Standard CPU inference
+- **GPU**: sklearn is CPU-only. For GPU benchmarks, native inference runs on CPU as a baseline. The speedup comparison reflects cuforest GPU vs sklearn CPU.
+
+> **Note**: When `device=gpu`, XGBoost models are trained on GPU which enables GPU-native inference. This provides a fair comparison between XGBoost GPU inference and cuforest GPU inference.
+
 ## Output
 
 Results are saved as CSV files in the output directory:

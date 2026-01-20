@@ -106,8 +106,8 @@ class FrameworkConfig:
     regressor_class: Optional[type]
     classifier_class: Optional[type]
     save_model: Callable[[Any, str], None]
-    load_native: Callable[[str], Any]
-    predict_native: Callable[[Any, np.ndarray], np.ndarray]
+    load_native: Callable[[str, str], Any]  # (path, device) -> model
+    predict_native: Callable[[Any, np.ndarray, str], np.ndarray]  # (model, X, device) -> preds
     model_extension: str
     supports_gpu_native: bool = False
 
@@ -117,13 +117,21 @@ def _save_sklearn_model(model: Any, path: str) -> None:
     treelite.sklearn.import_model(model).serialize(path)
 
 
-def _load_sklearn_model(path: str) -> Any:
-    """Load sklearn model - returns None as we use the trained model directly."""
+def _load_sklearn_model(path: str, device: str = "cpu") -> Any:
+    """Load sklearn model - returns None as we use the trained model directly.
+    
+    Note: sklearn doesn't support GPU, device parameter is ignored.
+    """
     return None
 
 
-def _predict_sklearn(model: Any, X: np.ndarray) -> np.ndarray:
-    """Run sklearn prediction."""
+def _predict_sklearn(model: Any, X: np.ndarray, device: str = "cpu") -> np.ndarray:
+    """Run sklearn prediction.
+    
+    Note: sklearn only supports CPU. If X is a cupy array, converts to numpy.
+    """
+    if hasattr(X, "get"):  # cupy array
+        X = X.get()
     return model.predict(X)
 
 
@@ -133,21 +141,25 @@ def _save_xgboost_model(model: Any, path: str) -> None:
     booster.save_model(path)
 
 
-def _load_xgboost_model(path: str) -> Any:
+def _load_xgboost_model(path: str, device: str = "cpu") -> Any:
     """Load XGBoost booster from file."""
     booster = xgb.Booster()
     booster.load_model(path)
+    if device == "gpu":
+        booster.set_param({"device": "cuda"})
     return booster
 
 
-def _predict_xgboost(model: Any, X: np.ndarray) -> np.ndarray:
-    """Run XGBoost prediction."""
-    if hasattr(model, "predict"):
-        if isinstance(model, xgb.Booster):
-            dmatrix = xgb.DMatrix(X)
-            return model.predict(dmatrix)
-        return model.predict(X)
-    return model.predict(xgb.DMatrix(X))
+def _predict_xgboost(model: Any, X: np.ndarray, device: str = "cpu") -> np.ndarray:
+    """Run XGBoost prediction on specified device."""
+    if isinstance(model, xgb.Booster):
+        # For GPU, use inplace_predict which is faster and handles GPU data
+        if device == "gpu":
+            return model.inplace_predict(X)
+        dmatrix = xgb.DMatrix(X)
+        return model.predict(dmatrix)
+    # Scikit-learn API wrapper
+    return model.predict(X)
 
 
 def _save_lightgbm_model(model: Any, path: str) -> None:
@@ -156,15 +168,22 @@ def _save_lightgbm_model(model: Any, path: str) -> None:
     booster.save_model(path)
 
 
-def _load_lightgbm_model(path: str) -> Any:
+def _load_lightgbm_model(path: str, device: str = "cpu") -> Any:
     """Load LightGBM booster from file."""
+    # Note: LightGBM GPU inference requires model to be trained with GPU
+    # and the gpu_use_dp parameter set correctly. Here we just load the model.
     return lgb.Booster(model_file=path)
 
 
-def _predict_lightgbm(model: Any, X: np.ndarray) -> np.ndarray:
-    """Run LightGBM prediction."""
-    if hasattr(model, "predict"):
-        return model.predict(X)
+def _predict_lightgbm(model: Any, X: np.ndarray, device: str = "cpu") -> np.ndarray:
+    """Run LightGBM prediction on specified device.
+    
+    Note: LightGBM doesn't support GPU inference directly on cupy arrays.
+    For GPU benchmarks, we use CPU inference as native baseline.
+    """
+    # LightGBM requires numpy arrays (doesn't support cupy directly)
+    if hasattr(X, "get"):  # cupy array
+        X = X.get()
     return model.predict(X)
 
 
@@ -288,8 +307,28 @@ def train_model(
     max_depth: int,
     X_train: np.ndarray,
     y_train: np.ndarray,
+    device: str = "cpu",
 ) -> Any:
-    """Train a model with the given framework and parameters."""
+    """Train a model with the given framework and parameters.
+    
+    Parameters
+    ----------
+    framework : FrameworkConfig
+        Framework configuration.
+    model_type : str
+        'regressor' or 'classifier'.
+    num_trees : int
+        Number of trees/estimators.
+    max_depth : int
+        Maximum tree depth.
+    X_train : np.ndarray
+        Training features.
+    y_train : np.ndarray
+        Training labels.
+    device : str
+        Device to use for training ('cpu' or 'gpu').
+        Only affects XGBoost currently.
+    """
     model_class = (
         framework.regressor_class if model_type == "regressor" else framework.classifier_class
     )
@@ -297,13 +336,18 @@ def train_model(
     if framework.name == "sklearn":
         model = model_class(n_estimators=num_trees, max_depth=max_depth, n_jobs=-1)
     elif framework.name == "xgboost":
+        # Use GPU for training if requested - enables GPU inference
+        xgb_device = "cuda" if device == "gpu" else "cpu"
         model = model_class(
             n_estimators=num_trees,
             max_depth=max_depth,
             tree_method="hist",
+            device=xgb_device,
             n_jobs=-1,
         )
     elif framework.name == "lightgbm":
+        # LightGBM GPU training requires special build, so we always train on CPU
+        # but this is fine since LightGBM doesn't support GPU inference anyway
         model = model_class(
             n_estimators=num_trees,
             max_depth=max_depth,
@@ -424,37 +468,38 @@ def run_benchmark_suite(
                     for framework_name in frameworks:
                         framework = FRAMEWORKS[framework_name]
 
-                        # Train model
-                        cur_time = datetime.now().strftime("%H:%M:%S")
-                        LOGGER.info(
-                            f"{cur_time}: Training {framework_name} {model_type} "
-                            f"({num_trees} trees, depth {max_depth}, {num_features} features)"
-                        )
-
-                        try:
-                            model = train_model(
-                                framework, model_type, num_trees, max_depth, X_train, y_train
-                            )
-                        except Exception as e:
-                            LOGGER.warning(f"Failed to train {framework_name} model: {e}")
-                            continue
-
-                        # Save model
-                        model_path = os.path.join(
-                            data_dir, f"model_{framework_name}{framework.model_extension}"
-                        )
-                        framework.save_model(model, model_path)
-
                         for device in devices:
-                            # Skip GPU native for frameworks that don't support it
-                            if device == "gpu" and not framework.supports_gpu_native:
-                                native_model = model  # Use sklearn model on CPU for native
-                            else:
-                                native_model = (
-                                    model
-                                    if framework.name == "sklearn"
-                                    else framework.load_native(model_path)
+                            # Train model with appropriate device
+                            # For XGBoost, training on GPU enables GPU inference
+                            train_device = device if framework.supports_gpu_native else "cpu"
+                            
+                            cur_time = datetime.now().strftime("%H:%M:%S")
+                            LOGGER.info(
+                                f"{cur_time}: Training {framework_name} {model_type} "
+                                f"({num_trees} trees, depth {max_depth}, {num_features} features) "
+                                f"[train_device={train_device}]"
+                            )
+
+                            try:
+                                model = train_model(
+                                    framework, model_type, num_trees, max_depth, 
+                                    X_train, y_train, device=train_device
                                 )
+                            except Exception as e:
+                                LOGGER.warning(f"Failed to train {framework_name} model: {e}")
+                                continue
+
+                            # Save model
+                            model_path = os.path.join(
+                                data_dir, f"model_{framework_name}_{device}{framework.model_extension}"
+                            )
+                            framework.save_model(model, model_path)
+
+                            # Load native model with device support
+                            if framework.name == "sklearn":
+                                native_model = model  # sklearn uses trained model directly
+                            else:
+                                native_model = framework.load_native(model_path, device)
 
                             for batch_size in param_values["batch_size"]:
                                 # Skip large batch + large feature combinations
@@ -479,11 +524,13 @@ def run_benchmark_suite(
                                     X_device = X
 
                                 # Native benchmark
-                                LOGGER.info("    Running native inference...")
+                                # For GPU-capable frameworks, use GPU data; otherwise CPU
+                                native_data = X_device if framework.supports_gpu_native else X
+                                LOGGER.info(f"    Running native inference (device={device}, gpu_native={framework.supports_gpu_native})...")
                                 try:
                                     native_time = run_inference_benchmark(
-                                        lambda batch: framework.predict_native(native_model, batch),
-                                        X if device == "cpu" else X,  # Native uses CPU data
+                                        lambda batch, m=native_model, d=device: framework.predict_native(m, batch, d),
+                                        native_data,
                                         batch_size,
                                     )
                                 except Exception as e:
@@ -510,7 +557,7 @@ def run_benchmark_suite(
                                     optimal_chunk_size = cuforest_model.default_chunk_size
 
                                     cuforest_time = run_inference_benchmark(
-                                        lambda batch: cuforest_model.predict(batch),
+                                        lambda batch, m=cuforest_model: m.predict(batch),
                                         X_device if device == "gpu" else X,
                                         batch_size,
                                     )
@@ -543,11 +590,13 @@ def run_benchmark_suite(
                                     del cuforest_model
                                     gc.collect()
 
-                        # Clean up trained model
-                        del model
-                        if native_model is not model:
-                            del native_model
-                        gc.collect()
+                            # Clean up native model after batch_size loop
+                            if native_model is not model:
+                                del native_model
+                            
+                            # Clean up trained model after device
+                            del model
+                            gc.collect()
 
                     # Write checkpoint after each tree/depth combination
                     write_checkpoint(results, data_dir)
