@@ -19,6 +19,7 @@ files:
       - depends_on_pylibraft
       - depends_on_rapids_logger
       - develop
+      - docs
       - py_build_cuforest
       - py_run_cuforest
       - py_version
@@ -71,6 +72,17 @@ files:
       - cuda_version
       - depends_on_libraft_headers
       - depends_on_librmm
+  docs:
+    output: none
+    includes:
+      - cuda_version
+      - docs
+      - py_version
+      - depends_on_cuda_python
+      - depends_on_libraft_headers
+      - depends_on_librmm
+      - depends_on_cuforest
+      - depends_on_libcuforest
   test_cpp:
     output: none
     includes:
@@ -302,6 +314,30 @@ dependencies:
           - matrix:
             packages:
               - cuda-toolkit>=12,<14
+  docs:
+    common:
+      - output_types: [conda, requirements]
+        packages:
+          - graphviz
+          - ipython
+          - ipykernel
+          - nbsphinx
+          - numpydoc
+          # https://github.com/pydata/pydata-sphinx-theme/issues/1539
+          - pydata-sphinx-theme!=0.14.2
+          - recommonmark
+          - *scikit_learn
+          - sphinx
+          - sphinx-copybutton
+          - sphinx-markdown-tables
+          - pyyaml
+      - output_types: conda
+        packages:
+          - doxygen=1.9.1
+          - matplotlib-base
+      - output_types: requirements
+        packages:
+          - matplotlib
   py_version:
     specific:
       - output_types: conda

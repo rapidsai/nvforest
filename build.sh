@@ -19,7 +19,7 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd "$(dirname "$0")"; pwd)
 
-VALIDTARGETS="clean libcuforest cuforest"
+VALIDTARGETS="clean libcuforest cuforest cppdocs"
 VALIDFLAGS="-v -g -n --allgpuarch --nvtx --show_depr_warn --ccache --configure-only --build-metrics --incl-cache-stats -h --help "
 VALIDARGS="${VALIDTARGETS} ${VALIDFLAGS}"
 HELP="$0 [<target> ...] [<flag> ...]
@@ -27,6 +27,7 @@ HELP="$0 [<target> ...] [<flag> ...]
    clean              - remove all existing build artifacts and configuration (start over)
    libcuforest        - build the cuforest C++ code only
    cuforest           - build the cuforest Python package
+   cppdocs            - build the C++ API doxygen documentation
  and <flag> is:
    -v                 - verbose build mode
    -g                 - build for debug
@@ -217,7 +218,7 @@ fi
 
 ################################################################################
 # Configure for building all C++ targets
-if completeBuild || hasArg libcuforest; then
+if completeBuild || hasArg libcuforest || hasArg cppdocs; then
     if (( BUILD_ALL_GPU_ARCH == 0 )); then
         CUFOREST_CMAKE_CUDA_ARCHITECTURES="NATIVE"
         echo "Building for the architecture of the GPU in the system..."
@@ -298,6 +299,11 @@ if (! hasArg --configure-only) && (completeBuild || hasArg libcuforest); then
         PATH=".:$PATH" python rapids-build-metrics-reporter.py "${LIBCUFOREST_BUILD_DIR}"/.ninja_log --fmt html --msg "${MSG_OUTFILE}" > "${BMR_DIR}"/ninja_log.html
         cp "${LIBCUFOREST_BUILD_DIR}"/.ninja_log "${BMR_DIR}"/ninja.log
       fi
+fi
+
+if (! hasArg --configure-only) && hasArg cppdocs; then
+    cd "${LIBCUFOREST_BUILD_DIR}"
+    cmake --build "${LIBCUFOREST_BUILD_DIR}" --target docs_cuforest
 fi
 
 # Build and (optionally) install the cuforest Python package
