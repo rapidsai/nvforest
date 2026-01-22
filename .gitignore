@@ -63,3 +63,7 @@ _skbuild/
 *.xlsm
 *.zip
 *.zstd
+
+## Doxygen
+cpp/html
+cpp/Doxyfile

@@ -19,7 +19,7 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd "$(dirname "$0")"; pwd)
 
-VALIDTARGETS="clean libcuforest cuforest cppdocs"
+VALIDTARGETS="clean libcuforest cuforest cppdocs pydocs"
 VALIDFLAGS="-v -g -n --allgpuarch --nvtx --show_depr_warn --ccache --configure-only --build-metrics --incl-cache-stats -h --help "
 VALIDARGS="${VALIDTARGETS} ${VALIDFLAGS}"
 HELP="$0 [<target> ...] [<flag> ...]
@@ -28,6 +28,7 @@ HELP="$0 [<target> ...] [<flag> ...]
    libcuforest        - build the cuforest C++ code only
    cuforest           - build the cuforest Python package
    cppdocs            - build the C++ API doxygen documentation
+   pydocs             - build the Python API documentation
  and <flag> is:
    -v                 - verbose build mode
    -g                 - build for debug
@@ -307,10 +308,15 @@ if (! hasArg --configure-only) && hasArg cppdocs; then
 fi
 
 # Build and (optionally) install the cuforest Python package
-if (! hasArg --configure-only) && (completeBuild || hasArg cuforest); then
+if (! hasArg --configure-only) && (completeBuild || hasArg cuforest || hasArg pydocs); then
     # Replace spaces with semicolons in SKBUILD_EXTRA_CMAKE_ARGS
     SKBUILD_EXTRA_CMAKE_ARGS=${SKBUILD_EXTRA_CMAKE_ARGS// /;}
 
     SKBUILD_CMAKE_ARGS="-DCMAKE_MESSAGE_LOG_LEVEL=${CMAKE_LOG_LEVEL};${SKBUILD_EXTRA_CMAKE_ARGS}" \
         python -m pip install --no-build-isolation --no-deps --config-settings rapidsai.disable-cuda=true "${REPODIR}"/python/cuforest
+
+    if hasArg pydocs; then
+        cd "${REPODIR}"/docs
+        make html
+    fi
 fi
