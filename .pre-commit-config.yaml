@@ -82,7 +82,7 @@ repos:
             pass_filenames: false
             language: python
     - repo: https://github.com/rapidsai/pre-commit-hooks
-      rev: v1.2.1
+      rev: v1.3.3
       hooks:
         - id: verify-copyright
           name: verify-copyright
@@ -102,6 +102,12 @@ repos:
               dependencies[.]yaml$|
               pytest[.]ini$
         - id: verify-alpha-spec
+        - id: verify-pyproject-license
+          # ignore the top-level pyproject.toml, which doesn't
+          # have or need a [project] table
+          exclude: |
+            (?x)
+              ^pyproject[.]toml$
     - repo: https://github.com/rapidsai/dependency-file-generator
       rev: v1.20.0
       hooks:
