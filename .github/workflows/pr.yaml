@@ -19,6 +19,7 @@ jobs:
       - conda-cpp-checks
       - conda-python-build
       - conda-python-tests
+      - docs-build
       - telemetry-setup
       - wheel-build-libcuforest
       - wheel-build-cuforest
