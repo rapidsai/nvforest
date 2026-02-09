@@ -86,7 +86,7 @@ echo "${NEXT_FULL_TAG}" > VERSION
 
 # Python version updates (pyproject.toml, version files)
 for FILE in python/*/pyproject.toml; do
-  sed_runner "s/version = \".*\"/version = \"${NEXT_FULL_TAG}\"/g" "${FILE}"
+  sed_runner "s/^version = \".*\"/version = \"${NEXT_FULL_TAG}\"/g" "${FILE}"
 done
 
 # __init__.py and _version.py files
@@ -105,8 +105,21 @@ sed_runner "s/libcuforest==.*/libcuforest==${NEXT_SHORT_TAG}.*,>=0.0.0a0/g" depe
 sed_runner "s/libcuforest-tests==.*/libcuforest-tests==${NEXT_SHORT_TAG}.*,>=0.0.0a0/g" dependencies.yaml
 
 # RAPIDS dependencies
-for DEP in rmm librmm pylibraft libraft libraft-headers; do
-  sed_runner "s/${DEP}==.*/${DEP}==${NEXT_SHORT_TAG}.*,>=0.0.0a0/g" dependencies.yaml
+DEPENDENCIES=(
+  libraft
+  libraft-headers
+  librmm
+  pylibraft
+  rapids-xgboost
+  rmm
+)
+for DEP in "${DEPENDENCIES[@]}"; do
+  for FILE in dependencies.yaml conda/environments/*.yaml; do
+    sed_runner "/-.* ${DEP}\(-cu[[:digit:]]\{2\}\)\{0,1\}\(\[.*\]\)\{0,1\}==/ s/==.*/==${NEXT_SHORT_TAG_PEP440}.*,>=0.0.0a0/g" "${FILE}"
+  done
+  for FILE in python/*/pyproject.toml; do
+    sed_runner "/\"${DEP}==/ s/==.*\"/==${NEXT_SHORT_TAG_PEP440}.*,>=0.0.0a0\"/g" "${FILE}"
+  done
 done
 
 echo "Version update complete"
