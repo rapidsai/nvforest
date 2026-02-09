@@ -122,4 +122,11 @@ for DEP in "${DEPENDENCIES[@]}"; do
   done
 done
 
+# CI files
+for FILE in .github/workflows/*.yaml .github/workflows/*.yml; do
+  sed_runner "/shared-workflows/ s|@.*|@${RAPIDS_BRANCH_NAME}|g" "${FILE}"
+  # CI image tags of the form {rapids_version}-{something}
+  sed_runner "s|:[0-9]*\\.[0-9]*-|:${NEXT_SHORT_TAG}-|g" "${FILE}"
+done
+
 echo "Version update complete"
