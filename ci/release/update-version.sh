@@ -64,6 +64,9 @@ NEXT_MAJOR=$(echo $NEXT_FULL_TAG | awk '{split($0, a, "."); print a[1]}')
 NEXT_MINOR=$(echo $NEXT_FULL_TAG | awk '{split($0, a, "."); print a[2]}')
 NEXT_SHORT_TAG=${NEXT_MAJOR}.${NEXT_MINOR}
 
+# Need to distutils-normalize the original version
+NEXT_SHORT_TAG_PEP440=$(python -c "from packaging.version import Version; print(Version('${NEXT_SHORT_TAG}'))")
+
 # Set branch references based on RUN_CONTEXT
 if [[ "${RUN_CONTEXT}" == "main" ]]; then
     RAPIDS_BRANCH_NAME="main"
@@ -99,13 +102,10 @@ find python -name "VERSION" | while read -r FILE; do
   echo "${NEXT_FULL_TAG}" > "${FILE}"
 done
 
-# dependencies.yaml
-sed_runner "s/cuforest==.*/cuforest==${NEXT_SHORT_TAG}.*,>=0.0.0a0/g" dependencies.yaml
-sed_runner "s/libcuforest==.*/libcuforest==${NEXT_SHORT_TAG}.*,>=0.0.0a0/g" dependencies.yaml
-sed_runner "s/libcuforest-tests==.*/libcuforest-tests==${NEXT_SHORT_TAG}.*,>=0.0.0a0/g" dependencies.yaml
-
-# RAPIDS dependencies
 DEPENDENCIES=(
+  cuforest
+  libcuforest
+  libcuforest-tests
   libraft
   libraft-headers
   librmm
