@@ -19,9 +19,6 @@ API Reference
 .. autoclass:: cuforest.GPUForestInferenceRegressor
    :members:
 
-.. autoclass:: cuforest.Handle
-   :members:
-
 .. autofunction:: cuforest.load_model
 
 .. autofunction:: cuforest.load_from_sklearn
