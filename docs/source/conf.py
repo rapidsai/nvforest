@@ -113,20 +113,29 @@ todo_include_todos = False
 #
 
 html_theme = "pydata_sphinx_theme"
+html_logo = "_static/RAPIDS-logo-purple.png"
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
 html_theme_options = {
     "external_links": [],
-    # https://github.com/pydata/pydata-sphinx-theme/issues/1220
-    "icon_links": [],
-    "github_url": "https://github.com/rapidsai/cuforest",
-    "twitter_url": "https://twitter.com/rapidsai",
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/rapidsai/cuforest",
+            "icon": "fa-brands fa-github",
+            "type": "fontawesome",
+        },
+        {
+            "name": "X",
+            "url": "https://x.com/rapidsai",
+            "icon": "fa-brands fa-x-twitter",
+            "type": "fontawesome",
+        },
+    ],
     "show_toc_level": 1,
     "navbar_align": "right",
+    "navigation_with_keys": True,
 }
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
