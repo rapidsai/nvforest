@@ -42,6 +42,7 @@ from github_link import make_linkcode_resolve  # noqa
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "breathe",
     "numpydoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
@@ -52,6 +53,10 @@ extensions = [
     "sphinx_markdown_tables",
     "sphinx_copybutton",
 ]
+
+# Breathe Configuration
+breathe_projects = {"libcuforest": "../../cpp/doxygen/xml"}
+breathe_default_project = "libcuforest"
 
 ipython_mplbackend = "str"
 

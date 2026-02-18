@@ -4,10 +4,12 @@ Welcome to cuForest's documentation!
 cuForest is a highly-optimized and lighweight library that enables fast inference for decision tree models on NVIDIA GPUs and CPUs.
 It supports many kinds of decision tree models, including XGBoost, LightGBM, scikit-learn, and cuML random forests.
 
-* :doc:`API Reference <api>` - Complete API documentation
+* :doc:`python_api` - Python API documentation
+* :doc:`cpp_api` - C++ API documentation
 
 .. toctree::
    :maxdepth: 2
    :hidden:
 
-   api.rst
+   python_api
+   cpp_api

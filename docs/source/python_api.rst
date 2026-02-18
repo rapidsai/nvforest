@@ -1,6 +1,6 @@
-~~~~~~~~~~~~~
-API Reference
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+Python API Reference
+~~~~~~~~~~~~~~~~~~~~
 
 .. role:: py(code)
    :language: python
