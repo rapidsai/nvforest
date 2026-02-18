@@ -34,7 +34,7 @@ RAPIDS_DOCS_DIR="$(mktemp -d)"
 export RAPIDS_DOCS_DIR
 
 rapids-logger "Build CPP docs"
-pushd cpp
+pushd cpp/doxygen
 doxygen Doxyfile.in
 mkdir -p "${RAPIDS_DOCS_DIR}/libcuforest/html"
 mv html/* "${RAPIDS_DOCS_DIR}/libcuforest/html"
