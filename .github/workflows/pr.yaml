@@ -143,7 +143,7 @@ jobs:
       build_type: pull-request
       node_type: "cpu8"
       arch: "amd64"
-      container_image: "rapidsai/ci-conda:26.04-latest"
+      container_image: "rapidsai/ci-conda:latest"
       script: "ci/run_clang_tidy.sh"
   conda-cpp-build:
     needs: checks
@@ -194,7 +194,7 @@ jobs:
       build_type: pull-request
       node_type: cpu16
       arch: "amd64"
-      container_image: "rapidsai/ci-conda:26.04-latest"
+      container_image: "rapidsai/ci-conda:latest"
       script: "ci/build_docs.sh"
   wheel-build-libcuforest:
     needs: checks
