@@ -19,6 +19,7 @@ files:
       - depends_on_pylibraft
       - depends_on_rapids_logger
       - develop
+      - docs
       - py_build_cuforest
       - py_run_cuforest
       - py_version
@@ -71,6 +72,17 @@ files:
       - cuda_version
       - depends_on_libraft_headers
       - depends_on_librmm
+  docs:
+    output: none
+    includes:
+      - cuda_version
+      - docs
+      - py_version
+      - depends_on_cuda_python
+      - depends_on_libraft_headers
+      - depends_on_librmm
+      - depends_on_cuforest
+      - depends_on_libcuforest
   test_cpp:
     output: none
     includes:
@@ -297,6 +309,20 @@ dependencies:
           - matrix:
             packages:
               - cuda-toolkit>=12,<14
+  docs:
+    common:
+      - output_types: [conda, requirements]
+        packages:
+          - breathe
+          - graphviz
+          - numpydoc
+          - pydata-sphinx-theme
+          - sphinx
+          - sphinx-copybutton
+          - sphinx-markdown-tables
+      - output_types: conda
+        packages:
+          - doxygen
   py_version:
     specific:
       - output_types: conda

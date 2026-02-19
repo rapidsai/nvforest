@@ -5,6 +5,7 @@ channels:
 - rapidsai
 - conda-forge
 dependencies:
+- breathe
 - c-compiler
 - ccache
 - cmake>=3.30.4
@@ -16,7 +17,9 @@ dependencies:
 - cupy>=13.6.0
 - cxx-compiler
 - cython>=3.0.0
+- doxygen
 - gcc_linux-aarch64=14.*
+- graphviz
 - libcublas-dev
 - libcufft-dev
 - libcurand-dev
@@ -26,9 +29,11 @@ dependencies:
 - librmm==26.4.*,>=0.0.0a0
 - ninja
 - numpy>=1.23,<3.0a0
+- numpydoc
 - packaging
 - pandas
 - pre-commit
+- pydata-sphinx-theme
 - pylibraft==26.4.*,>=0.0.0a0
 - pytest
 - pytest-cov
@@ -39,6 +44,9 @@ dependencies:
 - rapids-xgboost==26.4.*,>=0.0.0a0
 - scikit-build-core>=0.11.0
 - scikit-learn>=1.5
+- sphinx
+- sphinx-copybutton
+- sphinx-markdown-tables
 - sysroot_linux-aarch64==2.28
 - treelite>=4.6.1,<5.0
 name: all_cuda-129_arch-aarch64

@@ -19,6 +19,7 @@ jobs:
       - conda-cpp-checks
       - conda-python-build
       - conda-python-tests
+      - docs-build
       - telemetry-setup
       - wheel-build-libcuforest
       - wheel-build-cuforest
@@ -54,6 +55,14 @@ jobs:
     uses: rapidsai/shared-workflows/.github/workflows/changed-files.yaml@main
     with:
       files_yaml: |
+        build_docs:
+          - '!.devcontainer/**'
+          - '!.pre-commit-config.yaml'
+          - '!CONTRIBUTING.md'
+          - '!README.md'
+          - '!ci/release/update-version.sh'
+          - '!**/*/agents.md'
+          - '!.coderabbit.yaml'
         test_cpp:
           - '**'
           - '!.coderabbit.yaml'
@@ -134,7 +143,7 @@ jobs:
       build_type: pull-request
       node_type: "cpu8"
       arch: "amd64"
-      container_image: "rapidsai/ci-conda:26.04-latest"
+      container_image: "rapidsai/ci-conda:latest"
       script: "ci/run_clang_tidy.sh"
   conda-cpp-build:
     needs: checks
@@ -176,6 +185,17 @@ jobs:
       build_type: pull-request
       script: "ci/test_python.sh"
       run_codecov: false
+  docs-build:
+    needs: [conda-python-build, changed-files]
+    secrets: inherit
+    uses: rapidsai/shared-workflows/.github/workflows/custom-job.yaml@main
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).build_docs
+    with:
+      build_type: pull-request
+      node_type: cpu8
+      arch: "amd64"
+      container_image: "rapidsai/ci-conda:latest"
+      script: "ci/build_docs.sh"
   wheel-build-libcuforest:
     needs: checks
     secrets: inherit
