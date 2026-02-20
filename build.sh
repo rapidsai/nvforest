@@ -19,7 +19,7 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd "$(dirname "$0")"; pwd)
 
-VALIDTARGETS="clean libcuforest cuforest"
+VALIDTARGETS="clean libcuforest cuforest cppdocs pydocs"
 VALIDFLAGS="-v -g -n --allgpuarch --nvtx --show_depr_warn --ccache --configure-only --build-metrics --incl-cache-stats -h --help "
 VALIDARGS="${VALIDTARGETS} ${VALIDFLAGS}"
 HELP="$0 [<target> ...] [<flag> ...]
@@ -27,6 +27,8 @@ HELP="$0 [<target> ...] [<flag> ...]
    clean              - remove all existing build artifacts and configuration (start over)
    libcuforest        - build the cuforest C++ code only
    cuforest           - build the cuforest Python package
+   cppdocs            - build the C++ API doxygen documentation
+   pydocs             - build the Python API documentation
  and <flag> is:
    -v                 - verbose build mode
    -g                 - build for debug
@@ -65,6 +67,12 @@ BUILD_CUFOREST_TESTS=ON
 CMAKE_LOG_LEVEL=WARNING
 BUILD_REPORT_METRICS=OFF
 BUILD_REPORT_INCL_CACHE_STATS=OFF
+
+PYTHON_ARGS_FOR_INSTALL=(
+    --no-build-isolation
+    --no-deps
+    --config-settings="rapidsai.disable-cuda=true"
+)
 
 # Set defaults for vars that may not have been defined externally
 INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX:=$LIBCUFOREST_BUILD_DIR/install}}}
@@ -217,7 +225,7 @@ fi
 
 ################################################################################
 # Configure for building all C++ targets
-if completeBuild || hasArg libcuforest; then
+if completeBuild || hasArg libcuforest || hasArg cppdocs; then
     if (( BUILD_ALL_GPU_ARCH == 0 )); then
         CUFOREST_CMAKE_CUDA_ARCHITECTURES="NATIVE"
         echo "Building for the architecture of the GPU in the system..."
@@ -300,11 +308,29 @@ if (! hasArg --configure-only) && (completeBuild || hasArg libcuforest); then
       fi
 fi
 
+if (! hasArg --configure-only) && hasArg cppdocs; then
+    cd "${LIBCUFOREST_BUILD_DIR}"
+    cmake --build "${LIBCUFOREST_BUILD_DIR}" --target docs_cuforest
+fi
+
+# If `RAPIDS_PY_VERSION` is set, use that as the lower-bound for the stable ABI CPython version
+if [ -n "${RAPIDS_PY_VERSION:-}" ]; then
+    RAPIDS_PY_API="cp${RAPIDS_PY_VERSION//./}"
+    PYTHON_ARGS_FOR_INSTALL+=("--config-settings" "skbuild.wheel.py-api=${RAPIDS_PY_API}")
+fi
+
 # Build and (optionally) install the cuforest Python package
-if (! hasArg --configure-only) && (completeBuild || hasArg cuforest); then
+if (! hasArg --configure-only) && (completeBuild || hasArg cuforest || hasArg pydocs); then
     # Replace spaces with semicolons in SKBUILD_EXTRA_CMAKE_ARGS
     SKBUILD_EXTRA_CMAKE_ARGS=${SKBUILD_EXTRA_CMAKE_ARGS// /;}
 
     SKBUILD_CMAKE_ARGS="-DCMAKE_MESSAGE_LOG_LEVEL=${CMAKE_LOG_LEVEL};${SKBUILD_EXTRA_CMAKE_ARGS}" \
-        python -m pip install --no-build-isolation --no-deps --config-settings rapidsai.disable-cuda=true "${REPODIR}"/python/cuforest
+        python -m pip install \
+            "${PYTHON_ARGS_FOR_INSTALL[@]}" \
+            "${REPODIR}"/python/cuforest
+
+    if hasArg pydocs; then
+        cd "${REPODIR}"/docs
+        make html
+    fi
 fi
