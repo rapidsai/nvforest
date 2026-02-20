@@ -1,6 +1,17 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2023-2025, NVIDIA CORPORATION.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include <cuforest/detail/raft_proto/buffer.hpp>
@@ -33,7 +44,7 @@ TEST(Buffer, device_buffer)
   for (auto& buf : test_buffers) {
     ASSERT_EQ(buf.memory_type(), device_type::gpu);
     ASSERT_EQ(buf.size(), data.size());
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
     ASSERT_NE(buf.data(), nullptr);
 
     auto data_out = std::vector<int>(data.size());
@@ -54,7 +65,7 @@ TEST(Buffer, non_owning_device_buffer)
 {
   auto data   = std::vector<int>{1, 2, 3};
   auto* ptr_d = static_cast<int*>(nullptr);
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
   cudaMalloc(reinterpret_cast<void**>(&ptr_d), sizeof(int) * data.size());
   cudaMemcpy(static_cast<void*>(ptr_d),
              static_cast<void*>(data.data()),
@@ -64,7 +75,7 @@ TEST(Buffer, non_owning_device_buffer)
   auto test_buffers = std::vector<buffer<int>>{};
   test_buffers.emplace_back(ptr_d, data.size(), device_type::gpu, 0);
   test_buffers.emplace_back(ptr_d, data.size(), device_type::gpu);
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
 
   for (auto& buf : test_buffers) {
     ASSERT_EQ(buf.memory_type(), device_type::gpu);
@@ -132,7 +143,7 @@ TEST(Buffer, device_buffer_from_iters)
   for (auto& buf : test_buffers) {
     ASSERT_EQ(buf.memory_type(), device_type::gpu);
     ASSERT_EQ(buf.size(), data.size());
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
     ASSERT_NE(buf.data(), nullptr);
 
     auto data_out = std::vector<int>(data.size());
@@ -195,7 +206,7 @@ TEST(Buffer, copy_buffer)
     auto data_out = std::vector<int>(buf.data(), buf.data() + buf.size());
     EXPECT_THAT(data_out, ::testing::ElementsAreArray(data));
 
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
     auto test_dev_buffers = std::vector<buffer<int>>{};
     test_dev_buffers.emplace_back(orig_buffer, device_type::gpu);
     test_dev_buffers.emplace_back(orig_buffer, device_type::gpu, 0);
@@ -254,7 +265,7 @@ TEST(Buffer, move_buffer)
     auto data_out = std::vector<int>(buf.data(), buf.data() + buf.size());
     EXPECT_THAT(data_out, ::testing::ElementsAreArray(data));
   }
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
   test_buffers = std::vector<buffer<int>>{};
   test_buffers.emplace_back(buffer<int>(data.data(), data.size(), device_type::cpu),
                             device_type::gpu);
@@ -281,7 +292,7 @@ TEST(Buffer, move_assignment_buffer)
 {
   auto data = std::vector<int>{1, 2, 3};
 
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
   auto buf = buffer<int>{data.data(), data.size() - 1, device_type::gpu};
 #else
   auto buf = buffer<int>{data.data(), data.size() - 1, device_type::cpu};
@@ -297,7 +308,7 @@ TEST(Buffer, partial_buffer_copy)
   auto data1    = std::vector<int>{1, 2, 3, 4, 5};
   auto data2    = std::vector<int>{0, 0, 0, 0, 0};
   auto expected = std::vector<int>{0, 3, 4, 5, 0};
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
   auto buf1 =
     buffer<int>{buffer<int>{data1.data(), data1.size(), device_type::cpu}, device_type::gpu};
 #else
@@ -336,7 +347,7 @@ TEST(Buffer, buffer_copy_overloads)
   expected = std::vector<int>{0, 0, 2, 0};
   EXPECT_THAT(data_out, ::testing::ElementsAreArray(expected));
 
-#ifdef CUFOREST_ENABLE_GPU
+#ifdef CUML_ENABLE_GPU
   // copy device to host
   data_out         = std::vector<int>(data.size());
   copy_host_buffer = buffer<int>(data_out.data(), data.size(), device_type::cpu);
