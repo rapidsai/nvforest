@@ -6,10 +6,10 @@ To install cuForest from source, ensure the following dependencies are met:
 
 > **Note:** The easiest way to setup a fully functional build environment is to use the conda environment files located in `conda/environments/all_*.yaml`. These files contain all the dependencies listed below except for clang-format (only needed for development/contributing). To create a development environment, see the [recommended Conda setup](#recommended-conda-setup) at the end of this section.
 
-**Hardware needed to run cuForest:**
-cuForest is able to support following NVIDIA GPUs and CUDA versions:
-- **CUDA 12.x**: compute capability 7.0 or higher (Volta™ architecture or newer)
-- **CUDA 13.x**: compute capability 7.5 or higher (Turing™ architecture or newer)
+### Hardware needed to run cuForest
+
+cuForest is part of RAPIDS and follows the RAPIDS support matrix.
+See https://docs.rapids.ai/platform-support/
 
 It is possible to build and run cuForest on machines without a GPU; in such machines, cuForest will use the CPU to run inference.
 
@@ -120,9 +120,9 @@ $ pytest cuforest/tests --collect-only
 Once dependencies are present, follow the steps below:
 
 1. Clone the repository:
-```bash
+
+```console
 $ git clone https://github.com/rapidsai/cuforest.git
-```
 
 2. Build and install `libcuforest++` (C++/CUDA library containing the cuML algorithms), starting from the repository root folder:
 ```bash
