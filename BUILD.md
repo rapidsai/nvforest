@@ -9,41 +9,28 @@ To install cuForest from source, ensure the following dependencies are met:
 ### Hardware needed to run cuForest
 
 cuForest is part of RAPIDS and follows the RAPIDS support matrix.
-See https://docs.rapids.ai/platform-support/
+See https://docs.rapids.ai/platform-support/.
 
 It is possible to build and run cuForest on machines without a GPU; in such machines, cuForest will use the CPU to run inference.
 
 **Software dependencies:**
-1. gcc (>= 13.0)
-2. cmake (>= 3.30.4)
-3. ninja - build system used by default
-4. Python (>= 3.11 and <= 3.13)
-5. Cython (>= 3.0.0)
-6. CUDA Toolkit (>= 12.2). Not needed when building cuForest without GPU support.
+See https://docs.rapids.ai/platform-support/ for the list of required C++ compilers and Python interpreters.
+In addition, cuForest requires Cython 3.0 or later.
 
-**RAPIDS Ecosystem Libraries:**
+Note: It is possible to build cuForest without GPU support; in this case, the CUDA toolkit is not required.
 
-These RAPIDS libraries must match the cuML version (e.g., all version 25.10 if building cuML 25.10):
+**RAPIDS libraries:**
 
-*C++ Libraries:*
-- [librmm](https://github.com/rapidsai/rmm) - RAPIDS Memory Manager (C++ library)
-- [libraft](https://github.com/rapidsai/raft) - RAPIDS CUDA accelerated algorithms (C++ library)
+The cuForest code base is updated in tandem with the rest of RAPIDS. So to build the latest cuForest, you
+should use the latest version of RAPIDS as well. (For example, cuForest 26.04 will require 26.04 version of
+all RAPIDS packages.)
 
-*Python Packages:*
-- [rmm](https://github.com/rapidsai/rmm) - RAPIDS Memory Manager (Python package)
-- [pylibraft](https://github.com/rapidsai/raft) - RAPIDS CUDA accelerated algorithms (Python package)
-
-**Python Build Dependencies:**
-- scikit-build-core
-- rapids-build-backend
-
-**Python Runtime Dependencies:**
+**Python dependencies:**
 
 For detailed version requirements of runtime dependencies (numpy, scikit-learn, scipy, joblib, numba, cupy, treelite, etc.), please see [docs/source/supported_versions.rst](docs/source/supported_versions.rst).
+Please see https://docs.rapids.ai/install/ for RAPIDS-wide version support.
 
-**Other External Libraries:**
-- treelite
-- rapids-logger
+We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-0000/>`_ for minimal supported versions.
 
 **For development only:**
 - clang-format (= 20.1.4) - enforces uniform C++ coding style; required for pre-commit hooks and CI checks. The packages `clang=20` and `clang-tools=20` from the conda-forge channel should be sufficient, if you are using conda. If not using conda, install the right version using your OS package manager.
@@ -113,8 +100,6 @@ If you want a list of the available Python tests:
 $ pytest cuforest/tests --collect-only
 ```
 
-**Note:** Some tests require `xgboost`. If running tests in conda devcontainers, you must install the `xgboost` conda package manually. See `dependencies.yaml` for version information.
-
 ### Manual Process
 
 Once dependencies are present, follow the steps below:
@@ -124,7 +109,7 @@ Once dependencies are present, follow the steps below:
 ```console
 $ git clone https://github.com/rapidsai/cuforest.git
 
-2. Build and install `libcuforest++` (C++/CUDA library containing the cuML algorithms), starting from the repository root folder:
+2. Build and install `libcuforest++` (C++/CUDA library containing the cuForest algorithms), starting from the repository root folder:
 ```bash
 $ cd cpp
 $ mkdir build && cd build
