@@ -27,9 +27,9 @@ should use the latest version of RAPIDS as well. (For example, cuForest 26.04 wi
 all RAPIDS packages.)
 
 **Python dependencies.**
-For detailed version requirements of runtime dependencies
-(numpy, scikit-learn, scipy, joblib, numba, cupy, treelite, etc.),
-please see :doc:`supported_versions`.
+Please see https://docs.rapids.ai/install/ for RAPIDS-wide version support.
+
+We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-0000/>`_ for minimal supported versions.
 
 **For development only.**
 
