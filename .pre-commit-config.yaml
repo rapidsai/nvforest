@@ -101,6 +101,10 @@ repos:
               Makefile$|
               dependencies[.]yaml$|
               pytest[.]ini$
+          exclude: |
+            (?x)^(
+              ci/build_docs[.]sh
+            )
         - id: verify-alpha-spec
         - id: verify-pyproject-license
           # ignore the top-level pyproject.toml, which doesn't
