@@ -1,6 +1,6 @@
-##################################
-Guide for building from the source
-##################################
+########################
+Building from the source
+########################
 
 Setting up your build environment
 =================================
