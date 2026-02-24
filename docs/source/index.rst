@@ -6,6 +6,7 @@ It supports many kinds of decision tree models, including XGBoost, LightGBM, sci
 
 * :doc:`python_api` - Python API documentation
 * :doc:`cpp_api` - C++ API documentation
+* :doc:`build` - How to build cuForest from the source
 
 .. toctree::
    :maxdepth: 2
@@ -13,4 +14,5 @@ It supports many kinds of decision tree models, including XGBoost, LightGBM, sci
 
    python_api
    cpp_api
+   build
    supported_versions
