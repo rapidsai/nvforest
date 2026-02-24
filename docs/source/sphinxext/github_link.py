@@ -100,7 +100,9 @@ def _linkcode_resolve(domain, info, package, url_fmt, revision):
             fn = os.path.relpath(source_file, start=package)
             print(
                 "{}:{}".format(
-                    os.path.abspath(os.path.join("..", "python", "cuml", fn)),
+                    os.path.abspath(
+                        os.path.join("..", "python", "cuforest", fn)
+                    ),
                     lineno,
                 )
             )
@@ -111,7 +113,9 @@ def _linkcode_resolve(domain, info, package, url_fmt, revision):
             sp_path = next(
                 x for x in sys.path if re.match(".*site-packages$", x)
             )
-            fn = fn.replace("/opt/conda/conda-bld/work/python/cuml", sp_path)
+            fn = fn.replace(
+                "/opt/conda/conda-bld/work/python/cuforest", sp_path
+            )
 
         # Convert to relative from module root
         fn = os.path.relpath(

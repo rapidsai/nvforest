@@ -13,3 +13,4 @@ It supports many kinds of decision tree models, including XGBoost, LightGBM, sci
 
    python_api
    cpp_api
+   supported_versions
