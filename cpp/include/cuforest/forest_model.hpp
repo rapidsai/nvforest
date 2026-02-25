@@ -255,7 +255,7 @@ struct forest_model {
    * @param[in] handle The raft_proto::handle_t (wrapper for raft::handle_t
    * on GPU) which will be used to provide streams for evaluation.
    * @param[out] output Pointer to the memory location where output should end
-   * up. This must be of size at least ROWS x num_outputs().
+   * up
    * @param[in] input Pointer to the input data
    * @param[in] num_rows Number of rows in input
    * @param[in] out_mem_type The memory type (device/host) of the output
