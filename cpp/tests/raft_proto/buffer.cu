@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include <cuforest/detail/raft_proto/buffer.hpp>
-#include <cuforest/detail/raft_proto/cuda_check.hpp>
-#include <cuforest/detail/raft_proto/cuda_stream.hpp>
-#include <cuforest/detail/raft_proto/device_type.hpp>
-#include <cuforest/detail/utils.hpp>
+#include <nvforest/detail/raft_proto/buffer.hpp>
+#include <nvforest/detail/raft_proto/cuda_check.hpp>
+#include <nvforest/detail/raft_proto/cuda_stream.hpp>
+#include <nvforest/detail/raft_proto/device_type.hpp>
+#include <nvforest/detail/utils.hpp>
 
 #include <cuda_runtime_api.h>
 
@@ -29,7 +29,7 @@
 
 namespace raft_proto {
 
-CUFOREST_KERNEL void check_buffer_access(int* buf)
+NVFOREST_KERNEL void check_buffer_access(int* buf)
 {
   if (buf[0] == 1) { buf[0] = 4; }
   if (buf[1] == 2) { buf[1] = 5; }

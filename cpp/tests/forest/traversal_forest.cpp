@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#include <cuforest/detail/traversal/traversal_forest.hpp>
-#include <cuforest/detail/traversal/traversal_node.hpp>
-#include <cuforest/detail/traversal/traversal_order.hpp>
+#include <nvforest/detail/traversal/traversal_forest.hpp>
+#include <nvforest/detail/traversal/traversal_node.hpp>
+#include <nvforest/detail/traversal/traversal_order.hpp>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstddef>
 
-namespace cuforest::traversal {
+namespace nvforest::traversal {
 
 struct test_node : traversal_node<> {
   test_node() : label_{}, hot_child_{}, distant_child_{} {}
@@ -333,4 +333,4 @@ TEST(ForestTraversal, layered_children_segregated)
   }
 }
 
-}  // namespace cuforest::traversal
+}  // namespace nvforest::traversal
