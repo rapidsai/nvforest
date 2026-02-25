@@ -221,7 +221,7 @@ def run_clang_tidy(cmd, args):
     command, is_cuda = get_tidy_args(cmd, args.exe)
     tidy_cmd = [
         args.exe,
-        "-header-filter='.*cuforest/cpp/(src|include).*'",
+        "-header-filter='.*nvforest/cpp/(src|include).*'",
         cmd["file"],
         "--",
     ]
