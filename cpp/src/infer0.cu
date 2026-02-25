@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <cuforest/detail/device_initialization/gpu.cuh>
-#include <cuforest/detail/infer/gpu.cuh>
-#include <cuforest/detail/specializations/device_initialization_macros.hpp>
-#include <cuforest/detail/specializations/infer_macros.hpp>
-namespace cuforest::detail {
+#include <nvforest/detail/device_initialization/gpu.cuh>
+#include <nvforest/detail/infer/gpu.cuh>
+#include <nvforest/detail/specializations/device_initialization_macros.hpp>
+#include <nvforest/detail/specializations/infer_macros.hpp>
+namespace nvforest::detail {
 namespace inference {
-CUFOREST_INFER_ALL(template, raft_proto::device_type::gpu, 0)
+NVFOREST_INFER_ALL(template, raft_proto::device_type::gpu, 0)
 }  // namespace inference
 namespace device_initialization {
-CUFOREST_INITIALIZE_DEVICE(template, 0)
+NVFOREST_INITIALIZE_DEVICE(template, 0)
 }  // namespace device_initialization
-}  // namespace cuforest::detail
+}  // namespace nvforest::detail
