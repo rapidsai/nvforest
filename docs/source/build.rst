@@ -5,25 +5,25 @@ Building from the source
 Setting up your build environment
 =================================
 
-To install cuForest from source, ensure the following dependencies are met:
+To install nvForest from source, ensure the following dependencies are met:
 
-**Hardware needed to run cuForest.**
-cuForest is part of RAPIDS and follows the RAPIDS support matrix.
+**Hardware needed to run nvForest.**
+nvForest is part of RAPIDS and follows the RAPIDS support matrix.
 See https://docs.rapids.ai/platform-support/.
-It is possible to build and run cuForest on machines without a GPU; in such machines, cuForest will use the CPU to run inference.
+It is possible to build and run nvForest on machines without a GPU; in such machines, nvForest will use the CPU to run inference.
 
 **Software dependencies.**
 See https://docs.rapids.ai/platform-support/ for the list of required C++ compilers and Python interpreters.
-In addition, cuForest requires Cython 3.0 or later.
+In addition, nvForest requires Cython 3.0 or later.
 
-.. note:: Building cuForest without GPU support
+.. note:: Building nvForest without GPU support
 
-   It is possible to build cuForest without GPU support; in this case, the CUDA toolkit is not required.
-   To build cuForest without GPU, set the CMake option ``CUFOREST_ENABLE_GPU=ON``.
+   It is possible to build nvForest without GPU support; in this case, the CUDA toolkit is not required.
+   To build nvForest without GPU, set the CMake option ``NVFOREST_ENABLE_GPU=ON``.
 
 **RAPIDS libraries.**
-The cuForest code base is updated in tandem with the rest of RAPIDS. So to build the latest cuForest, you
-should use the latest version of RAPIDS as well. (For example, cuForest 26.04 will require 26.04 version of
+The nvForest code base is updated in tandem with the rest of RAPIDS. So to build the latest nvForest, you
+should use the latest version of RAPIDS as well. (For example, nvForest 26.04 will require 26.04 version of
 all RAPIDS packages.)
 
 **Python dependencies.**
@@ -40,16 +40,16 @@ We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-
   We highly recommend the use of Conda, a package manager that lets you obtain all necessary
   software dependencies in a virtual environment.
   We provide environment definition files ``conda/environments/all_*.yaml`` containing all software
-  dependencies for cuForest.
+  dependencies for nvForest.
 
-  To create a development environment named ``cuforest_dev``, use the following commands.
+  To create a development environment named ``nvforest_dev``, use the following commands.
 
   .. code-block:: console
 
-    $ conda create -n cuforest_dev python=3.13
-    $ conda env update -n cuforest_dev \
+    $ conda create -n nvforest_dev python=3.13
+    $ conda env update -n nvforest_dev \
         --file=conda/environments/all_cuda-131_arch-$(uname -m).yaml
-    $ conda activate cuforest_dev
+    $ conda activate nvforest_dev
 
 Installing from Source
 ======================
@@ -63,7 +63,7 @@ otherwise it will be installed to ``$CONDA_PREFIX``.
 
 .. code-block:: bash
 
-  # Build the cuForest libraries, tests, and python package, then
+  # Build the nvForest libraries, tests, and python package, then
   # Install them to $INSTALL_PREFIX if set, otherwise $CONDA_PREFIX
   ./build.sh
 
@@ -73,11 +73,11 @@ To build individual components, specify them as arguments to ``build.sh``:
 
 .. code-block:: bash
 
-  # Build and install the cuForest C++ and C-wrapper libraries
-  ./build.sh libcuforest
+  # Build and install the nvForest C++ and C-wrapper libraries
+  ./build.sh libnvforest
 
-  # Build and install the cuForest Python package
-  ./build.sh cuforest
+  # Build and install the nvForest Python package
+  ./build.sh nvforest
 
 Other ``build.sh`` options:
 
@@ -86,17 +86,17 @@ Other ``build.sh`` options:
   # Remove any prior build artifacts and configuration (start over)
   ./build.sh clean
 
-  # Build and install libcuforest with verbose output
-  ./build.sh libcuforest -v
+  # Build and install libnvforest with verbose output
+  ./build.sh libnvforest -v
 
-  # Build and install libcuforest for debug
-  ./build.sh libcuforest -g
+  # Build and install libnvforest for debug
+  ./build.sh libnvforest -g
 
-  # Build and install libcuforest limiting parallel build jobs to 8 (ninja -j8)
-  PARALLEL_LEVEL=8 ./build.sh libcuforest
+  # Build and install libnvforest limiting parallel build jobs to 8 (ninja -j8)
+  PARALLEL_LEVEL=8 ./build.sh libnvforest
 
-  # Build libcuforest but do not install
-  ./build.sh libcuforest -n
+  # Build libnvforest but do not install
+  ./build.sh libnvforest -n
 
   # Use ccache to cache compilations, speeding up subsequent builds
   ./build.sh --ccache
@@ -123,13 +123,13 @@ To run all Python tests, from the repo root:
 
 .. code-block:: bash
 
-  pytest -v python/cuforest/tests
+  pytest -v python/nvforest/tests
 
 If you want a list of the available Python tests:
 
 .. code-block:: bash
 
-  pytest -v python/cuforest/tests --collect-only
+  pytest -v python/nvforest/tests --collect-only
 
 Option 2. Manually invoke CMake and build toolchain
 ---------------------------------------------------
@@ -140,9 +140,9 @@ Once dependencies are present, follow the steps below:
 
 .. code-block:: bash
 
-  git clone https://github.com/rapidsai/cuforest.git
+  git clone https://github.com/rapidsai/nvforest.git
 
-2. Build and install ``libcuforest++`` (C++/CUDA library containing the cuForest algorithms), starting from the repository root folder:
+2. Build and install ``libnvforest++`` (C++/CUDA library containing the nvForest algorithms), starting from the repository root folder:
 
 .. code-block:: bash
 
@@ -157,7 +157,7 @@ Once dependencies are present, follow the steps below:
 
     export CUDA_BIN_PATH=$CUDA_HOME  # Default: /usr/local/cuda
 
-If using a Conda environment (recommended), configure CMake to install ``libcuforest++`` into the Conda environment:
+If using a Conda environment (recommended), configure CMake to install ``libnvforest++`` into the Conda environment:
 
 .. code-block:: bash
 
@@ -194,7 +194,7 @@ You may also wish to make use of ``ccache`` to reduce build times when switching
 
 There are many options to configure the build process, see the :ref:`custom-build-options` section.
 
-3. Build ``libcuforest++`` and ``libcuforest``:
+3. Build ``libnvforest++`` and ``libnvforest``:
 
 .. code-block:: bash
 
@@ -211,38 +211,38 @@ To build doxygen docs for all C/C++ source files:
 
 .. code-block:: bash
 
-  cmake --build cpp/build --target docs_cuforest
+  cmake --build cpp/build --target docs_nvforest
 
-4. Build and install the ``cuforest`` python package.
+4. Build and install the ``nvforest`` python package.
 
 From the repository root:
 
 .. code-block:: bash
 
   python -m pip install --no-build-isolation --no-deps \
-    --config-settings rapidsai.disable-cuda=true python/cuforest
+    --config-settings rapidsai.disable-cuda=true python/nvforest
 
 To run Python tests (optional):
 
 .. code-block:: bash
 
-  pytest -v python/cuforest/tests
+  pytest -v python/nvforest/tests
 
 If you want a list of the available tests:
 
 .. code-block:: bash
 
-  pytest -v python/cuforest/tests --collect-only
+  pytest -v python/nvforest/tests --collect-only
 
 .. _custom-build-options:
 
 Custom Build Options
 ====================
 
-libcuforest++
+libnvforest++
 -------------
 
-cuForest's cmake has the following configurable flags available:
+nvForest's cmake has the following configurable flags available:
 
 .. list-table::
    :header-rows: 1
@@ -252,18 +252,18 @@ cuForest's cmake has the following configurable flags available:
      - Possible Values
      - Default Value
      - Behavior
-   * - CUFOREST_ENABLE_GPU
+   * - NVFOREST_ENABLE_GPU
      - [ON, OFF]
      - ON
      - Enable/disable GPU support
    * - BUILD_SHARED_LIBS
      - [ON, OFF]
      - ON
-     - Whether to build libcuforest++ as a shared library
-   * - BUILD_CUFOREST_TESTS
+     - Whether to build libnvforest++ as a shared library
+   * - BUILD_NVFOREST_TESTS
      - [ON, OFF]
      - ON
-     - Enable/disable building cuForest C++ test executables
+     - Enable/disable building nvForest C++ test executables
    * - CUDA_ENABLE_KERNEL_INFO
      - [ON, OFF]
      - OFF
@@ -287,7 +287,7 @@ cuForest's cmake has the following configurable flags available:
    * - NVTX
      - [ON, OFF]
      - OFF
-     - Enable/disable nvtx markers in libcuforest++.
+     - Enable/disable nvtx markers in libnvforest++.
    * - USE_CCACHE
      - [ON, OFF]
      - OFF
@@ -296,18 +296,18 @@ cuForest's cmake has the following configurable flags available:
      - [ON, OFF]
      - OFF
      - Whether to statically link the CUDA runtime.
-   * - CUFOREST_USE_RAFT_STATIC
+   * - NVFOREST_USE_RAFT_STATIC
      - [ON, OFF]
      - OFF
      - Whether to statically link the RAFT library.
-   * - CUFOREST_USE_TREELITE_STATIC
+   * - NVFOREST_USE_TREELITE_STATIC
      - [ON, OFF]
      - OFF
      - Whether to statically link the Treelite library.
-   * - CUFOREST_EXPORT_TREELITE_LINKAGE
+   * - NVFOREST_EXPORT_TREELITE_LINKAGE
      - [ON, OFF]
      - OFF
-     - Whether to publicly link Treelite to libcuforest++
+     - Whether to publicly link Treelite to libnvforest++
    * - CUDA_WARNINGS_AS_ERRORS
      - [ON, OFF]
      - ON

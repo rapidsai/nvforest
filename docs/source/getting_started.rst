@@ -1,45 +1,45 @@
 #############################
-Getting started with cuForest
+Getting started with nvForest
 #############################
 
-cuForest with Python
+nvForest with Python
 ====================
 
-To run inference for decision tree models, first **import** tree models into cuForest.
+To run inference for decision tree models, first **import** tree models into nvForest.
 
 .. code-block:: python
 
-   import cuforest
+   import nvforest
 
    # Load XGBoost model, to run inference on GPU
-   fm = cuforest.load_model("/path/to/xgboost_model.ubj", device="gpu"
+   fm = nvforest.load_model("/path/to/xgboost_model.ubj", device="gpu"
                             model_type="xgboost_ubj")
 
    # Load XGBoost JSON model, to run inference on CPU
-   fm = cuforest.load_model("/path/to/xgboost_model.json", device="cpu",
+   fm = nvforest.load_model("/path/to/xgboost_model.json", device="cpu",
                             model_type="xgboost_json")
 
    # Load LightGBM model, to run inference on GPU
-   fm = cuforest.load_model("/path/to/lightgbm_model.txt", device="gpu",
+   fm = nvforest.load_model("/path/to/lightgbm_model.txt", device="gpu",
                             model_type="lightgbm")
 
    # Load scikit-learn random forest, to run inference on GPU
-   fm = cuforest.load_from_sklearn(skl_model, device="gpu")
+   fm = nvforest.load_from_sklearn(skl_model, device="gpu")
 
 The ``fm`` object will be one of the following types:
 
-* :py:class:`~cuforest.GPUForestInferenceClassifier`: a classification model, to run on GPU.
+* :py:class:`~nvforest.GPUForestInferenceClassifier`: a classification model, to run on GPU.
   The model will reside in the GPU memory.
-* :py:class:`~cuforest.GPUForestInferenceRegressor`: a regression model, to run on GPU.
+* :py:class:`~nvforest.GPUForestInferenceRegressor`: a regression model, to run on GPU.
   The model will reside in the GPU memory.
-* :py:class:`~cuforest.CPUForestInferenceClassifier`: a classification model, to run on CPU.
+* :py:class:`~nvforest.CPUForestInferenceClassifier`: a classification model, to run on CPU.
   The model object will reside in the main memory.
-* :py:class:`~cuforest.CPUForestInferenceRegressor`: a classification model, to run on CPU.
+* :py:class:`~nvforest.CPUForestInferenceRegressor`: a classification model, to run on CPU.
   The model object will reside in the main memory.
 
 .. note:: Automatically detecting ``device``
 
-   Setting ``device="auto"`` in :py:meth:`~cuforest.load_model` will load the tree model
+   Setting ``device="auto"`` in :py:meth:`~nvforest.load_model` will load the tree model
    onto GPU memory, if a GPU is available. If no GPU is available, the tree model will be
    loaded to the main memory instead. If no ``device`` parameter is specified, ``device="auto"``
    will be used.
@@ -55,12 +55,12 @@ The ``fm`` object will be one of the following types:
    .. code-block:: python
 
       import cupy as cp
-      import cuforest
+      import nvforest
 
       cp.cuda.Device(1).use()  # Activate GPU device 1
-      fm = cuforest.load_model( ... )
+      fm = nvforest.load_model( ... )
 
-After importing the model, run inference using :py:meth:`~cuforest.GPUForestInferenceRegressor.predict`
+After importing the model, run inference using :py:meth:`~nvforest.GPUForestInferenceRegressor.predict`
 or its variants.
 
 .. code-block:: python
@@ -78,10 +78,10 @@ or its variants.
   # Run inference and obtain prediction per individual tree
   pred_per_tree = fm.predict_per_tree(X)
 
-cuForest with C++ (Advanced)
+nvForest with C++ (Advanced)
 ============================
 
-To import tree models into cuForest, first load the tree models as a Treelite model object.
+To import tree models into nvForest, first load the tree models as a Treelite model object.
 
 .. code-block:: cpp
 
@@ -97,28 +97,28 @@ Refer to `the Treelite documentation <https://treelite.readthedocs.io/en/latest/
 the full list of model loader utilities.
 
 Once the tree model is available as a Treelite object, pass it to the
-:cpp:func:`~cuforest::import_from_treelite_model` to load it into cuForest.
+:cpp:func:`~nvforest::import_from_treelite_model` to load it into nvForest.
 
 .. code-block:: cpp
 
-  #include <cuforest/constants.hpp>
-  #include <cuforest/treelite_importer.hpp>
-  #include <cuforest/detail/index_type.hpp>
-  #include <cuforest/detail/raft_proto/device_type.hpp>
+  #include <nvforest/constants.hpp>
+  #include <nvforest/treelite_importer.hpp>
+  #include <nvforest/detail/index_type.hpp>
+  #include <nvforest/detail/raft_proto/device_type.hpp>
   #include <optional>
 
-  auto fm = cuforest::import_from_treelite_model(
+  auto fm = nvforest::import_from_treelite_model(
     *treelite_model,
-    cuforest::preferred_tree_layout,
-    cuforest::index_type{},
+    nvforest::preferred_tree_layout,
+    nvforest::index_type{},
     std::nullopt,
     raft_proto::device_type::gpu);
 
-Now that the tree model is fully imported into cuForest, let's run inference:
+Now that the tree model is fully imported into nvForest, let's run inference:
 
 .. code-block:: cpp
 
-  #include <cuforest/detail/raft_proto/handle.hpp>
+  #include <nvforest/detail/raft_proto/handle.hpp>
 
   raft_proto::handle_t handle{};
 
@@ -128,4 +128,4 @@ Now that the tree model is fully imported into cuForest, let's run inference:
   // * The output buffer should be of dimension (num_rows, fm.num_outputs())
   fm.predict(handle, output, input, num_rows,
              raft_proto::device_type::gpu, raft_proto::device_type::gpu,
-             cuforest::infer_kind::default_kind);
+             nvforest::infer_kind::default_kind);
