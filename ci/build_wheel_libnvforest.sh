@@ -6,8 +6,8 @@ set -euo pipefail
 
 source rapids-init-pip
 
-package_name="libcuforest"
-package_dir="python/libcuforest"
+package_name="libnvforest"
+package_dir="python/libnvforest"
 
 rapids-logger "Generating build requirements"
 

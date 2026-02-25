@@ -7,4 +7,4 @@ set -euo pipefail
 python -m pytest \
   --cache-clear \
   "$@" \
-  python/cuforest/tests/
+  python/nvforest/tests/

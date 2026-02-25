@@ -27,12 +27,12 @@ RATTLER_CHANNELS=("--channel" "${CPP_CHANNEL}" "${RATTLER_CHANNELS[@]}")
 
 sccache --stop-server 2>/dev/null || true
 
-rapids-logger "Building cuforest"
+rapids-logger "Building nvforest"
 
 # --no-build-id allows for caching with `sccache`
 # more info is available at
 # https://rattler.build/latest/tips_and_tricks/#using-sccache-or-ccache-with-rattler-build
-rattler-build build --recipe conda/recipes/cuforest \
+rattler-build build --recipe conda/recipes/nvforest \
                     "${RATTLER_ARGS[@]}" \
                     "${RATTLER_CHANNELS[@]}"
 
@@ -43,5 +43,5 @@ sccache --stop-server >/dev/null 2>&1 || true
 # tracked in https://github.com/prefix-dev/rattler-build/issues/1424
 rm -rf "$RAPIDS_CONDA_BLD_OUTPUT_DIR"/build_cache
 
-RAPIDS_PACKAGE_NAME="$(rapids-package-name conda_python cuforest --stable --cuda)"
+RAPIDS_PACKAGE_NAME="$(rapids-package-name conda_python nvforest --stable --cuda)"
 export RAPIDS_PACKAGE_NAME

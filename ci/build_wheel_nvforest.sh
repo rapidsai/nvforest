@@ -6,21 +6,21 @@ set -euo pipefail
 
 source rapids-init-pip
 
-package_name="cuforest"
-package_dir="python/cuforest"
+package_name="nvforest"
+package_dir="python/nvforest"
 
 RAPIDS_PY_CUDA_SUFFIX="$(rapids-wheel-ctk-name-gen "${RAPIDS_CUDA_VERSION}")"
 
-# Download the libcuforest wheel built in the previous step and make it
+# Download the libnvforest wheel built in the previous step and make it
 # available for pip to find.
 #
 # env variable 'PIP_CONSTRAINT' is set up by rapids-init-pip. It constrains all subsequent
 # 'pip install', 'pip download', etc. calls (except those used in 'pip wheel', handled separately in build scripts)
-LIBCUFOREST_WHEELHOUSE=$(RAPIDS_PY_WHEEL_NAME="libcuforest_${RAPIDS_PY_CUDA_SUFFIX}" rapids-download-wheels-from-github cpp)
-echo "libcuforest-${RAPIDS_PY_CUDA_SUFFIX} @ file://$(echo "${LIBCUFOREST_WHEELHOUSE}"/libcuforest_*.whl)" >> "${PIP_CONSTRAINT}"
+LIBNVFOREST_WHEELHOUSE=$(RAPIDS_PY_WHEEL_NAME="libnvforest_${RAPIDS_PY_CUDA_SUFFIX}" rapids-download-wheels-from-github cpp)
+echo "libnvforest-${RAPIDS_PY_CUDA_SUFFIX} @ file://$(echo "${LIBNVFOREST_WHEELHOUSE}"/libnvforest_*.whl)" >> "${PIP_CONSTRAINT}"
 
 EXCLUDE_ARGS=(
-  --exclude "libcuforest++.so"
+  --exclude "libnvforest++.so"
   --exclude "libraft.so"
   --exclude "libcublas.so.*"
   --exclude "libcublasLt.so.*"
@@ -34,7 +34,7 @@ EXCLUDE_ARGS=(
   --exclude "libtreelite.so"
 )
 
-export SKBUILD_CMAKE_ARGS="-DDISABLE_DEPRECATION_WARNINGS=ON;-DUSE_LIBCUFOREST_WHEEL=ON"
+export SKBUILD_CMAKE_ARGS="-DDISABLE_DEPRECATION_WARNINGS=ON;-DUSE_LIBNVFOREST_WHEEL=ON"
 
 # TODO: move this variable into `ci-wheel`
 # Format Python limited API version string
@@ -51,5 +51,5 @@ python -m auditwheel repair \
 
 ./ci/validate_wheel.sh ${package_dir} "${RAPIDS_WHEEL_BLD_OUTPUT_DIR}"
 
-RAPIDS_PACKAGE_NAME="$(rapids-package-name wheel_python cuforest --stable --cuda "$RAPIDS_CUDA_VERSION")"
+RAPIDS_PACKAGE_NAME="$(rapids-package-name wheel_python nvforest --stable --cuda "$RAPIDS_CUDA_VERSION")"
 export RAPIDS_PACKAGE_NAME

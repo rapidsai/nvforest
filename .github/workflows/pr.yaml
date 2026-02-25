@@ -21,9 +21,9 @@ jobs:
       - conda-python-tests
       - docs-build
       - telemetry-setup
-      - wheel-build-libcuforest
-      - wheel-build-cuforest
-      - wheel-tests-cuforest
+      - wheel-build-libnvforest
+      - wheel-build-nvforest
+      - wheel-tests-nvforest
       # - devcontainer
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@main
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     env:
-      OTEL_SERVICE_NAME: "pr-cuforest"
+      OTEL_SERVICE_NAME: "pr-nvforest"
     steps:
       - name: Telemetry setup
         if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
@@ -47,7 +47,7 @@ jobs:
   #     - name: Check if nightly CI is passing
   #       uses: rapidsai/shared-actions/check_nightly_success/dispatch@main
   #       with:
-  #         repo: cuforest
+  #         repo: nvforest
   #         max_days_without_success: 14
   changed-files:
     secrets: inherit
@@ -78,7 +78,7 @@ jobs:
           - '!ci/build_wheel*.sh'
           - '!ci/check_style.sh'
           - '!ci/release/update-version.sh'
-          - '!ci/run_cuforest_pytests.sh'
+          - '!ci/run_nvforest_pytests.sh'
           - '!ci/test_python.sh'
           - '!ci/test_wheel.sh'
           - '!ci/validate_wheel.sh'
@@ -196,7 +196,7 @@ jobs:
       arch: "amd64"
       container_image: "rapidsai/ci-conda:latest"
       script: "ci/build_docs.sh"
-  wheel-build-libcuforest:
+  wheel-build-libnvforest:
     needs: checks
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
@@ -206,25 +206,25 @@ jobs:
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
       node_type: cpu16
-      script: ci/build_wheel_libcuforest.sh
+      script: ci/build_wheel_libnvforest.sh
       # build for every combination of arch and CUDA version, but only for the latest Python
       matrix_filter: group_by([.ARCH, (.CUDA_VER|split(".")|map(tonumber)|.[0])]) | map(max_by(.PY_VER|split(".")|map(tonumber)))
-      package-name: libcuforest
+      package-name: libnvforest
       package-type: cpp
-  wheel-build-cuforest:
-    needs: [checks, wheel-build-libcuforest]
+  wheel-build-nvforest:
+    needs: [checks, wheel-build-libnvforest]
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
     with:
       build_type: pull-request
       node_type: cpu8
-      script: ci/build_wheel_cuforest.sh
-      package-name: cuforest
+      script: ci/build_wheel_nvforest.sh
+      package-name: nvforest
       package-type: python
       # Build a wheel for each CUDA x ARCH x minimum supported Python version
       matrix_filter: group_by({CUDA_VER, ARCH}) | map(min_by(.PY_VER | split(".") | map(tonumber)))
-  wheel-tests-cuforest:
-    needs: [wheel-build-cuforest, changed-files]
+  wheel-tests-nvforest:
+    needs: [wheel-build-nvforest, changed-files]
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@main
     if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python_wheels

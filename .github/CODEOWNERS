@@ -2,15 +2,15 @@
 * @rapidsai/packaging-codeowners
 
 # cpp code owners
-cpp/               @rapidsai/cuforest-cpp-codeowners
+cpp/               @rapidsai/nvforest-cpp-codeowners
 
 # python code owners
-python/            @rapidsai/cuforest-python-codeowners
+python/            @rapidsai/nvforest-python-codeowners
 
 # cmake code owners
-CMakeLists.txt @rapidsai/cuforest-cpp-codeowners
-*.cmake        @rapidsai/cuforest-cpp-codeowners
-**/cmake/      @rapidsai/cuforest-cpp-codeowners
+CMakeLists.txt @rapidsai/nvforest-cpp-codeowners
+*.cmake        @rapidsai/nvforest-cpp-codeowners
+**/cmake/      @rapidsai/nvforest-cpp-codeowners
 
 # CI code owners
 /.github/                @rapidsai/ci-codeowners

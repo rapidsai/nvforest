@@ -14,7 +14,7 @@ conda config --set channel_priority strict
 
 rapids-logger "Downloading artifacts from previous jobs"
 CPP_CHANNEL=$(rapids-download-conda-from-github cpp)
-PYTHON_CHANNEL=$(rapids-download-from-github "$(rapids-package-name conda_python cuforest --stable --cuda)")
+PYTHON_CHANNEL=$(rapids-download-from-github "$(rapids-package-name conda_python nvforest --stable --cuda)")
 
 rapids-logger "Generate Python testing dependencies"
 rapids-dependency-file-generator \
@@ -54,13 +54,13 @@ EXITCODE=0
 trap "EXITCODE=1" ERR
 set +e
 
-rapids-logger "pytest cuforest"
-timeout 1h ./ci/run_cuforest_pytests.sh \
+rapids-logger "pytest nvforest"
+timeout 1h ./ci/run_nvforest_pytests.sh \
   --numprocesses=8 \
   --dist=worksteal \
-  --junitxml="${RAPIDS_TESTS_DIR}/junit-cuforest.xml" \
-  --cov=cuforest \
-  --cov-report=xml:"${RAPIDS_COVERAGE_DIR}/cuforest-coverage.xml"
+  --junitxml="${RAPIDS_TESTS_DIR}/junit-nvforest.xml" \
+  --cov=nvforest \
+  --cov-report=xml:"${RAPIDS_COVERAGE_DIR}/nvforest-coverage.xml"
 
 rapids-logger "Test script exiting with value: $EXITCODE"
 exit ${EXITCODE}
