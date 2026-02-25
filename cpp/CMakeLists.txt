@@ -402,5 +402,5 @@ rapids_export(
 # * doxygen targets ----------------------------------------------------------
 
 include(cmake/doxygen.cmake)
-add_doxygen_target(IN_DOXYFILE doxygen/Doxyfile.in OUT_DOXYFILE ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile CWD
-                   ${CMAKE_CURRENT_SOURCE_DIR})
+add_doxygen_target(IN_DOXYFILE doxygen/Doxyfile.in OUT_DOXYFILE ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile CWD
+                   ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)

@@ -111,27 +111,25 @@ To run the C++ unit tests (optional), from the repo root:
 
 .. code-block:: bash
 
-  cd cpp/build
-  ctest
+  ctest --test-dir cpp/build
 
 If you want a list of the available C++ tests:
 
 .. code-block:: bash
 
-  ctest -N
+  ctest -N --test-dir cpp/build
 
 To run all Python tests, from the repo root:
 
 .. code-block:: bash
 
-  cd python
-  pytest -v
+  pytest -v python/cuforest/tests
 
 If you want a list of the available Python tests:
 
 .. code-block:: bash
 
-  pytest cuforest/tests --collect-only
+  pytest -v python/cuforest/tests --collect-only
 
 Option 2. Manually invoke CMake and build toolchain
 ---------------------------------------------------
@@ -148,9 +146,8 @@ Once dependencies are present, follow the steps below:
 
 .. code-block:: bash
 
-  cd cpp
-  mkdir build && cd build
-  cmake ..
+  mkdir cpp/build
+  cmake -B cpp/build -S cpp/ -GNinja
 
 .. note::
 
@@ -160,11 +157,11 @@ Once dependencies are present, follow the steps below:
 
     export CUDA_BIN_PATH=$CUDA_HOME  # Default: /usr/local/cuda
 
-If using a Conda environment (recommended), configure cmake for ``libcuforest++``:
+If using a Conda environment (recommended), configure CMake to install ``libcuforest++`` into the Conda environment:
 
 .. code-block:: bash
 
-  cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+  cmake -B cpp/build -S cpp/ -GNinja -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
 
 .. note::
 
@@ -181,19 +178,19 @@ To reduce compile times, you can specify GPU compute capabilities to compile for
 
 .. code-block:: bash
 
-  cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DCMAKE_CUDA_ARCHITECTURES="70"
+  cmake -B cpp/build -S cpp/ -GNinja -DCMAKE_CUDA_ARCHITECTURES="70"
 
 Or for multiple architectures (e.g., Ampere and Hopper):
 
 .. code-block:: bash
 
-  cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DCMAKE_CUDA_ARCHITECTURES="80;86;90"
+  cmake -B cpp/build -S cpp/ -GNinja -DCMAKE_CUDA_ARCHITECTURES="80;86;90"
 
 You may also wish to make use of ``ccache`` to reduce build times when switching among branches or between debug and release builds:
 
 .. code-block:: bash
 
-  cmake .. -DUSE_CCACHE=ON
+  cmake -B cpp/build -S cpp/ -GNinja -DUSE_CCACHE=ON
 
 There are many options to configure the build process, see the :ref:`custom-build-options` section.
 
@@ -201,20 +198,20 @@ There are many options to configure the build process, see the :ref:`custom-buil
 
 .. code-block:: bash
 
-  ninja -j
-  ninja install
+  cmake --build cpp/build --target all -v
+  cmake --build cpp/build --target install -v
 
 To run tests (optional):
 
 .. code-block:: bash
 
-  ctest
+  ctest --test-dir cpp/build
 
 To build doxygen docs for all C/C++ source files:
 
 .. code-block:: bash
 
-  ninja doc
+  cmake --build cpp/build --target docs_cuforest
 
 4. Build and install the ``cuforest`` python package.
 
@@ -222,20 +219,20 @@ From the repository root:
 
 .. code-block:: bash
 
-  python -m pip install --no-build-isolation --no-deps --config-settings rapidsai.disable-cuda=true python/cuforest
+  python -m pip install --no-build-isolation --no-deps \
+    --config-settings rapidsai.disable-cuda=true python/cuforest
 
 To run Python tests (optional):
 
 .. code-block:: bash
 
-  cd python
-  pytest -v
+  pytest -v python/cuforest/tests
 
 If you want a list of the available tests:
 
 .. code-block:: bash
 
-  pytest cuforest/tests --collect-only
+  pytest -v python/cuforest/tests --collect-only
 
 .. _custom-build-options:
 
