@@ -14,7 +14,7 @@ context:
   py_runtime_latest: "3.13"
 
 package:
-  name: cuforest
+  name: nvforest
   version: ${{ version }}
 
 source:
@@ -29,11 +29,11 @@ build:
       - '*libarrow.so.*gdb.py'
   prefix_detection:
     # See https://github.com/rapidsai/build-planning/issues/160
-    # Blanket ignore here as there are quite a few shared objects shipped in cuforest
+    # Blanket ignore here as there are quite a few shared objects shipped in nvforest
     ignore_binary_files: True
   script:
     content: |
-      ./build.sh cuforest -v
+      ./build.sh nvforest -v
     secrets:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -59,9 +59,9 @@ build:
       SCCACHE_NO_CACHE: ${{ env.get("SCCACHE_NO_CACHE", default="") }}
       SCCACHE_RECACHE: ${{ env.get("SCCACHE_RECACHE", default="") }}
       SCCACHE_REGION: ${{ env.get("SCCACHE_REGION", default="") }}
-      SCCACHE_S3_KEY_PREFIX: cuforest/${{ env.get("RAPIDS_CONDA_ARCH") }}/cuda${{ cuda_major }}
+      SCCACHE_S3_KEY_PREFIX: nvforest/${{ env.get("RAPIDS_CONDA_ARCH") }}/cuda${{ cuda_major }}
       SCCACHE_S3_NO_CREDENTIALS: ${{ env.get("SCCACHE_S3_NO_CREDENTIALS", default="false") }}
-      SCCACHE_S3_PREPROCESSOR_CACHE_KEY_PREFIX: cuforest/${{ env.get("RAPIDS_CONDA_ARCH") }}/cuda${{ cuda_major }}/conda/preprocessor-cache
+      SCCACHE_S3_PREPROCESSOR_CACHE_KEY_PREFIX: nvforest/${{ env.get("RAPIDS_CONDA_ARCH") }}/cuda${{ cuda_major }}/conda/preprocessor-cache
       SCCACHE_S3_USE_PREPROCESSOR_CACHE_MODE: ${{ env.get("SCCACHE_S3_USE_PREPROCESSOR_CACHE_MODE", default="true") }}
       SCCACHE_S3_USE_SSL: ${{ env.get("SCCACHE_S3_USE_SSL", default="true") }}
       SCCACHE_SERVER_LOG: ${{ env.get("SCCACHE_SERVER_LOG", default="sccache=debug") }}
@@ -78,7 +78,7 @@ requirements:
   host:
     - cuda-version =${{ cuda_version }}
     - cython >=3.0.0
-    - libcuforest =${{ version }}
+    - libnvforest =${{ version }}
     - pip
     - pylibraft =${{ minor_version }}
     - python =${{ py_abi_min }}
@@ -93,7 +93,7 @@ requirements:
   run:
     - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
     - cupy >=13.6.0
-    - libcuforest =${{ version }}
+    - libnvforest =${{ version }}
     - numpy >=1.23,<3.0a0
     - scikit-learn >=1.4
     - packaging
@@ -111,11 +111,11 @@ requirements:
 
 tests:
   - python:
-      imports: cuforest
+      imports: nvforest
       python_version: ${{ py_runtime_latest }}.*
       pip_check: false
 
 about:
-  homepage: ${{ load_from_file("python/cuforest/pyproject.toml").project.urls.Homepage }}
-  license: ${{ load_from_file("python/cuforest/pyproject.toml").project.license }}
-  summary: ${{ load_from_file("python/cuforest/pyproject.toml").project.description }}
+  homepage: ${{ load_from_file("python/nvforest/pyproject.toml").project.urls.Homepage }}
+  license: ${{ load_from_file("python/nvforest/pyproject.toml").project.license }}
+  summary: ${{ load_from_file("python/nvforest/pyproject.toml").project.description }}
