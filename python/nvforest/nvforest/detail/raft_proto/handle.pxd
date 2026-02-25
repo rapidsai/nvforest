@@ -5,12 +5,12 @@
 
 from pylibraft.common.handle cimport handle_t as raft_handle_t
 
-from cuforest.detail.raft_proto.cuda_stream cimport (
+from nvforest.detail.raft_proto.cuda_stream cimport (
     cuda_stream as raft_proto_stream_t,
 )
 
 
-cdef extern from "cuforest/detail/raft_proto/handle.hpp" namespace "raft_proto" nogil:
+cdef extern from "nvforest/detail/raft_proto/handle.hpp" namespace "raft_proto" nogil:
     cdef cppclass handle_t:
         handle_t() except +
         handle_t(const raft_handle_t* handle_ptr) except +

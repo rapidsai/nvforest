@@ -17,10 +17,10 @@ import numpy as np
 import treelite
 from cuda.bindings import runtime
 
-from cuforest._base import ForestInferenceClassifier, ForestInferenceRegressor
-from cuforest._handle import Handle
-from cuforest._typing import DataType
-from cuforest.detail.forest_inference import ForestInferenceImpl
+from nvforest._base import ForestInferenceClassifier, ForestInferenceRegressor
+from nvforest._handle import Handle
+from nvforest._typing import DataType
+from nvforest.detail.forest_inference import ForestInferenceImpl
 
 
 # TaskType enum class from Treelite

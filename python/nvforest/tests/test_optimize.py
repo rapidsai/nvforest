@@ -14,7 +14,7 @@ import cupy as cp  # noqa: E402
 from sklearn.datasets import make_classification, make_regression  # noqa: E402
 from sklearn.ensemble import RandomForestClassifier  # noqa: E402
 
-import cuforest  # noqa: E402
+import nvforest  # noqa: E402
 
 
 def _get_numpy_array(x):
@@ -89,7 +89,7 @@ def _build_and_save_xgboost(
     return bst
 
 
-# absolute tolerance for cuForest predict_proba
+# absolute tolerance for nvForest predict_proba
 # False is binary classification, True is multiclass
 proba_atol = {False: 3e-7, True: 3e-6}
 
@@ -109,7 +109,7 @@ def small_classifier_model(tmp_path_factory):
 def test_optimize_classifier(device, small_classifier_model):
     """Test that optimize() returns a new instance with optimal settings."""
     model_path, X, xgb_preds = small_classifier_model
-    fm = cuforest.load_model(model_path, device=device)
+    fm = nvforest.load_model(model_path, device=device)
 
     # Run optimization with a short timeout - returns a new instance
     fm_opt = fm.optimize(data=X, timeout=0.1)
@@ -128,9 +128,9 @@ def test_optimize_classifier(device, small_classifier_model):
     ) == 0  # power of 2
 
     # Verify predictions still work on optimized model
-    cuforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
-    cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
-    np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
+    nvforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
+    nvforest_proba = np.reshape(nvforest_proba, xgb_preds.shape)
+    np.testing.assert_almost_equal(nvforest_proba, xgb_preds)
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
@@ -148,7 +148,7 @@ def test_optimize_regressor(device, tmp_path):
         model_path, X, y, classification=False, num_rounds=5
     )
 
-    fm = cuforest.load_model(model_path, device=device)
+    fm = nvforest.load_model(model_path, device=device)
 
     # optimize() returns a new instance
     fm_opt = fm.optimize(data=X, timeout=0.1)
@@ -173,7 +173,7 @@ def test_optimize_regressor(device, tmp_path):
 def test_optimize_without_data(device, small_classifier_model):
     """Test that optimize() can generate random data when none is provided."""
     model_path, X, xgb_preds = small_classifier_model
-    fm = cuforest.load_model(model_path, device=device)
+    fm = nvforest.load_model(model_path, device=device)
 
     # Run optimization without providing data - returns a new instance
     fm_opt = fm.optimize(batch_size=100, timeout=0.1, seed=42)
@@ -183,16 +183,16 @@ def test_optimize_without_data(device, small_classifier_model):
     assert fm_opt.default_chunk_size is not None
 
     # Verify predictions still work on the new instance
-    cuforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
-    cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
-    np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
+    nvforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
+    nvforest_proba = np.reshape(nvforest_proba, xgb_preds.shape)
+    np.testing.assert_almost_equal(nvforest_proba, xgb_preds)
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
 def test_optimize_with_predict_per_tree(device, small_classifier_model):
     """Test optimize() with a different predict method."""
     model_path, X, xgb_preds = small_classifier_model
-    fm = cuforest.load_model(model_path, device=device)
+    fm = nvforest.load_model(model_path, device=device)
 
     # Optimize for predict_per_tree method - returns a new instance
     fm_opt = fm.optimize(
@@ -208,7 +208,7 @@ def test_optimize_with_predict_per_tree(device, small_classifier_model):
 def test_model_layout_immutable(device, small_classifier_model):
     """Test that layout is immutable (read-only property)."""
     model_path, X, xgb_preds = small_classifier_model
-    fm = cuforest.load_model(model_path, device=device, layout="depth_first")
+    fm = nvforest.load_model(model_path, device=device, layout="depth_first")
 
     # Verify initial layout
     assert fm.layout == "depth_first"
@@ -225,13 +225,13 @@ def test_load_with_different_layouts(device, small_classifier_model):
 
     # Load with each layout type
     for layout in ("depth_first", "breadth_first", "layered"):
-        fm = cuforest.load_model(model_path, device=device, layout=layout)
+        fm = nvforest.load_model(model_path, device=device, layout=layout)
         assert fm.layout == layout
 
         # Verify predictions work with each layout
-        cuforest_proba = _get_numpy_array(fm.predict_proba(X))
-        cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
-        np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
+        nvforest_proba = _get_numpy_array(fm.predict_proba(X))
+        nvforest_proba = np.reshape(nvforest_proba, xgb_preds.shape)
+        np.testing.assert_almost_equal(nvforest_proba, xgb_preds)
 
 
 def test_optimize_sklearn_classifier():
@@ -249,7 +249,7 @@ def test_optimize_sklearn_classifier():
     )
     skl_model.fit(X, y)
 
-    fm = cuforest.load_from_sklearn(skl_model, device="cpu")
+    fm = nvforest.load_from_sklearn(skl_model, device="cpu")
 
     # optimize() returns a new instance
     fm_opt = fm.optimize(data=X, timeout=0.1)
@@ -263,10 +263,10 @@ def test_optimize_sklearn_classifier():
 
     # Verify predictions match sklearn
     skl_proba = skl_model.predict_proba(X)
-    cuforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
-    cuforest_proba = np.reshape(cuforest_proba, skl_proba.shape)
+    nvforest_proba = _get_numpy_array(fm_opt.predict_proba(X))
+    nvforest_proba = np.reshape(nvforest_proba, skl_proba.shape)
     np.testing.assert_allclose(
-        cuforest_proba, skl_proba, atol=proba_atol[True]
+        nvforest_proba, skl_proba, atol=proba_atol[True]
     )
 
 
@@ -276,7 +276,7 @@ def test_original_model_unchanged_after_optimize(
 ):
     """Test that the original model is unchanged after calling optimize()."""
     model_path, X, xgb_preds = small_classifier_model
-    fm = cuforest.load_model(model_path, device=device, layout="depth_first")
+    fm = nvforest.load_model(model_path, device=device, layout="depth_first")
 
     original_layout = fm.layout
     original_chunk_size = fm.default_chunk_size

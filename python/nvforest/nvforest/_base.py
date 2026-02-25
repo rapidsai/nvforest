@@ -9,7 +9,7 @@ try:
 except ImportError:
     from typing_extensions import Self
 
-from cuforest._typing import DataType
+from nvforest._typing import DataType
 
 
 class ForestInference(ABC):
@@ -28,7 +28,7 @@ class ForestInference(ABC):
         ----------
         X:
             The input data of shape Rows X Features. This can be a numpy
-            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            array or cupy array. nvForest is optimized for C-major arrays (e.g.
             numpy/cupy arrays). Inputs whose datatype does not match the
             precision of the loaded model (float/double) will be converted
             to the correct datatype before inference. If this input is in a
@@ -66,7 +66,7 @@ class ForestInference(ABC):
         ----------
         X
             The input data of shape Rows X Features. This can be a numpy
-            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            array or cupy array. nvForest is optimized for C-major arrays (e.g.
             numpy/cupy arrays). Inputs whose datatype does not match the
             precision of the loaded model (float/double) will be converted
             to the correct datatype before inference. If this input is in a
@@ -210,7 +210,7 @@ class ForestInferenceClassifier(ForestInference):
         ----------
         X
             The input data of shape Rows X Features. This can be a numpy
-            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            array or cupy array. nvForest is optimized for C-major arrays (e.g.
             numpy/cupy arrays). Inputs whose datatype does not match the
             precision of the loaded model (float/double) will be converted
             to the correct datatype before inference. If this input is in a
@@ -254,7 +254,7 @@ class ForestInferenceClassifier(ForestInference):
         ----------
         X :
             The input data of shape Rows * Features. This can be a numpy
-            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            array or cupy array. nvForest is optimized for C-major arrays (e.g.
             numpy/cupy arrays). Inputs whose datatype does not match the
             precision of the loaded model (float/double) will be converted
             to the correct datatype before inference. If this input is in a
@@ -298,7 +298,7 @@ class ForestInferenceRegressor(ForestInference):
         ----------
         X
             The input data of shape Rows X Features. This can be a numpy
-            array or cupy array. cuForest is optimized for C-major arrays (e.g.
+            array or cupy array. nvForest is optimized for C-major arrays (e.g.
             numpy/cupy arrays). Inputs whose datatype does not match the
             precision of the loaded model (float/double) will be converted
             to the correct datatype before inference. If this input is in a

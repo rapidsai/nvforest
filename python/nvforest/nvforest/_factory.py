@@ -8,8 +8,8 @@ from typing import Any, Optional, Union
 
 import treelite
 
-from cuforest._base import ForestInference
-from cuforest._forest_inference import (
+from nvforest._base import ForestInference
+from nvforest._forest_inference import (
     CPUForestInferenceClassifier,
     CPUForestInferenceRegressor,
     GPUForestInferenceClassifier,
@@ -17,7 +17,7 @@ from cuforest._forest_inference import (
     infer_device,
     infer_is_classifier,
 )
-from cuforest._handle import Handle
+from nvforest._handle import Handle
 
 
 def get_forest_inference_class(device, is_classifier) -> type:
@@ -74,7 +74,7 @@ def load_model(
     device_id: Optional[int] = None,
     handle: Optional[Handle] = None,
 ) -> ForestInference:
-    """Load a model into cuForest from a serialized model file.
+    """Load a model into nvForest from a serialized model file.
 
     Parameters
     ----------
@@ -108,13 +108,13 @@ def load_model(
         single-precision execution is substantially faster than
         double-precision execution, so double-precision is recommended
         only for models trained and double precision and when exact
-        conformance between results from cuForest and the original training
+        conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    handle : cuforest.Handle or None
-        For GPU execution, the cuForest handle containing the stream or stream
+    handle : nvforest.Handle or None
+        For GPU execution, the nvForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
@@ -176,7 +176,7 @@ def load_from_sklearn(
     device_id: Optional[int] = None,
     handle: Optional[Handle] = None,
 ) -> ForestInference:
-    """Load a Scikit-Learn forest model to cuForest
+    """Load a Scikit-Learn forest model to nvForest
 
     Parameters
     ----------
@@ -203,13 +203,13 @@ def load_from_sklearn(
         single-precision execution is substantially faster than
         double-precision execution, so double-precision is recommended
         only for models trained and double precision and when exact
-        conformance between results from cuForest and the original training
+        conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    handle : cuforest.Handle or None
-        For GPU execution, the cuForest handle containing the stream or stream
+    handle : nvforest.Handle or None
+        For GPU execution, the nvForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """
@@ -238,7 +238,7 @@ def load_from_treelite_model(
     device_id: Optional[int] = None,
     handle: Optional[Handle] = None,
 ) -> ForestInference:
-    """Load a Treelite forest model to cuForest
+    """Load a Treelite forest model to nvForest
 
     Parameters
     ----------
@@ -265,13 +265,13 @@ def load_from_treelite_model(
         single-precision execution is substantially faster than
         double-precision execution, so double-precision is recommended
         only for models trained and double precision and when exact
-        conformance between results from cuForest and the original training
+        conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    handle : cuforest.Handle or None
-        For GPU execution, the cuForest handle containing the stream or stream
+    handle : nvforest.Handle or None
+        For GPU execution, the nvForest handle containing the stream or stream
         pool to use during loading and inference. If not given, a new
         handle will be constructed.
     """

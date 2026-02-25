@@ -26,8 +26,8 @@ from sklearn.ensemble import (  # noqa: E402
 )
 from sklearn.model_selection import train_test_split  # noqa: E402
 
-import cuforest  # noqa: E402
-from cuforest.testing.utils import (  # noqa: E402
+import nvforest  # noqa: E402
+from nvforest.testing.utils import (  # noqa: E402
     quality_param,
     stress_param,
     unit_param,
@@ -75,7 +75,7 @@ def _simulate_data(
     )
 
 
-# absolute tolerance for cuForest predict_proba
+# absolute tolerance for nvForest predict_proba
 # False is binary classification, True is multiclass
 proba_atol = {False: 3e-7, True: 3e-6}
 
@@ -160,12 +160,12 @@ def test_classification(
     dvalidation = xgb.DMatrix(X_validation, label=y_validation)
     xgb_proba = bst.predict(dvalidation)
 
-    fm = cuforest.load_model(model_path, device=device)
+    fm = nvforest.load_model(model_path, device=device)
 
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X_validation))
-    cuforest_proba = np.reshape(cuforest_proba, xgb_proba.shape)
+    nvforest_proba = _get_numpy_array(fm.predict_proba(X_validation))
+    nvforest_proba = np.reshape(nvforest_proba, xgb_proba.shape)
 
-    np.testing.assert_almost_equal(cuforest_proba, xgb_proba, decimal=6)
+    np.testing.assert_almost_equal(nvforest_proba, xgb_proba, decimal=6)
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
@@ -218,7 +218,7 @@ def test_regression(
     dvalidation = xgb.DMatrix(X_validation, label=y_validation)
     xgb_preds = bst.predict(dvalidation)
 
-    fm = cuforest.load_model(model_path, precision="single", device=device)
+    fm = nvforest.load_model(model_path, precision="single", device=device)
 
     fil_preds = _get_numpy_array(fm.predict(X_validation))
     fil_preds = np.reshape(fil_preds, np.shape(xgb_preds))
@@ -297,23 +297,23 @@ def test_skl_classification(
 
     skl_proba = skl_model.predict_proba(X_validation)
 
-    fm = cuforest.load_from_sklearn(
+    fm = nvforest.load_from_sklearn(
         skl_model,
         precision=precision,
         device=device,
     )
 
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X_validation))
+    nvforest_proba = _get_numpy_array(fm.predict_proba(X_validation))
     # Given a binary GradientBoostingClassifier,
-    # cuForest produces the probability score only for the positive class,
+    # nvForest produces the probability score only for the positive class,
     # whereas scikit-learn produces the probability scores for both
     # the positive and negative class. So we have to transform
-    # cuforest_proba to compare it with skl_proba.
+    # nvforest_proba to compare it with skl_proba.
     if n_classes == 2 and model_class == GradientBoostingClassifier:
-        cuforest_proba = np.stack([1 - cuforest_proba, cuforest_proba], axis=1)
-    cuforest_proba = np.reshape(cuforest_proba, skl_proba.shape)
+        nvforest_proba = np.stack([1 - nvforest_proba, nvforest_proba], axis=1)
+    nvforest_proba = np.reshape(nvforest_proba, skl_proba.shape)
     np.testing.assert_allclose(
-        cuforest_proba, skl_proba, atol=proba_atol[n_classes > 2]
+        nvforest_proba, skl_proba, atol=proba_atol[n_classes > 2]
     )
 
 
@@ -375,7 +375,7 @@ def test_fil_skl_regression(
 
     skl_preds = skl_model.predict(X_validation)
 
-    fm = cuforest.load_from_sklearn(
+    fm = nvforest.load_from_sklearn(
         skl_model=skl_model,
         precision="double",
         device=device,
@@ -407,7 +407,7 @@ def small_classifier_and_preds(tmpdir_factory, request):
 @pytest.mark.parametrize("precision", ["native", "float32", "float64"])
 def test_precision_xgboost(device, precision, small_classifier_and_preds):
     model_path, model_type, X, xgb_preds = small_classifier_and_preds
-    fm = cuforest.load_model(
+    fm = nvforest.load_model(
         model_path,
         model_type=model_type,
         precision=precision,
@@ -427,53 +427,53 @@ def test_performance_hyperparameters(
     device, layout, chunk_size, small_classifier_and_preds
 ):
     model_path, model_type, X, xgb_preds = small_classifier_and_preds
-    fm = cuforest.load_model(
+    fm = nvforest.load_model(
         model_path,
         layout=layout,
         model_type=model_type,
         device=device,
     )
 
-    cuforest_proba = _get_numpy_array(
+    nvforest_proba = _get_numpy_array(
         fm.predict_proba(X, chunk_size=chunk_size)
     )
-    cuforest_proba = np.reshape(cuforest_proba, xgb_preds.shape)
+    nvforest_proba = np.reshape(nvforest_proba, xgb_preds.shape)
 
-    np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
+    np.testing.assert_almost_equal(nvforest_proba, xgb_preds)
 
 
 @pytest.mark.parametrize("chunk_size", [2, 4, 8, 16, 32, 64, 128, 256])
 def test_chunk_size(chunk_size, small_classifier_and_preds):
     model_path, model_type, X, xgb_preds = small_classifier_and_preds
-    fm = cuforest.load_model(
+    fm = nvforest.load_model(
         model_path,
         model_type=model_type,
     )
 
-    cuforest_preds = _get_numpy_array(fm.predict(X, chunk_size=chunk_size))
-    cuforest_proba = _get_numpy_array(
+    nvforest_preds = _get_numpy_array(fm.predict(X, chunk_size=chunk_size))
+    nvforest_proba = _get_numpy_array(
         fm.predict_proba(X, chunk_size=chunk_size)
     ).squeeze()
-    np.testing.assert_almost_equal(cuforest_proba, xgb_preds)
+    np.testing.assert_almost_equal(nvforest_proba, xgb_preds)
 
     xgb_preds_int = np.around(xgb_preds)
-    cuforest_preds = np.reshape(cuforest_preds, np.shape(xgb_preds_int))
-    np.testing.assert_array_equal(cuforest_preds, xgb_preds_int)
+    nvforest_preds = np.reshape(nvforest_preds, np.shape(xgb_preds_int))
+    np.testing.assert_array_equal(nvforest_preds, xgb_preds_int)
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
 def test_output_args(device, small_classifier_and_preds):
     model_path, model_type, X, xgb_preds = small_classifier_and_preds
-    fm = cuforest.load_model(model_path, model_type=model_type, device=device)
+    fm = nvforest.load_model(model_path, model_type=model_type, device=device)
     X = np.asarray(X)
-    cuforest_preds = _get_numpy_array(fm.predict_proba(X))
-    cuforest_preds = np.reshape(cuforest_preds, np.shape(xgb_preds))
+    nvforest_preds = _get_numpy_array(fm.predict_proba(X))
+    nvforest_preds = np.reshape(nvforest_preds, np.shape(xgb_preds))
 
-    np.testing.assert_almost_equal(cuforest_preds, xgb_preds)
+    np.testing.assert_almost_equal(nvforest_preds, xgb_preds)
 
 
 def to_categorical(features, n_categorical, invalid_frac, random_state):
-    """returns data in two formats: pandas (for LightGBM) and numpy (for cuForest)
+    """returns data in two formats: pandas (for LightGBM) and numpy (for nvForest)
     LightGBM needs a DataFrame to recognize and fit on categorical columns.
     Second fp32 output is to test invalid categories for prediction only.
     """
@@ -483,7 +483,7 @@ def to_categorical(features, n_categorical, invalid_frac, random_state):
     n_features = features.shape[1]
     # all categorical columns
     cat_cols = features[:, :n_categorical]
-    # axis=1 means 0th dimension remains. Row-major cuForest means 0th dimension is
+    # axis=1 means 0th dimension remains. Row-major nvForest means 0th dimension is
     # the number of columns. We reduce within columns, across rows.
     cat_cols = cat_cols - cat_cols.min(axis=0, keepdims=True)  # range [0, ?]
     cat_cols /= cat_cols.max(axis=0, keepdims=True)  # range [0, 1]
@@ -565,19 +565,19 @@ def test_lightgbm(device, tmp_path, num_classes, n_categorical):
     )
     lgm.fit(X_fit, y)
     lgm.booster_.save_model(model_path)
-    fm = cuforest.load_model(model_path, model_type="lightgbm", device=device)
+    fm = nvforest.load_model(model_path, model_type="lightgbm", device=device)
     gbm_proba = lgm.predict_proba(X_predict)
-    cuforest_proba = _get_numpy_array(fm.predict_proba(X_predict))
-    # Given a binary classifier, cuForest produces the probability score
+    nvforest_proba = _get_numpy_array(fm.predict_proba(X_predict))
+    # Given a binary classifier, nvForest produces the probability score
     # only for the positive class,
     # whereas LGBMClassifier produces the probability scores for both
     # the positive and negative class. So we have to transform
-    # cuforest_proba to compare it with gbm_proba.
+    # nvforest_proba to compare it with gbm_proba.
     if num_classes == 2:
-        cuforest_proba = np.concatenate(
-            [1 - cuforest_proba, cuforest_proba], axis=1
+        nvforest_proba = np.concatenate(
+            [1 - nvforest_proba, nvforest_proba], axis=1
         )
-    np.testing.assert_almost_equal(gbm_proba, cuforest_proba)
+    np.testing.assert_almost_equal(gbm_proba, nvforest_proba)
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
@@ -607,7 +607,7 @@ def test_predict_per_tree(device, n_classes, num_boost_round, tmp_path):
         n_classes=n_classes,
         xgboost_params=xgboost_params,
     )
-    fm = cuforest.load_model(model_path, device=device)
+    fm = nvforest.load_model(model_path, device=device)
     tl_model = treelite.frontend.from_xgboost(bst)
     pred_per_tree_tl = treelite.gtil.predict_per_tree(tl_model, X)
 
@@ -653,7 +653,7 @@ def test_predict_per_tree_with_vector_leaf(device, n_classes, tmp_path):
     skl_model.fit(X, y)
     tl_model = treelite.sklearn.import_model(skl_model)
     pred_per_tree_tl = treelite.gtil.predict_per_tree(tl_model, X)
-    fm = cuforest.load_from_sklearn(
+    fm = nvforest.load_from_sklearn(
         skl_model, precision="native", device=device
     )
 
@@ -693,7 +693,7 @@ def test_apply(device, n_classes, tmp_path):
         xgboost_params=xgboost_params,
     )
 
-    fm = cuforest.load_model(
+    fm = nvforest.load_model(
         model_path, model_type="xgboost_ubj", device=device
     )
 
@@ -751,7 +751,7 @@ def test_missing_categorical(category_list):
 
     input = np.array([[np.nan]])
     gtil_preds = treelite.gtil.predict(model, input)
-    fm = cuforest.load_from_treelite_model(model)
+    fm = nvforest.load_from_treelite_model(model)
     fil_preds = _get_numpy_array(fm.predict(input))
     np.testing.assert_equal(fil_preds.flatten(), gtil_preds.flatten())
 
@@ -794,7 +794,7 @@ def test_device_selection(device_id, model_kind, tmp_path):
             max_depth=3, random_state=0, n_estimators=n_estimators
         )
         skl_model.fit(X, y)
-        fm = cuforest.load_from_sklearn(
+        fm = nvforest.load_from_sklearn(
             skl_model,
             precision="native",
             device="gpu",
@@ -807,7 +807,7 @@ def test_device_selection(device_id, model_kind, tmp_path):
         xgb_model.fit(X, y)
         model_path = tmp_path / "xgb_class.ubj"
         xgb_model.save_model(model_path)
-        fm = cuforest.load_model(
+        fm = nvforest.load_model(
             model_path,
             model_type="xgboost_ubj",
             precision="native",
@@ -854,5 +854,5 @@ def test_wide_data():
     clf.fit(X, y)
 
     # Inference should run without crashing
-    fm = cuforest.load_from_sklearn(clf)
+    fm = nvforest.load_from_sklearn(clf)
     _ = fm.predict(X)

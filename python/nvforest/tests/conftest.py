@@ -19,7 +19,7 @@ def pytest_addoption(parser):
     - --run_unit: Run unit tests
     - --run_memleak: Run memleak tests
     """
-    group = parser.getgroup("cuForest Custom Options")
+    group = parser.getgroup("nvForest Custom Options")
 
     group.addoption(
         "--run_stress",

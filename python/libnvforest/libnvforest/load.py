@@ -10,7 +10,7 @@ import os
 # namespace. This allows libraries that express a dependency on
 # this library to be loaded later and successfully satisfy this dependency
 # without polluting the global symbol table with symbols from
-# libcuforest that could conflict with symbols from other DSOs.
+# libnvforest that could conflict with symbols from other DSOs.
 PREFERRED_LOAD_FLAG = ctypes.RTLD_LOCAL
 
 
@@ -34,9 +34,9 @@ def _load_wheel_installation(soname: str):
 
 
 def load_library():
-    """Dynamically load libcuforest++.so and its dependencies"""
+    """Dynamically load libnvforest++.so and its dependencies"""
     try:
-        # These libraries must all be loaded before libcuforest
+        # These libraries must all be loaded before libnvforest
         import libraft
         import librmm
         import rapids_logger
@@ -51,28 +51,28 @@ def load_library():
         pass
 
     prefer_system_installation = (
-        os.getenv("RAPIDS_LIBCUFOREST_PREFER_SYSTEM_LIBRARY", "false").lower()
+        os.getenv("RAPIDS_LIBNVFOREST_PREFER_SYSTEM_LIBRARY", "false").lower()
         != "false"
     )
 
-    soname = "libcuforest++.so"
-    libcuforest_lib = None
+    soname = "libnvforest++.so"
+    libnvforest_lib = None
     if prefer_system_installation:
         # Prefer a system library if one is present to
         # avoid clobbering symbols that other packages might expect, but if no
         # other library is present use the one in the wheel.
         try:
-            libcuforest_lib = _load_system_installation(soname)
+            libnvforest_lib = _load_system_installation(soname)
         except OSError:
-            libcuforest_lib = _load_wheel_installation(soname)
+            libnvforest_lib = _load_wheel_installation(soname)
     else:
         # Prefer the libraries bundled in this package. If they aren't found
         # (which might be the case in builds where the library was prebuilt
         # before packaging the wheel), look for a system installation.
         try:
-            libcuforest_lib = _load_wheel_installation(soname)
-            if libcuforest_lib is None:
-                libcuforest_lib = _load_system_installation(soname)
+            libnvforest_lib = _load_wheel_installation(soname)
+            if libnvforest_lib is None:
+                libnvforest_lib = _load_system_installation(soname)
         except OSError:
             # If none of the searches above succeed, just silently return None
             # and rely on other mechanisms (like RPATHs on other DSOs) to
@@ -81,5 +81,5 @@ def load_library():
 
     # The caller almost never needs to do anything with these libraries, but no
     # harm in offering the option since these objects at least provide handles
-    # to inspect where libcuforest was loaded from.
-    return libcuforest_lib
+    # to inspect where libnvforest was loaded from.
+    return libnvforest_lib
