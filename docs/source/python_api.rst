@@ -6,20 +6,20 @@ Python API Reference
    :language: python
    :class: highlight
 
-.. autofunction:: cuforest.load_model
+.. autofunction:: nvforest.load_model
 
-.. autofunction:: cuforest.load_from_sklearn
+.. autofunction:: nvforest.load_from_sklearn
 
-.. autofunction:: cuforest.load_from_treelite_model
+.. autofunction:: nvforest.load_from_treelite_model
 
-.. autoclass:: cuforest.CPUForestInferenceClassifier
+.. autoclass:: nvforest.CPUForestInferenceClassifier
    :members:
 
-.. autoclass:: cuforest.CPUForestInferenceRegressor
+.. autoclass:: nvforest.CPUForestInferenceRegressor
    :members:
 
-.. autoclass:: cuforest.GPUForestInferenceClassifier
+.. autoclass:: nvforest.GPUForestInferenceClassifier
    :members:
 
-.. autoclass:: cuforest.GPUForestInferenceRegressor
+.. autoclass:: nvforest.GPUForestInferenceRegressor
    :members:
