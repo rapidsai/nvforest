@@ -19,7 +19,7 @@ repos:
       hooks:
           - id: isort
             files: python/.*
-            args: ["--settings-path", "python/cuforest/pyproject.toml"]
+            args: ["--settings-path", "python/nvforest/pyproject.toml"]
     - repo: https://github.com/MarcoGorelli/cython-lint
       rev: v0.16.6
       hooks:

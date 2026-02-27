@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 
-# cuforest build script
+# nvforest build script
 
 # This script is used to build the component(s) in this repo from
 # source, and can be called with various options to customize the
@@ -19,14 +19,14 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd "$(dirname "$0")"; pwd)
 
-VALIDTARGETS="clean libcuforest cuforest cppdocs pydocs"
+VALIDTARGETS="clean libnvforest nvforest cppdocs pydocs"
 VALIDFLAGS="-v -g -n --allgpuarch --nvtx --show_depr_warn --ccache --configure-only --build-metrics --incl-cache-stats -h --help "
 VALIDARGS="${VALIDTARGETS} ${VALIDFLAGS}"
 HELP="$0 [<target> ...] [<flag> ...]
  where <target> is:
    clean              - remove all existing build artifacts and configuration (start over)
-   libcuforest        - build the cuforest C++ code only
-   cuforest           - build the cuforest Python package
+   libnvforest        - build the nvforest C++ code only
+   nvforest           - build the nvforest Python package
    cppdocs            - build the C++ API doxygen documentation
    pydocs             - build the Python API documentation
  and <flag> is:
@@ -39,21 +39,21 @@ HELP="$0 [<target> ...] [<flag> ...]
    --show_depr_warn   - show cmake deprecation warnings
    --ccache           - Use ccache to cache previous compilations
    --configure-only   - Invoke CMake without actually building
-   --build-metrics    - filename for generating build metrics report for libcuforest
+   --build-metrics    - filename for generating build metrics report for libnvforest
    --incl-cache-stats - include cache statistics in build metrics report
 
- default action (no args) is to build and install 'libcuforest' and 'cuforest' targets only for the detected GPU arch
+ default action (no args) is to build and install 'libnvforest' and 'nvforest' targets only for the detected GPU arch
 
  The following environment variables are also accepted to allow further customization:
    PARALLEL_LEVEL            - Number of parallel threads to use in compilation.
-   CUFOREST_EXTRA_CMAKE_ARGS - Extra arguments to pass directly to cmake. Values listed in environment
+   NVFOREST_EXTRA_CMAKE_ARGS - Extra arguments to pass directly to cmake. Values listed in environment
                                variable will override existing arguments. Example:
-                               CUFOREST_EXTRA_CMAKE_ARGS=\"-DBUILD_CUFOREST_TESTS=OFF\" ./build.sh
-   CUFOREST_EXTRA_PYTHON_ARGS - Extra arguments to pass directly to pip install
+                               NVFOREST_EXTRA_CMAKE_ARGS=\"-DBUILD_NVFOREST_TESTS=OFF\" ./build.sh
+   NVFOREST_EXTRA_PYTHON_ARGS - Extra arguments to pass directly to pip install
 "
-LIBCUFOREST_BUILD_DIR=${LIBCUFOREST_BUILD_DIR:=${REPODIR}/cpp/build}
-CUFOREST_BUILD_DIR=${REPODIR}/python/cuforest/build
-BUILD_DIRS="${LIBCUFOREST_BUILD_DIR} ${CUFOREST_BUILD_DIR}"
+LIBNVFOREST_BUILD_DIR=${LIBNVFOREST_BUILD_DIR:=${REPODIR}/cpp/build}
+NVFOREST_BUILD_DIR=${REPODIR}/python/nvforest/build
+BUILD_DIRS="${LIBNVFOREST_BUILD_DIR} ${NVFOREST_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 BUILD_TYPE=Release
@@ -63,7 +63,7 @@ NVTX=OFF
 CCACHE=OFF
 CLEAN=0
 BUILD_DISABLE_DEPRECATION_WARNINGS=ON
-BUILD_CUFOREST_TESTS=ON
+BUILD_NVFOREST_TESTS=ON
 CMAKE_LOG_LEVEL=WARNING
 BUILD_REPORT_METRICS=OFF
 BUILD_REPORT_INCL_CACHE_STATS=OFF
@@ -75,20 +75,20 @@ PYTHON_ARGS_FOR_INSTALL=(
 )
 
 # Set defaults for vars that may not have been defined externally
-INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX:=$LIBCUFOREST_BUILD_DIR/install}}}
+INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX:=$LIBNVFOREST_BUILD_DIR/install}}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=$(nproc)}
 
 # Default to Ninja if generator is not specified
 export CMAKE_GENERATOR="${CMAKE_GENERATOR:=Ninja}"
 
-# Allow setting arbitrary cmake args via the $CUFOREST_EXTRA_CMAKE_ARGS variable.
-CUFOREST_EXTRA_CMAKE_ARGS=${CUFOREST_EXTRA_CMAKE_ARGS:=""}
+# Allow setting arbitrary cmake args via the $NVFOREST_EXTRA_CMAKE_ARGS variable.
+NVFOREST_EXTRA_CMAKE_ARGS=${NVFOREST_EXTRA_CMAKE_ARGS:=""}
 
-read -ra CUFOREST_EXTRA_CMAKE_ARGS <<< "$CUFOREST_EXTRA_CMAKE_ARGS"
+read -ra NVFOREST_EXTRA_CMAKE_ARGS <<< "$NVFOREST_EXTRA_CMAKE_ARGS"
 
-CUFOREST_EXTRA_PYTHON_ARGS=${CUFOREST_EXTRA_PYTHON_ARGS:=""}
+NVFOREST_EXTRA_PYTHON_ARGS=${NVFOREST_EXTRA_PYTHON_ARGS:=""}
 
-read -ra CUFOREST_EXTRA_PYTHON_ARGS <<< "$CUFOREST_EXTRA_PYTHON_ARGS"
+read -ra NVFOREST_EXTRA_PYTHON_ARGS <<< "$NVFOREST_EXTRA_PYTHON_ARGS"
 
 function hasArg {
     (( NUMARGS != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")
@@ -225,47 +225,47 @@ fi
 
 ################################################################################
 # Configure for building all C++ targets
-if completeBuild || hasArg libcuforest || hasArg cppdocs; then
+if completeBuild || hasArg libnvforest || hasArg cppdocs; then
     if (( BUILD_ALL_GPU_ARCH == 0 )); then
-        CUFOREST_CMAKE_CUDA_ARCHITECTURES="NATIVE"
+        NVFOREST_CMAKE_CUDA_ARCHITECTURES="NATIVE"
         echo "Building for the architecture of the GPU in the system..."
     else
-        CUFOREST_CMAKE_CUDA_ARCHITECTURES="RAPIDS"
+        NVFOREST_CMAKE_CUDA_ARCHITECTURES="RAPIDS"
         echo "Building for *ALL* supported GPU architectures..."
     fi
 
-    mkdir -p "${LIBCUFOREST_BUILD_DIR}"
-    cd "${LIBCUFOREST_BUILD_DIR}"
+    mkdir -p "${LIBNVFOREST_BUILD_DIR}"
+    cd "${LIBNVFOREST_BUILD_DIR}"
 
     cmake -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
-          -DCMAKE_CUDA_ARCHITECTURES=${CUFOREST_CMAKE_CUDA_ARCHITECTURES} \
+          -DCMAKE_CUDA_ARCHITECTURES=${NVFOREST_CMAKE_CUDA_ARCHITECTURES} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-          -DBUILD_CUFOREST_TESTS=${BUILD_CUFOREST_TESTS} \
+          -DBUILD_NVFOREST_TESTS=${BUILD_NVFOREST_TESTS} \
           -DNVTX=${NVTX} \
           -DUSE_CCACHE=${CCACHE} \
           -DDISABLE_DEPRECATION_WARNINGS=${BUILD_DISABLE_DEPRECATION_WARNINGS} \
           -DCMAKE_PREFIX_PATH="${INSTALL_PREFIX}" \
           -DCMAKE_MESSAGE_LOG_LEVEL=${CMAKE_LOG_LEVEL} \
-          "${CUFOREST_EXTRA_CMAKE_ARGS[@]}" \
+          "${NVFOREST_EXTRA_CMAKE_ARGS[@]}" \
           ..
 fi
 
-# Build libcuforest
-if (! hasArg --configure-only) && (completeBuild || hasArg libcuforest); then
+# Build libnvforest
+if (! hasArg --configure-only) && (completeBuild || hasArg libnvforest); then
     # get the current count before the compile starts
     CACHE_TOOL=${CACHE_TOOL:-sccache}
     if [[ "$BUILD_REPORT_INCL_CACHE_STATS" == "ON" && -x "$(command -v "${CACHE_TOOL}")" ]]; then
         "${CACHE_TOOL}" --zero-stats
     fi
 
-    cd "${LIBCUFOREST_BUILD_DIR}"
+    cd "${LIBNVFOREST_BUILD_DIR}"
     if [ -n "${INSTALL_TARGET}" ]; then
-      cmake --build "${LIBCUFOREST_BUILD_DIR}" -j"${PARALLEL_LEVEL}" --target ${INSTALL_TARGET} "${VERBOSE_FLAG}"
+      cmake --build "${LIBNVFOREST_BUILD_DIR}" -j"${PARALLEL_LEVEL}" --target ${INSTALL_TARGET} "${VERBOSE_FLAG}"
     else
-      cmake --build "${LIBCUFOREST_BUILD_DIR}" -j"${PARALLEL_LEVEL}" "${VERBOSE_FLAG}"
+      cmake --build "${LIBNVFOREST_BUILD_DIR}" -j"${PARALLEL_LEVEL}" "${VERBOSE_FLAG}"
     fi
 
-    if [[ "$BUILD_REPORT_METRICS" == "ON" && -f "${LIBCUFOREST_BUILD_DIR}/.ninja_log" ]]; then
+    if [[ "$BUILD_REPORT_METRICS" == "ON" && -f "${LIBNVFOREST_BUILD_DIR}/.ninja_log" ]]; then
       if ! rapids-build-metrics-reporter.py 2> /dev/null && [ ! -f rapids-build-metrics-reporter.py ]; then
           echo "Downloading rapids-build-metrics-reporter.py"
           curl -sO https://raw.githubusercontent.com/rapidsai/build-metrics-reporter/v1/rapids-build-metrics-reporter.py
@@ -291,26 +291,26 @@ if (! hasArg --configure-only) && (completeBuild || hasArg libcuforest); then
           fi
         fi
         MSG="${MSG}<br/>parallel setting: $PARALLEL_LEVEL"
-        if [[ -f "${LIBCUFOREST_BUILD_DIR}/libcuforest++.so" ]]; then
-            LIBCUFOREST_FS=$(find "${LIBCUFOREST_BUILD_DIR}" -name libcuforest++.so -printf '%s'| awk '{printf "%.2f MB", $1/1024/1024}')
-            MSG="${MSG}<br/>libcuforest++.so size: $LIBCUFOREST_FS"
+        if [[ -f "${LIBNVFOREST_BUILD_DIR}/libnvforest++.so" ]]; then
+            LIBNVFOREST_FS=$(find "${LIBNVFOREST_BUILD_DIR}" -name libnvforest++.so -printf '%s'| awk '{printf "%.2f MB", $1/1024/1024}')
+            MSG="${MSG}<br/>libnvforest++.so size: $LIBNVFOREST_FS"
         fi
-        BMR_DIR=${RAPIDS_ARTIFACTS_DIR:-"${LIBCUFOREST_BUILD_DIR}"}
+        BMR_DIR=${RAPIDS_ARTIFACTS_DIR:-"${LIBNVFOREST_BUILD_DIR}"}
         echo "The HTML report can be found at [${BMR_DIR}/ninja_log.html]. In CI, this report"
-        echo "will also be uploaded to the appropriate subdirectory of https://downloads.rapids.ai/ci/cuforest/, and"
+        echo "will also be uploaded to the appropriate subdirectory of https://downloads.rapids.ai/ci/nvforest/, and"
         echo "the entire URL can be found in \"conda-cpp-build\" runs under the task \"Upload additional artifacts\""
         echo "Metrics output dir: [$BMR_DIR]"
         mkdir -p "${BMR_DIR}"
         MSG_OUTFILE="$(mktemp)"
         echo "$MSG" > "${MSG_OUTFILE}"
-        PATH=".:$PATH" python rapids-build-metrics-reporter.py "${LIBCUFOREST_BUILD_DIR}"/.ninja_log --fmt html --msg "${MSG_OUTFILE}" > "${BMR_DIR}"/ninja_log.html
-        cp "${LIBCUFOREST_BUILD_DIR}"/.ninja_log "${BMR_DIR}"/ninja.log
+        PATH=".:$PATH" python rapids-build-metrics-reporter.py "${LIBNVFOREST_BUILD_DIR}"/.ninja_log --fmt html --msg "${MSG_OUTFILE}" > "${BMR_DIR}"/ninja_log.html
+        cp "${LIBNVFOREST_BUILD_DIR}"/.ninja_log "${BMR_DIR}"/ninja.log
       fi
 fi
 
 if (! hasArg --configure-only) && hasArg cppdocs; then
-    cd "${LIBCUFOREST_BUILD_DIR}"
-    cmake --build "${LIBCUFOREST_BUILD_DIR}" --target docs_cuforest
+    cd "${LIBNVFOREST_BUILD_DIR}"
+    cmake --build "${LIBNVFOREST_BUILD_DIR}" --target docs_nvforest
 fi
 
 # If `RAPIDS_PY_VERSION` is set, use that as the lower-bound for the stable ABI CPython version
@@ -319,15 +319,15 @@ if [ -n "${RAPIDS_PY_VERSION:-}" ]; then
     PYTHON_ARGS_FOR_INSTALL+=("--config-settings" "skbuild.wheel.py-api=${RAPIDS_PY_API}")
 fi
 
-# Build and (optionally) install the cuforest Python package
-if (! hasArg --configure-only) && (completeBuild || hasArg cuforest || hasArg pydocs); then
+# Build and (optionally) install the nvforest Python package
+if (! hasArg --configure-only) && (completeBuild || hasArg nvforest || hasArg pydocs); then
     # Replace spaces with semicolons in SKBUILD_EXTRA_CMAKE_ARGS
     SKBUILD_EXTRA_CMAKE_ARGS=${SKBUILD_EXTRA_CMAKE_ARGS// /;}
 
     SKBUILD_CMAKE_ARGS="-DCMAKE_MESSAGE_LOG_LEVEL=${CMAKE_LOG_LEVEL};${SKBUILD_EXTRA_CMAKE_ARGS}" \
         python -m pip install \
             "${PYTHON_ARGS_FOR_INSTALL[@]}" \
-            "${REPODIR}"/python/cuforest
+            "${REPODIR}"/python/nvforest
 
     if hasArg pydocs; then
         cd "${REPODIR}"/docs

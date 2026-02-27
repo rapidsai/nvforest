@@ -77,7 +77,7 @@ IncludeCategories:
     Priority:        1
   - Regex:           '^<(common|benchmarks|tests)/' # benchmark/test includes
     Priority:        2
-  - Regex:           '^<cuforest/' # cuForest includes
+  - Regex:           '^<nvforest/' # nvForest includes
     Priority:        3
   - Regex:           '^<(raft|kvikio)' # Other RAPIDS includes
     Priority:        4

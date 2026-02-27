@@ -9,25 +9,25 @@
 # shared across all of RAPIDS via rapids-cmake.
 
 status=0
-if [ -z ${CUFOREST_ROOT:+PLACEHOLDER} ]; then
-    CUFOREST_BUILD_DIR=$(git rev-parse --show-toplevel 2>&1)/cpp/build
+if [ -z ${NVFOREST_ROOT:+PLACEHOLDER} ]; then
+    NVFOREST_BUILD_DIR=$(git rev-parse --show-toplevel 2>&1)/cpp/build
     status=$?
 else
-    CUFOREST_BUILD_DIR=${CUFOREST_ROOT}
+    NVFOREST_BUILD_DIR=${NVFOREST_ROOT}
 fi
 
 if ! [ ${status} -eq 0 ]; then
-    if [[ ${CUFOREST_BUILD_DIR} == *"not a git repository"* ]]; then
-        echo "This script must be run inside the cuforest repository, or the CUFOREST_ROOT environment variable must be set."
+    if [[ ${NVFOREST_BUILD_DIR} == *"not a git repository"* ]]; then
+        echo "This script must be run inside the nvforest repository, or the NVFOREST_ROOT environment variable must be set."
     else
         echo "Script failed with unknown error attempting to determine project root:"
-        echo "${CUFOREST_BUILD_DIR}"
+        echo "${NVFOREST_BUILD_DIR}"
     fi
     exit 1
 fi
 
 DEFAULT_FORMAT_FILE_LOCATIONS=(
-  "${CUFOREST_BUILD_DIR:-${HOME}}/_deps/rapids-cmake-src/cmake-format-rapids-cmake.json"
+  "${NVFOREST_BUILD_DIR:-${HOME}}/_deps/rapids-cmake-src/cmake-format-rapids-cmake.json"
 )
 
 if [ -z ${RAPIDS_CMAKE_FORMAT_FILE:+PLACEHOLDER} ]; then

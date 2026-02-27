@@ -5,7 +5,7 @@ set -euo pipefail
 
 rapids-logger "Downloading artifacts from previous jobs"
 CPP_CHANNEL=$(rapids-download-conda-from-github cpp)
-PYTHON_CHANNEL=$(rapids-download-from-github "$(rapids-package-name conda_python cuforest --stable --cuda)")
+PYTHON_CHANNEL=$(rapids-download-from-github "$(rapids-package-name conda_python nvforest --stable --cuda)")
 
 rapids-logger "Create test conda environment"
 . /opt/conda/etc/profile.d/conda.sh
@@ -36,15 +36,15 @@ export RAPIDS_DOCS_DIR
 rapids-logger "Build CPP docs"
 pushd cpp/doxygen
 doxygen Doxyfile.in
-mkdir -p "${RAPIDS_DOCS_DIR}/libcuforest/html"
-mv html/* "${RAPIDS_DOCS_DIR}/libcuforest/html"
+mkdir -p "${RAPIDS_DOCS_DIR}/libnvforest/html"
+mv html/* "${RAPIDS_DOCS_DIR}/libnvforest/html"
 popd
 
 rapids-logger "Build Python docs"
 pushd docs
 sphinx-build -b dirhtml ./source _html -W
-mkdir -p "${RAPIDS_DOCS_DIR}/cuforest/html"
-mv _html/* "${RAPIDS_DOCS_DIR}/cuforest/html"
+mkdir -p "${RAPIDS_DOCS_DIR}/nvforest/html"
+mv _html/* "${RAPIDS_DOCS_DIR}/nvforest/html"
 popd
 
 RAPIDS_VERSION_NUMBER="${RAPIDS_VERSION_MAJOR_MINOR}" rapids-upload-docs

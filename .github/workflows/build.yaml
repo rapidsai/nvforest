@@ -77,7 +77,7 @@ jobs:
       branch: ${{ inputs.branch }}
       date: ${{ inputs.date }}
       sha: ${{ inputs.sha }}
-  wheel-build-libcuforest:
+  wheel-build-libnvforest:
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
     with:
@@ -86,13 +86,13 @@ jobs:
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
       node_type: cpu16
-      script: ci/build_wheel_libcuforest.sh
+      script: ci/build_wheel_libnvforest.sh
       # build for every combination of arch and CUDA version, but only for the latest Python
       matrix_filter: group_by([.ARCH, (.CUDA_VER|split(".")|map(tonumber)|.[0])]) | map(max_by(.PY_VER|split(".")|map(tonumber)))
-      package-name: libcuforest
+      package-name: libnvforest
       package-type: cpp
-  wheel-publish-libcuforest:
-    needs: wheel-build-libcuforest
+  wheel-publish-libnvforest:
+    needs: wheel-build-libnvforest
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-publish.yaml@main
     with:
@@ -100,10 +100,10 @@ jobs:
       branch: ${{ inputs.branch }}
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
-      package-name: libcuforest
+      package-name: libnvforest
       package-type: cpp
-  wheel-build-cuforest:
-    needs: wheel-build-libcuforest
+  wheel-build-nvforest:
+    needs: wheel-build-libnvforest
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
     with:
@@ -112,13 +112,13 @@ jobs:
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
       node_type: cpu8
-      script: ci/build_wheel_cuforest.sh
-      package-name: cuforest
+      script: ci/build_wheel_nvforest.sh
+      package-name: nvforest
       package-type: python
       # Build a wheel for each CUDA x ARCH x minimum supported Python version
       matrix_filter: group_by({CUDA_VER, ARCH}) | map(min_by(.PY_VER | split(".") | map(tonumber)))
-  wheel-publish-cuforest:
-    needs: wheel-build-cuforest
+  wheel-publish-nvforest:
+    needs: wheel-build-nvforest
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-publish.yaml@main
     with:
@@ -126,6 +126,6 @@ jobs:
       branch: ${{ inputs.branch }}
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
-      package-name: cuforest
+      package-name: nvforest
       package-type: python
-      publish-wheel-search-key: cuforest_wheel_python_abi3
+      publish-wheel-search-key: nvforest_wheel_python_abi3

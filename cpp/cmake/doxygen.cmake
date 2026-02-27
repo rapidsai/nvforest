@@ -23,7 +23,7 @@ function(add_doxygen_target)
     cmake_parse_arguments(dox "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     configure_file(${dox_IN_DOXYFILE} ${dox_OUT_DOXYFILE} @ONLY)
     add_custom_target(
-      docs_cuforest
+      docs_nvforest
       ${CMAKE_COMMAND}
       -E
       env
