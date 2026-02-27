@@ -28,22 +28,22 @@ function(ConfigureTest)
   set(options)
   set(one_value NAME GPUS PERCENT)
   set(multi_value TARGETS CONFIGURATIONS)
-  cmake_parse_arguments(_CUFOREST_TEST "${options}" "${one_value}" "${multi_value}" ${ARGN})
-  if(NOT DEFINED _CUFOREST_TEST_GPUS AND NOT DEFINED _CUFOREST_TEST_PERCENT)
-    set(_CUFOREST_TEST_GPUS 1)
-    set(_CUFOREST_TEST_PERCENT 15)
+  cmake_parse_arguments(_NVFOREST_TEST "${options}" "${one_value}" "${multi_value}" ${ARGN})
+  if(NOT DEFINED _NVFOREST_TEST_GPUS AND NOT DEFINED _NVFOREST_TEST_PERCENT)
+    set(_NVFOREST_TEST_GPUS 1)
+    set(_NVFOREST_TEST_PERCENT 15)
   endif()
-  if(NOT DEFINED _CUFOREST_TEST_GPUS)
-    set(_CUFOREST_TEST_GPUS 1)
+  if(NOT DEFINED _NVFOREST_TEST_GPUS)
+    set(_NVFOREST_TEST_GPUS 1)
   endif()
-  if(NOT DEFINED _CUFOREST_TEST_PERCENT)
-    set(_CUFOREST_TEST_PERCENT 100)
+  if(NOT DEFINED _NVFOREST_TEST_PERCENT)
+    set(_NVFOREST_TEST_PERCENT 100)
   endif()
 
-  add_executable(${_CUFOREST_TEST_NAME} ${_CUFOREST_TEST_UNPARSED_ARGUMENTS})
+  add_executable(${_NVFOREST_TEST_NAME} ${_NVFOREST_TEST_UNPARSED_ARGUMENTS})
   target_link_libraries(
-    ${_CUFOREST_TEST_NAME}
-    PRIVATE ${CUFOREST_CPP_TARGET}
+    ${_NVFOREST_TEST_NAME}
+    PRIVATE ${NVFOREST_CPP_TARGET}
             rmm::rmm
             raft::raft
             GTest::gtest
@@ -54,27 +54,27 @@ function(ConfigureTest)
             ${TREELITE_LIBS}
             $<TARGET_NAME_IF_EXISTS:conda_env>)
 
-  target_compile_options(${_CUFOREST_TEST_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CUFOREST_CXX_FLAGS}>"
-                                                        "$<$<COMPILE_LANGUAGE:CUDA>:${CUFOREST_CUDA_FLAGS}>")
+  target_compile_options(${_NVFOREST_TEST_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${NVFOREST_CXX_FLAGS}>"
+                                                        "$<$<COMPILE_LANGUAGE:CUDA>:${NVFOREST_CUDA_FLAGS}>")
 
-  target_include_directories(${_CUFOREST_TEST_NAME} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+  target_include_directories(${_NVFOREST_TEST_NAME} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
                                                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
   set_target_properties(
-    ${_CUFOREST_TEST_NAME}
+    ${_NVFOREST_TEST_NAME}
     PROPERTIES INSTALL_RPATH "\$ORIGIN/../../../lib"
                CXX_STANDARD 17
                CXX_STANDARD_REQUIRED ON
                CUDA_STANDARD 17
                CUDA_STANDARD_REQUIRED ON)
 
-  set(_CUFOREST_TEST_COMPONENT_NAME testing)
+  set(_NVFOREST_TEST_COMPONENT_NAME testing)
 
   rapids_test_add(
-    NAME ${_CUFOREST_TEST_NAME}
-    COMMAND ${_CUFOREST_TEST_NAME}
-    GPUS ${_CUFOREST_TEST_GPUS}
-    PERCENT ${_CUFOREST_TEST_PERCENT}
-    INSTALL_COMPONENT_SET ${_CUFOREST_TEST_COMPONENT_NAME})
+    NAME ${_NVFOREST_TEST_NAME}
+    COMMAND ${_NVFOREST_TEST_NAME}
+    GPUS ${_NVFOREST_TEST_GPUS}
+    PERCENT ${_NVFOREST_TEST_PERCENT}
+    INSTALL_COMPONENT_SET ${_NVFOREST_TEST_COMPONENT_NAME})
 
 endfunction()
 
@@ -86,4 +86,4 @@ ConfigureTest(NAME FOREST_TRAVERSAL_TEST forest/traversal_forest.cpp)
 ConfigureTest(NAME TREELITE_TRAVERSAL_TEST forest/treelite_traversal.cpp)
 ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cpp)
 
-rapids_test_install_relocatable(INSTALL_COMPONENT_SET testing DESTINATION bin/gtests/libcuforest)
+rapids_test_install_relocatable(INSTALL_COMPONENT_SET testing DESTINATION bin/gtests/libnvforest)

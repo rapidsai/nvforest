@@ -1,10 +1,10 @@
-# AI Code Review Guidelines for CodeRabbit - cuForest C++/CUDA
+# AI Code Review Guidelines for CodeRabbit - nvForest C++/CUDA
 
 **Role**: Act as a principal engineer with 10+ years experience in GPU computing, machine learning systems, and high-performance inference. Focus ONLY on CRITICAL and HIGH issues.
 
 **Target**: Sub-3% false positive rate. Be direct, concise, minimal.
 
-**Context**: cuForest is a GPU-accelerated random forest inference library for CPU and GPU deployment, handling high-throughput batch inference with tree traversal optimization and memory efficiency. This file covers C++ and CUDA code review guidelines.
+**Context**: nvForest is a GPU-accelerated random forest inference library for CPU and GPU deployment, handling high-throughput batch inference with tree traversal optimization and memory efficiency. This file covers C++ and CUDA code review guidelines.
 
 ## IGNORE These Issues
 
@@ -93,7 +93,7 @@
 - Missing or incomplete error propagation from CUDA to user APIs
 - Significant code duplication (3+ occurrences) in kernel or inference logic
 - Reinventing functionality already available in dependencies (thrust, cccl, rmm, RAFT)
-- **Adding new dependencies without strong justification** (cuForest must remain lightweight)
+- **Adding new dependencies without strong justification** (nvForest must remain lightweight)
 - **Heavy dependencies that increase build time, binary size, or complexity** (prefer header-only or minimal deps)
 
 ### Test Quality
@@ -103,7 +103,7 @@
 - Missing edge case coverage (empty forests, single-tree models, extreme tree depths, edge node cases)
 - Inadequate test coverage for error paths and exception handling
 - Missing benchmarks or performance regression detection
-- **Missing tests for model loading** (verify correctness of Treelite→cuForest conversion)
+- **Missing tests for model loading** (verify correctness of Treelite→nvForest conversion)
 - **Missing tests for different tree layouts** (depth-first, breadth-first, sparse trees)
 - **Missing tests with edge features** (NaN, Inf, missing values, extreme batch sizes)
 
@@ -113,7 +113,7 @@
 - Missing input validation (negative sizes, null pointers, invalid model formats)
 - Code duplication in inference or kernel logic (3+ occurrences) if pattern exists
 - Misleading naming that obscures GPU/CPU boundaries or numerical precision
-- Deprecated CUDA API usage or deprecated cuForest internal APIs
+- Deprecated CUDA API usage or deprecated nvForest internal APIs
 - Missing documentation for numerical tolerances or inference parameters
 - Suboptimal but functional memory patterns that could be improved
 - Minor inefficiencies in non-critical code paths
@@ -301,7 +301,7 @@ Consider: Replace assertion with explicit NaN/Inf handling, or use configurable 
 
 ---
 
-## cuForest C++ Specific Considerations
+## nvForest C++ Specific Considerations
 
 **GPU/CUDA Code**:
 - Every CUDA call must have error checking (kernel launches, memory ops, sync)
@@ -331,7 +331,7 @@ Consider: Replace assertion with explicit NaN/Inf handling, or use configurable 
 - GPU utilization should be high for tree traversal kernels
 
 **Lightweight Design Philosophy**:
-cuForest must remain a lean, focused inference library. When reviewing changes that add dependencies:
+nvForest must remain a lean, focused inference library. When reviewing changes that add dependencies:
 - **Question every new dependency**: Is it absolutely necessary? Can we achieve the same with existing deps?
 - **Prefer header-only libraries**: Minimize link-time and binary size impact
 - **Allowed dependencies**: CUDA toolkit, Treelite, CCCL (thrust/cub), RMM, RAFT (header-only portions)
@@ -363,7 +363,7 @@ Suggest: Update docstring or README to document:
 
 ---
 
-## Common Bug Patterns in cuForest C++ (Watch For These)
+## Common Bug Patterns in nvForest C++ (Watch For These)
 
 These patterns are common sources of bugs. Pay special attention when reviewing code involving these areas:
 
@@ -478,4 +478,4 @@ These patterns are common sources of bugs. Pay special attention when reviewing 
 
 ---
 
-**Remember**: Focus on objective correctness, not subjective preference. Catch real bugs and design flaws, ignore style preferences. AI speed + human judgment. You catch patterns, humans understand business context. For cuForest: prediction correctness and numerical robustness come before performance optimizations.
+**Remember**: Focus on objective correctness, not subjective preference. Catch real bugs and design flaws, ignore style preferences. AI speed + human judgment. You catch patterns, humans understand business context. For nvForest: prediction correctness and numerical robustness come before performance optimizations.

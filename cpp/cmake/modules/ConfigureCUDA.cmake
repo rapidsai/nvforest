@@ -15,46 +15,46 @@
 # =============================================================================
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  list(APPEND CUFOREST_CXX_FLAGS -Wall -Werror -Wno-unknown-pragmas)
-  if(CUFOREST_BUILD_TESTS OR CUFOREST_BUILD_BENCHMARKS)
+  list(APPEND NVFOREST_CXX_FLAGS -Wall -Werror -Wno-unknown-pragmas)
+  if(NVFOREST_BUILD_TESTS OR NVFOREST_BUILD_BENCHMARKS)
     # Suppress parentheses warning which causes gmock to fail
-    list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=-Wno-parentheses)
+    list(APPEND NVFOREST_CUDA_FLAGS -Xcompiler=-Wno-parentheses)
   endif()
 endif()
 
-list(APPEND CUFOREST_CUDA_FLAGS --expt-extended-lambda --expt-relaxed-constexpr)
+list(APPEND NVFOREST_CUDA_FLAGS --expt-extended-lambda --expt-relaxed-constexpr)
 
 # set warnings as errors
 if(CUDA_WARNINGS_AS_ERRORS)
-  list(APPEND CUFOREST_CUDA_FLAGS -Werror=all-warnings)
+  list(APPEND NVFOREST_CUDA_FLAGS -Werror=all-warnings)
 endif()
-list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=-Wall,-Werror,-Wno-error=deprecated-declarations,-Wno-error=sign-compare)
+list(APPEND NVFOREST_CUDA_FLAGS -Xcompiler=-Wall,-Werror,-Wno-error=deprecated-declarations,-Wno-error=sign-compare)
 
 if(DISABLE_DEPRECATION_WARNINGS)
-  list(APPEND CUFOREST_CXX_FLAGS -Wno-deprecated-declarations -DRAFT_HIDE_DEPRECATION_WARNINGS)
-  list(APPEND CUFOREST_CUDA_FLAGS -Wno-deprecated-declarations -Xcompiler=-Wno-deprecated-declarations
+  list(APPEND NVFOREST_CXX_FLAGS -Wno-deprecated-declarations -DRAFT_HIDE_DEPRECATION_WARNINGS)
+  list(APPEND NVFOREST_CUDA_FLAGS -Wno-deprecated-declarations -Xcompiler=-Wno-deprecated-declarations
        -DRAFT_HIDE_DEPRECATION_WARNINGS)
 endif()
 
 # make sure we produce smallest binary size
 include(${rapids-cmake-dir}/cuda/enable_fatbin_compression.cmake)
-rapids_cuda_enable_fatbin_compression(VARIABLE CUFOREST_CUDA_FLAGS TUNE_FOR rapids)
+rapids_cuda_enable_fatbin_compression(VARIABLE NVFOREST_CUDA_FLAGS TUNE_FOR rapids)
 
 # Option to enable line info in CUDA device compilation to allow introspection when profiling / memchecking
 if(CUDA_ENABLE_LINE_INFO)
-  list(APPEND CUFOREST_CUDA_FLAGS -lineinfo)
+  list(APPEND NVFOREST_CUDA_FLAGS -lineinfo)
 endif()
 
 if(CUDA_ENABLE_KERNEL_INFO)
-  list(APPEND CUFOREST_CUDA_FLAGS -Xptxas=-v)
+  list(APPEND NVFOREST_CUDA_FLAGS -Xptxas=-v)
 endif()
 
 if(OpenMP_FOUND)
-  list(APPEND CUFOREST_CUDA_FLAGS -Xcompiler=${OpenMP_CXX_FLAGS})
+  list(APPEND NVFOREST_CUDA_FLAGS -Xcompiler=${OpenMP_CXX_FLAGS})
 endif()
 
 # Debug options
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  message(VERBOSE "CUFOREST: Building with debugging flags")
-  list(APPEND CUFOREST_CUDA_FLAGS -G -Xcompiler=-rdynamic)
+  message(VERBOSE "NVFOREST: Building with debugging flags")
+  list(APPEND NVFOREST_CUDA_FLAGS -G -Xcompiler=-rdynamic)
 endif()

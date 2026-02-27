@@ -19,8 +19,8 @@ function(find_and_configure_treelite)
   rapids_cpm_find(
     Treelite ${PKG_VERSION}
     GLOBAL_TARGETS ${TREELITE_LIBS}
-    BUILD_EXPORT_SET cuforest-exports
-    INSTALL_EXPORT_SET cuforest-exports
+    BUILD_EXPORT_SET nvforest-exports
+    INSTALL_EXPORT_SET nvforest-exports
     CPM_ARGS
     GIT_REPOSITORY https://github.com/dmlc/treelite.git
     GIT_TAG ${PKG_PINNED_TAG}
@@ -61,11 +61,11 @@ function(find_and_configure_treelite)
   endif()
 
   # We generate the treelite-config files when we built treelite locally, so always do `find_dependency`
-  rapids_export_package(BUILD Treelite cuforest-exports)
+  rapids_export_package(BUILD Treelite nvforest-exports)
 
   # Tell cmake where it can find the generated treelite-config.cmake we wrote.
   include("${rapids-cmake-dir}/export/find_package_root.cmake")
-  rapids_export_find_package_root(BUILD Treelite [=[${CMAKE_CURRENT_LIST_DIR}]=] EXPORT_SET cuforest-exports)
+  rapids_export_find_package_root(BUILD Treelite [=[${CMAKE_CURRENT_LIST_DIR}]=] EXPORT_SET nvforest-exports)
 endfunction()
 
 find_and_configure_treelite(
@@ -74,6 +74,6 @@ find_and_configure_treelite(
   PINNED_TAG
   e14222bfdf02cba3ece0f3692f3574711cab0fc2
   EXCLUDE_FROM_ALL
-  ${CUFOREST}
+  ${NVFOREST}
   BUILD_STATIC_LIBS
-  ${CUFOREST_USE_TREELITE_STATIC})
+  ${NVFOREST_USE_TREELITE_STATIC})

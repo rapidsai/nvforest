@@ -17,7 +17,7 @@ PYDISTCHECK_ARGS=(
     --inspect
 )
 
-if [[ "${package_dir}" == "python/libcuforest" ]]; then
+if [[ "${package_dir}" == "python/libnvforest" ]]; then
     if [[ "${RAPIDS_CUDA_MAJOR}" == "12" ]]; then
         PYDISTCHECK_ARGS+=(
             --max-allowed-size-compressed '90M'
@@ -27,7 +27,7 @@ if [[ "${package_dir}" == "python/libcuforest" ]]; then
             --max-allowed-size-compressed '40M'
         )
     fi
-elif [[ "${package_dir}" != "python/cuforest" ]]; then
+elif [[ "${package_dir}" != "python/nvforest" ]]; then
     rapids-echo-stderr "unrecognized package_dir: '${package_dir}'"
     exit 1
 fi

@@ -49,7 +49,7 @@ jobs:
       date: ${{ inputs.date }}
       sha: ${{ inputs.sha }}
       script: "ci/test_python.sh"
-  wheel-tests-cuforest:
+  wheel-tests-nvforest:
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@main
     with:

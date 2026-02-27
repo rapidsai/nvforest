@@ -103,9 +103,9 @@ find python -name "VERSION" | while read -r FILE; do
 done
 
 DEPENDENCIES=(
-  cuforest
-  libcuforest
-  libcuforest-tests
+  nvforest
+  libnvforest
+  libnvforest-tests
   libraft
   libraft-headers
   librmm

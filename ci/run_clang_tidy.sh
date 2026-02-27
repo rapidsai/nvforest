@@ -29,14 +29,14 @@ set -u
 
 rapids-print-env
 
-LIBCUFOREST_BUILD_DIR=${LIBCUFOREST_BUILD_DIR:=${PWD}/cpp/build}
+LIBNVFOREST_BUILD_DIR=${LIBNVFOREST_BUILD_DIR:=${PWD}/cpp/build}
 
 cmake \
     -G Ninja \
     -S cpp \
-    -B "${LIBCUFOREST_BUILD_DIR}" \
+    -B "${LIBNVFOREST_BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_CUFOREST_TESTS=OFF \
+    -DBUILD_NVFOREST_TESTS=OFF \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 rapids-logger "Run clang-tidy"
