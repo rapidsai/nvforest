@@ -12,7 +12,7 @@ To run inference for decision tree models, first **import** tree models into nvF
    import nvforest
 
    # Load XGBoost model, to run inference on GPU
-   fm = nvforest.load_model("/path/to/xgboost_model.ubj", device="gpu"
+   fm = nvforest.load_model("/path/to/xgboost_model.ubj", device="gpu",
                             model_type="xgboost_ubj")
 
    # Load XGBoost JSON model, to run inference on CPU
@@ -34,7 +34,7 @@ The ``fm`` object will be one of the following types:
   The model will reside in the GPU memory.
 * :py:class:`~nvforest.CPUForestInferenceClassifier`: a classification model, to run on CPU.
   The model object will reside in the main memory.
-* :py:class:`~nvforest.CPUForestInferenceRegressor`: a classification model, to run on CPU.
+* :py:class:`~nvforest.CPUForestInferenceRegressor`: a regression model, to run on CPU.
   The model object will reside in the main memory.
 
 .. note:: Automatically detecting ``device``
@@ -44,12 +44,12 @@ The ``fm`` object will be one of the following types:
    loaded to the main memory instead. If no ``device`` parameter is specified, ``device="auto"``
    will be used.
 
-   This feature allows you to use a single script to deploy tree models to heterogenous array
+   This feature allows you to use a single script to deploy tree models to heterogeneous array
    of machines, some with NVIDIA GPUs and some without.
 
 .. note:: Selecting among multiple GPUs
 
-   If your system has more than one NVIDIA GPUs, you can select one of them to run tree inference,
+   If your system has more than one NVIDIA GPU, you can select one of them to run tree inference,
    by activating the device prior to the model import step.
 
    .. code-block:: python
@@ -91,7 +91,7 @@ To import tree models into nvForest, first load the tree models as a Treelite mo
 
   std::unique_ptr<treelite::Model> treelite_model
     = treelite::model_loader::LoadXGBoostModelUBJSON(
-        "/path/to/xgboost_model.ubj", "{}")
+        "/path/to/xgboost_model.ubj", "{}");
 
 Refer to `the Treelite documentation <https://treelite.readthedocs.io/en/latest/>`_ for
 the full list of model loader utilities.
