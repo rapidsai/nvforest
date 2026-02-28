@@ -23,7 +23,6 @@ import os
 import sys
 from dataclasses import dataclass
 from datetime import datetime
-from itertools import product
 from time import perf_counter
 from typing import Any, Callable, Optional
 
@@ -107,7 +106,9 @@ class FrameworkConfig:
     classifier_class: Optional[type]
     save_model: Callable[[Any, str], None]
     load_native: Callable[[str, str], Any]  # (path, device) -> model
-    predict_native: Callable[[Any, np.ndarray, str], np.ndarray]  # (model, X, device) -> preds
+    predict_native: Callable[
+        [Any, np.ndarray, str], np.ndarray
+    ]  # (model, X, device) -> preds
     model_extension: str
     supports_gpu_native: bool = False
 
@@ -119,15 +120,17 @@ def _save_sklearn_model(model: Any, path: str) -> None:
 
 def _load_sklearn_model(path: str, device: str = "cpu") -> Any:
     """Load sklearn model - returns None as we use the trained model directly.
-    
+
     Note: sklearn doesn't support GPU, device parameter is ignored.
     """
     return None
 
 
-def _predict_sklearn(model: Any, X: np.ndarray, device: str = "cpu") -> np.ndarray:
+def _predict_sklearn(
+    model: Any, X: np.ndarray, device: str = "cpu"
+) -> np.ndarray:
     """Run sklearn prediction.
-    
+
     Note: sklearn only supports CPU. If X is a cupy array, converts to numpy.
     """
     if hasattr(X, "get"):  # cupy array
@@ -150,7 +153,9 @@ def _load_xgboost_model(path: str, device: str = "cpu") -> Any:
     return booster
 
 
-def _predict_xgboost(model: Any, X: np.ndarray, device: str = "cpu") -> np.ndarray:
+def _predict_xgboost(
+    model: Any, X: np.ndarray, device: str = "cpu"
+) -> np.ndarray:
     """Run XGBoost prediction on specified device."""
     if isinstance(model, xgb.Booster):
         # For GPU, use inplace_predict which is faster and handles GPU data
@@ -170,7 +175,7 @@ def _save_lightgbm_model(model: Any, path: str) -> None:
 
 def _load_lightgbm_model(path: str, device: str = "cpu") -> Any:
     """Load LightGBM booster from file.
-    
+
     Note: LightGBM GPU inference requires the library to be built with GPU support.
     """
     return lgb.Booster(model_file=path)
@@ -182,6 +187,7 @@ def _check_lightgbm_gpu_available() -> bool:
         # Try to create a dummy dataset and check if GPU device works
         # This is a lightweight check that doesn't require actual training
         params = {"device": "gpu", "gpu_platform_id": 0, "gpu_device_id": 0}
+        _ = lgb.Dataset([], params=params)
         # LightGBM will raise an error if GPU is not available when we try to use it
         return True  # Assume available, will fail gracefully during training/predict
     except Exception:
@@ -193,21 +199,23 @@ _LIGHTGBM_GPU_CHECKED = False
 _LIGHTGBM_GPU_AVAILABLE = False
 
 
-def _predict_lightgbm(model: Any, X: np.ndarray, device: str = "cpu") -> np.ndarray:
+def _predict_lightgbm(
+    model: Any, X: np.ndarray, device: str = "cpu"
+) -> np.ndarray:
     """Run LightGBM prediction on specified device.
-    
+
     LightGBM GPU inference requires the library to be built with GPU support
     (cmake -DUSE_GPU=1 or pip install lightgbm --install-option=--gpu).
-    
+
     When GPU is requested and available, uses GPU prediction.
     Falls back to CPU if GPU is not available.
     """
     global _LIGHTGBM_GPU_CHECKED, _LIGHTGBM_GPU_AVAILABLE
-    
+
     # LightGBM requires numpy arrays (doesn't support cupy directly)
     if hasattr(X, "get"):  # cupy array
         X = X.get()
-    
+
     if device == "gpu":
         try:
             # LightGBM GPU prediction - works if model was trained with GPU
@@ -223,7 +231,7 @@ def _predict_lightgbm(model: Any, X: np.ndarray, device: str = "cpu") -> np.ndar
                     "Falling back to CPU inference."
                 )
             return model.predict(X)
-    
+
     return model.predict(X)
 
 
@@ -326,13 +334,19 @@ def run_inference_benchmark(
     return elapsed
 
 
-def write_checkpoint(results: dict, data_dir: str, final: bool = False) -> None:
+def write_checkpoint(
+    results: dict, data_dir: str, final: bool = False
+) -> None:
     """Write results to checkpoint file."""
     if not hasattr(write_checkpoint, "counter"):
         write_checkpoint.counter = 0
 
     MAX_CHECKPOINTS = 6
-    filename = "final_results.csv" if final else f"checkpoint_{write_checkpoint.counter}.csv"
+    filename = (
+        "final_results.csv"
+        if final
+        else f"checkpoint_{write_checkpoint.counter}.csv"
+    )
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(os.path.join(data_dir, filename), index=False)
@@ -350,7 +364,7 @@ def train_model(
     device: str = "cpu",
 ) -> Any:
     """Train a model with the given framework and parameters.
-    
+
     Parameters
     ----------
     framework : FrameworkConfig
@@ -370,11 +384,15 @@ def train_model(
         Only affects XGBoost currently.
     """
     model_class = (
-        framework.regressor_class if model_type == "regressor" else framework.classifier_class
+        framework.regressor_class
+        if model_type == "regressor"
+        else framework.classifier_class
     )
 
     if framework.name == "sklearn":
-        model = model_class(n_estimators=num_trees, max_depth=max_depth, n_jobs=-1)
+        model = model_class(
+            n_estimators=num_trees, max_depth=max_depth, n_jobs=-1
+        )
     elif framework.name == "xgboost":
         # Use GPU for training if requested - enables GPU inference
         xgb_device = "cuda" if device == "gpu" else "cpu"
@@ -434,7 +452,9 @@ def generate_data(
             random_state=random_state,
         )
 
-    return X.astype("float32"), y.astype("float32" if model_type == "regressor" else "int32")
+    return X.astype("float32"), y.astype(
+        "float32" if model_type == "regressor" else "int32"
+    )
 
 
 def print_dry_run_info(
@@ -459,7 +479,9 @@ def print_dry_run_info(
         * len(param_values["num_trees"])
         * len(param_values["batch_size"])
     )
-    total_runs = len(frameworks) * len(model_types) * len(devices) * total_params
+    total_runs = (
+        len(frameworks) * len(model_types) * len(devices) * total_params
+    )
 
     print(f"\nTotal benchmark configurations: {total_runs}")
     print(
@@ -522,8 +544,12 @@ def run_benchmark_suite(
                         for device in devices:
                             # Train model with appropriate device
                             # For XGBoost, training on GPU enables GPU inference
-                            train_device = device if framework.supports_gpu_native else "cpu"
-                            
+                            train_device = (
+                                device
+                                if framework.supports_gpu_native
+                                else "cpu"
+                            )
+
                             cur_time = datetime.now().strftime("%H:%M:%S")
                             LOGGER.info(
                                 f"{cur_time}: Training {framework_name} {model_type} "
@@ -533,16 +559,24 @@ def run_benchmark_suite(
 
                             try:
                                 model = train_model(
-                                    framework, model_type, num_trees, max_depth, 
-                                    X_train, y_train, device=train_device
+                                    framework,
+                                    model_type,
+                                    num_trees,
+                                    max_depth,
+                                    X_train,
+                                    y_train,
+                                    device=train_device,
                                 )
                             except Exception as e:
-                                LOGGER.warning(f"Failed to train {framework_name} model: {e}")
+                                LOGGER.warning(
+                                    f"Failed to train {framework_name} model: {e}"
+                                )
                                 continue
 
                             # Save model
                             model_path = os.path.join(
-                                data_dir, f"model_{framework_name}_{device}{framework.model_extension}"
+                                data_dir,
+                                f"model_{framework_name}_{device}{framework.model_extension}",
                             )
                             framework.save_model(model, model_path)
 
@@ -550,11 +584,16 @@ def run_benchmark_suite(
                             if framework.name == "sklearn":
                                 native_model = model  # sklearn uses trained model directly
                             else:
-                                native_model = framework.load_native(model_path, device)
+                                native_model = framework.load_native(
+                                    model_path, device
+                                )
 
                             for batch_size in param_values["batch_size"]:
                                 # Skip large batch + large feature combinations
-                                if batch_size == MAX_BATCH_SIZE and num_features == 512:
+                                if (
+                                    batch_size == MAX_BATCH_SIZE
+                                    and num_features == 512
+                                ):
                                     continue
 
                                 LOGGER.info(
@@ -569,27 +608,43 @@ def run_benchmark_suite(
 
                                         X_device = cp.asarray(X)
                                     except ImportError:
-                                        LOGGER.warning("cupy not available, skipping GPU benchmark")
+                                        LOGGER.warning(
+                                            "cupy not available, skipping GPU benchmark"
+                                        )
                                         continue
                                 else:
                                     X_device = X
 
                                 # Native benchmark
                                 # For GPU-capable frameworks, use GPU data; otherwise CPU
-                                native_data = X_device if framework.supports_gpu_native else X
-                                LOGGER.info(f"    Running native inference (device={device}, gpu_native={framework.supports_gpu_native})...")
+                                native_data = (
+                                    X_device
+                                    if framework.supports_gpu_native
+                                    else X
+                                )
+                                LOGGER.info(
+                                    f"    Running native inference (device={device}, gpu_native={framework.supports_gpu_native})..."
+                                )
                                 try:
                                     native_time = run_inference_benchmark(
-                                        lambda batch, m=native_model, d=device: framework.predict_native(m, batch, d),
+                                        lambda batch,
+                                        m=native_model,
+                                        d=device: framework.predict_native(
+                                            m, batch, d
+                                        ),
                                         native_data,
                                         batch_size,
                                     )
                                 except Exception as e:
-                                    LOGGER.warning(f"Native inference failed: {e}")
+                                    LOGGER.warning(
+                                        f"Native inference failed: {e}"
+                                    )
                                     native_time = float("nan")
 
                                 # nvforest benchmark
-                                LOGGER.info("    Running nvforest inference...")
+                                LOGGER.info(
+                                    "    Running nvforest inference..."
+                                )
                                 try:
                                     nvforest_model = nvforest.load_model(
                                         model_path,
@@ -603,17 +658,24 @@ def run_benchmark_suite(
                                         if device == "gpu"
                                         else X[:batch_size]
                                     )
-                                    nvforest_model = nvforest_model.optimize(data=batch)
+                                    nvforest_model = nvforest_model.optimize(
+                                        data=batch
+                                    )
                                     optimal_layout = nvforest_model.layout
-                                    optimal_chunk_size = nvforest_model.default_chunk_size
+                                    optimal_chunk_size = (
+                                        nvforest_model.default_chunk_size
+                                    )
 
                                     nvforest_time = run_inference_benchmark(
-                                        lambda batch, m=nvforest_model: m.predict(batch),
+                                        lambda batch,
+                                        m=nvforest_model: m.predict(batch),
                                         X_device if device == "gpu" else X,
                                         batch_size,
                                     )
                                 except Exception as e:
-                                    LOGGER.warning(f"nvforest inference failed: {e}")
+                                    LOGGER.warning(
+                                        f"nvforest inference failed: {e}"
+                                    )
                                     nvforest_time = float("nan")
                                     optimal_layout = None
                                     optimal_chunk_size = None
@@ -628,11 +690,16 @@ def run_benchmark_suite(
                                 results["batch_size"].append(batch_size)
                                 results["native_time"].append(native_time)
                                 results["nvforest_time"].append(nvforest_time)
-                                results["optimal_layout"].append(optimal_layout)
-                                results["optimal_chunk_size"].append(optimal_chunk_size)
+                                results["optimal_layout"].append(
+                                    optimal_layout
+                                )
+                                results["optimal_chunk_size"].append(
+                                    optimal_chunk_size
+                                )
                                 results["speedup"].append(
                                     native_time / nvforest_time
-                                    if nvforest_time and not np.isnan(nvforest_time)
+                                    if nvforest_time
+                                    and not np.isnan(nvforest_time)
                                     else float("nan")
                                 )
 
@@ -644,7 +711,7 @@ def run_benchmark_suite(
                             # Clean up native model after batch_size loop
                             if native_model is not model:
                                 del native_model
-                            
+
                             # Clean up trained model after device
                             del model
                             gc.collect()
@@ -658,7 +725,9 @@ def run_benchmark_suite(
 
     # Write final results
     write_checkpoint(results, data_dir, final=True)
-    LOGGER.info(f"Benchmark complete. Results saved to {data_dir}/final_results.csv")
+    LOGGER.info(
+        f"Benchmark complete. Results saved to {data_dir}/final_results.csv"
+    )
 
 
 @click.group()
@@ -740,7 +809,9 @@ def run(
             device_list.extend(["cpu", "gpu"])
         else:
             device_list.append(d)
-    device_list = list(dict.fromkeys(device_list))  # Remove duplicates, preserve order
+    device_list = list(
+        dict.fromkeys(device_list)
+    )  # Remove duplicates, preserve order
 
     # Resolve model types
     model_type_list = []
@@ -759,7 +830,9 @@ def run(
         output_dir = DATA_DIR
 
     if dry_run:
-        print_dry_run_info(list(frameworks), model_type_list, device_list, param_values)
+        print_dry_run_info(
+            list(frameworks), model_type_list, device_list, param_values
+        )
         return
 
     # Check for available frameworks

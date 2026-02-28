@@ -75,7 +75,9 @@ def plot_speedup_heatmaps(
             ax = axes[i, j]
 
             # Filter data for the current max_depth and num_trees
-            subset = df[(df["max_depth"] == max_depth) & (df["num_trees"] == num_trees)]
+            subset = df[
+                (df["max_depth"] == max_depth) & (df["num_trees"] == num_trees)
+            ]
 
             if subset.empty:
                 ax.set_visible(False)
@@ -83,7 +85,9 @@ def plot_speedup_heatmaps(
 
             # Pivot data for heatmap
             heatmap_data = subset.pivot_table(
-                index="num_features", columns="batch_size", values=speedup_column
+                index="num_features",
+                columns="batch_size",
+                values=speedup_column,
             )
             heatmap_data.columns = pd.Index(
                 [f"{x:.0e}" for x in heatmap_data.columns], name="Batch Size"
@@ -186,7 +190,15 @@ def print_summary(df: pd.DataFrame) -> None:
     print("-" * 40)
 
     top_5 = df.nlargest(5, "speedup")[
-        ["framework", "model_type", "device", "num_trees", "max_depth", "batch_size", "speedup"]
+        [
+            "framework",
+            "model_type",
+            "device",
+            "num_trees",
+            "max_depth",
+            "batch_size",
+            "speedup",
+        ]
     ]
     print(top_5.to_string(index=False))
 
