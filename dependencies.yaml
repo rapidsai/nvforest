@@ -20,8 +20,8 @@ files:
       - depends_on_rapids_logger
       - develop
       - docs
-      - py_build_cuforest
-      - py_run_cuforest
+      - py_build_nvforest
+      - py_run_nvforest
       - py_version
       - rapids_build_backend
       - test_python
@@ -39,8 +39,8 @@ files:
       - depends_on_librmm
       - depends_on_pylibraft
       - depends_on_rapids_logger
-      - py_build_cuforest
-      - py_run_cuforest
+      - py_build_nvforest
+      - py_run_nvforest
       - py_version
       - rapids_build_backend
       - test_python
@@ -81,76 +81,76 @@ files:
       - depends_on_cuda_python
       - depends_on_libraft_headers
       - depends_on_librmm
-      - depends_on_cuforest
-      - depends_on_libcuforest
+      - depends_on_nvforest
+      - depends_on_libnvforest
   test_cpp:
     output: none
     includes:
       - cuda_version
-      - depends_on_libcuforest
-      - test_libcuforest
+      - depends_on_libnvforest
+      - test_libnvforest
       - test_cpp
   test_python:
     output: none
     includes:
       - cuda_version
-      - depends_on_cuforest
-      - depends_on_libcuforest
+      - depends_on_nvforest
+      - depends_on_libnvforest
       - py_version
       - test_python
       - test_python_xgboost
-  py_build_cuforest:
+  py_build_nvforest:
     output: pyproject
-    pyproject_dir: python/cuforest
+    pyproject_dir: python/nvforest
     extras:
       table: build-system
     includes:
       - rapids_build_backend
-  py_rapids_build_cuforest:
+  py_rapids_build_nvforest:
     output: pyproject
-    pyproject_dir: python/cuforest
+    pyproject_dir: python/nvforest
     extras:
       table: tool.rapids-build-backend
       key: requires
     includes:
       - common_build
       - depends_on_cuda_python
-      - depends_on_libcuforest
+      - depends_on_libnvforest
       - depends_on_libraft
       - depends_on_librmm
       - depends_on_pylibraft
-      - py_build_cuforest
-  py_run_cuforest:
+      - py_build_nvforest
+  py_run_nvforest:
     output: pyproject
-    pyproject_dir: python/cuforest
+    pyproject_dir: python/nvforest
     extras:
       table: project
     includes:
       - cuda_wheels
       - depends_on_cuda_python
       - depends_on_cupy
-      - depends_on_libcuforest
+      - depends_on_libnvforest
       - depends_on_pylibraft
-      - py_run_cuforest
-  py_test_cuforest:
+      - py_run_nvforest
+  py_test_nvforest:
     output: pyproject
-    pyproject_dir: python/cuforest
+    pyproject_dir: python/nvforest
     extras:
       table: project.optional-dependencies
       key: test
     includes:
       - test_python
       - test_python_xgboost
-  py_build_libcuforest:
+  py_build_libnvforest:
     output: pyproject
-    pyproject_dir: python/libcuforest
+    pyproject_dir: python/libnvforest
     extras:
       table: build-system
     includes:
       - rapids_build_backend
-  py_rapids_build_libcuforest:
+  py_rapids_build_libnvforest:
     output: pyproject
-    pyproject_dir: python/libcuforest
+    pyproject_dir: python/libnvforest
     extras:
       table: tool.rapids-build-backend
       key: requires
@@ -159,9 +159,9 @@ files:
       - depends_on_libraft
       - depends_on_librmm
       - depends_on_rapids_logger
-  py_run_libcuforest:
+  py_run_libnvforest:
     output: pyproject
-    pyproject_dir: python/libcuforest
+    pyproject_dir: python/libnvforest
     extras:
       table: project
     includes:
@@ -232,13 +232,13 @@ dependencies:
       - output_types: conda
         packages:
           - ccache
-  py_build_cuforest:
+  py_build_nvforest:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
           - &cython cython>=3.0.0
           - &treelite treelite>=4.6.1,<5.0
-  py_run_cuforest:
+  py_run_nvforest:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
@@ -342,11 +342,11 @@ dependencies:
           - matrix:
             packages:
               - python>=3.11,<3.14
-  test_libcuforest:
+  test_libnvforest:
     common:
       - output_types: conda
         packages:
-          - libcuforest-tests==26.4.*,>=0.0.0a0
+          - libnvforest-tests==26.4.*,>=0.0.0a0
   test_cpp:
     common:
       - output_types: conda
@@ -394,11 +394,11 @@ dependencies:
           - matrix:
             packages:
               - cuda-python>=13.0.1,<14.0a0
-  depends_on_cuforest:
+  depends_on_nvforest:
     common:
       - output_types: conda
         packages:
-          - cuforest==26.4.*,>=0.0.0a0
+          - nvforest==26.4.*,>=0.0.0a0
   depends_on_cupy:
     common:
       - output_types: conda
@@ -418,11 +418,11 @@ dependencies:
           - matrix:
             packages:
               - cupy-cuda13x>=13.6.0
-  depends_on_libcuforest:
+  depends_on_libnvforest:
     common:
       - output_types: conda
         packages:
-          - &libcuforest_unsuffixed libcuforest==26.4.*,>=0.0.0a0
+          - &libnvforest_unsuffixed libnvforest==26.4.*,>=0.0.0a0
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -435,13 +435,13 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libcuforest-cu12==26.4.*,>=0.0.0a0
+              - libnvforest-cu12==26.4.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libcuforest-cu13==26.4.*,>=0.0.0a0
-          - {matrix: null, packages: [*libcuforest_unsuffixed]}
+              - libnvforest-cu13==26.4.*,>=0.0.0a0
+          - {matrix: null, packages: [*libnvforest_unsuffixed]}
   depends_on_libraft:
     common:
       - output_types: conda

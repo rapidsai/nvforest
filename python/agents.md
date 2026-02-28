@@ -1,10 +1,10 @@
-# AI Code Review Guidelines for CodeRabbit - cuForest Python/Cython
+# AI Code Review Guidelines for CodeRabbit - nvForest Python/Cython
 
 **Role**: Act as a principal engineer with 10+ years experience in Python, Cython, and machine learning APIs. Focus ONLY on CRITICAL and HIGH issues.
 
 **Target**: Sub-3% false positive rate. Be direct, concise, minimal.
 
-**Context**: cuForest is a GPU-accelerated random forest inference library. This file covers Python and Cython code review guidelines for the cuforest Python package.
+**Context**: nvForest is a GPU-accelerated random forest inference library. This file covers Python and Cython code review guidelines for the nvforest Python package.
 
 ## IGNORE These Issues
 
@@ -69,7 +69,7 @@
 - Missing support for standard GPU array inputs (cupy arrays, __cuda_array_interface__)
 
 ### Dependencies
-- **Adding new dependencies without strong justification** (cuForest must remain lightweight)
+- **Adding new dependencies without strong justification** (nvForest must remain lightweight)
 - **Heavy dependencies that increase install size or add transitive dependencies**
 - Adding dependencies that duplicate functionality already in numpy, treelite, or RAPIDS core libs
 
@@ -224,7 +224,7 @@ model = treelite.Model.load(filepath, format='xgboost_json')
 
 ---
 
-## cuForest Python Specific Considerations
+## nvForest Python Specific Considerations
 
 **Python API**:
 - All public functions should have type hints
@@ -247,7 +247,7 @@ model = treelite.Model.load(filepath, format='xgboost_json')
 - Pass CUDA streams through the API to enable asynchronous operation
 
 **Lightweight Design Philosophy**:
-cuForest must remain a lean, focused inference library. When reviewing changes that add dependencies:
+nvForest must remain a lean, focused inference library. When reviewing changes that add dependencies:
 - **Question every new dependency**: Is it absolutely necessary? Can we achieve the same with existing deps?
 - **Allowed dependencies**: numpy, treelite, and RAPIDS core libs (rmm, pylibraft)
 - **Avoid**: Large ML frameworks, libraries with heavy transitive dependencies, optional "nice-to-have" deps
@@ -284,7 +284,7 @@ Suggest: Add NumPy-style docstring with:
 
 ---
 
-## Common Bug Patterns in cuForest Python (Watch For These)
+## Common Bug Patterns in nvForest Python (Watch For These)
 
 ### 1. Array Layout Mismatch
 **Pattern**: Passing arrays to C++ with wrong memory layout
@@ -368,4 +368,4 @@ Suggest: Add NumPy-style docstring with:
 
 ---
 
-**Remember**: Focus on objective correctness, not subjective preference. Catch real bugs and API issues, ignore style preferences. For cuForest Python: correct predictions, type safety, and memory safety are the priorities.
+**Remember**: Focus on objective correctness, not subjective preference. Catch real bugs and API issues, ignore style preferences. For nvForest Python: correct predictions, type safety, and memory safety are the priorities.

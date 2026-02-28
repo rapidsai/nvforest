@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <cuforest/detail/integration/treelite.hpp>
-#include <cuforest/detail/traversal/traversal_order.hpp>
+#include <nvforest/detail/integration/treelite.hpp>
+#include <nvforest/detail/traversal/traversal_order.hpp>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -14,7 +14,7 @@
 
 #include <cstddef>
 
-namespace cuforest::integration {
+namespace nvforest::integration {
 
 /* |Test Forest
  * |-----------------------------------|--------------------------------------|
@@ -488,4 +488,4 @@ TEST(ForestTraversal, layered_children_together)
   }
 }
 
-}  // namespace cuforest::integration
+}  // namespace nvforest::integration

@@ -7,8 +7,8 @@ set -euo pipefail
 source rapids-init-pip
 
 RAPIDS_PY_CUDA_SUFFIX="$(rapids-wheel-ctk-name-gen "${RAPIDS_CUDA_VERSION}")"
-CUFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-package-name wheel_python cuforest --stable --cuda "$RAPIDS_CUDA_VERSION")")
-LIBCUFOREST_WHEELHOUSE=$(RAPIDS_PY_WHEEL_NAME="libcuforest_${RAPIDS_PY_CUDA_SUFFIX}" rapids-download-wheels-from-github cpp)
+NVFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-package-name wheel_python nvforest --stable --cuda "$RAPIDS_CUDA_VERSION")")
+LIBNVFOREST_WHEELHOUSE=$(RAPIDS_PY_WHEEL_NAME="libnvforest_${RAPIDS_PY_CUDA_SUFFIX}" rapids-download-wheels-from-github cpp)
 RAPIDS_TESTS_DIR=${RAPIDS_TESTS_DIR:-"${PWD}/test-results"}
 mkdir -p "${RAPIDS_TESTS_DIR}"
 
@@ -18,14 +18,14 @@ rapids-generate-pip-constraints test_python ./constraints.txt
 
 # Install just minimal dependencies first
 rapids-pip-retry install \
-  "${LIBCUFOREST_WHEELHOUSE}"/libcuforest*.whl \
-  "${CUFOREST_WHEELHOUSE}"/cuforest*.whl \
+  "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl \
+  "${NVFOREST_WHEELHOUSE}"/nvforest*.whl \
   --constraint ./constraints.txt \
   --constraint "${PIP_CONSTRAINT}"
 
-# Try to import cuforest with just a minimal install"
-rapids-logger "Importing cuforest with minimal dependencies"
-python -c "import cuforest"
+# Try to import nvforest with just a minimal install"
+rapids-logger "Importing nvforest with minimal dependencies"
+python -c "import nvforest"
 
 # notes:
 #
@@ -34,8 +34,8 @@ python -c "import cuforest"
 #     ignored if any other --constraint are passed via the CLI
 #
 rapids-pip-retry install \
-   "${LIBCUFOREST_WHEELHOUSE}"/libcuforest*.whl \
-  "$(echo "${CUFOREST_WHEELHOUSE}"/cuforest*.whl)[test]" \
+   "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl \
+  "$(echo "${NVFOREST_WHEELHOUSE}"/nvforest*.whl)[test]" \
   --constraint ./constraints.txt \
   --constraint "${PIP_CONSTRAINT}"
 
@@ -43,13 +43,13 @@ EXITCODE=0
 trap "EXITCODE=1" ERR
 set +e
 
-rapids-logger "pytest cuforest"
+rapids-logger "pytest nvforest"
 timeout 1h python -m pytest \
   --cache-clear \
   --numprocesses=8 \
   --dist=worksteal \
-  --junitxml="${RAPIDS_TESTS_DIR}/junit-cuforest.xml" \
-  python/cuforest/tests/
+  --junitxml="${RAPIDS_TESTS_DIR}/junit-nvforest.xml" \
+  python/nvforest/tests/
 
 rapids-logger "Test script exiting with value: $EXITCODE"
 exit ${EXITCODE}

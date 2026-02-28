@@ -15,7 +15,7 @@ rapids-logger "Begin cpp build"
 
 sccache --stop-server 2>/dev/null || true
 
-# TODO(hcho3): Use rapids-generate-version once cuForest has a git tag
+# TODO(hcho3): Use rapids-generate-version once nvForest has a git tag
 RAPIDS_PACKAGE_VERSION=$(cat VERSION)
 export RAPIDS_PACKAGE_VERSION
 
@@ -25,7 +25,7 @@ source rapids-rattler-channel-string
 # --no-build-id allows for caching with `sccache`
 # more info is available at
 # https://rattler.build/latest/tips_and_tricks/#using-sccache-or-ccache-with-rattler-build
-rattler-build build --recipe conda/recipes/libcuforest \
+rattler-build build --recipe conda/recipes/libnvforest \
                     "${RATTLER_ARGS[@]}" \
                     "${RATTLER_CHANNELS[@]}"
 
