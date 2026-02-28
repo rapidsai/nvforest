@@ -47,4 +47,10 @@ mkdir -p "${RAPIDS_DOCS_DIR}/nvforest/html"
 mv _html/* "${RAPIDS_DOCS_DIR}/nvforest/html"
 popd
 
+# Run doctest -- This will test Python code snippets in docs
+rapids-logger "Run doctest"
+pushd docs
+sphinx-build --builder doctest ./source _doctest -W
+popd
+
 RAPIDS_VERSION_NUMBER="${RAPIDS_VERSION_MAJOR_MINOR}" rapids-upload-docs
