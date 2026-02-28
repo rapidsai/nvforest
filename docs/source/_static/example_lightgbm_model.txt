@@ -1,0 +1,33 @@
+tree
+version=v4
+num_class=1
+num_tree_per_iteration=1
+label_index=0
+max_feature_idx=1
+objective=binary sigmoid:1
+feature_names=Column_0 Column_1
+feature_infos=[-1:1] none
+tree_sizes=308
+
+Tree=0
+num_leaves=2
+num_cat=0
+split_feature=0
+split_gain=2
+threshold=1.0000000180025095e-35
+decision_type=2
+left_child=-1
+right_child=-2
+leaf_value=0.19999999999999921 -0.19999999999999921
+leaf_weight=0.25 0.25
+leaf_count=1 1
+internal_value=0
+internal_weight=0.5
+internal_count=2
+is_linear=0
+shrinkage=0.1
+
+
+end of trees
+
+pandas_categorical:null

@@ -7,24 +7,54 @@ nvForest with Python
 
 To run inference for decision tree models, first **import** tree models into nvForest.
 
-.. code-block:: python
+.. testsetup:: workflow
 
-   import nvforest
+  import xgboost as xgb
+  from tempfile import TemporaryDirectory
+  from sklearn.ensemble import RandomForestClassifier
+  from pathlib import Path
+  import numpy as np
 
-   # Load XGBoost model, to run inference on GPU
-   fm = nvforest.load_model("/path/to/xgboost_model.ubj", device="gpu",
-                            model_type="xgboost_ubj")
+  with open("source/_static/example_lightgbm_model.txt") as f:
+      lgb_model_txt = f.read()
 
-   # Load XGBoost JSON model, to run inference on CPU
-   fm = nvforest.load_model("/path/to/xgboost_model.json", device="cpu",
-                            model_type="xgboost_json")
+  tempdir = TemporaryDirectory()
+  model_dir = Path(tempdir.name)
 
-   # Load LightGBM model, to run inference on GPU
-   fm = nvforest.load_model("/path/to/lightgbm_model.txt", device="gpu",
-                            model_type="lightgbm")
+  with open(model_dir / "lightgbm_model.txt", "w") as f:
+      f.write(lgb_model_txt)
 
-   # Load scikit-learn random forest, to run inference on GPU
-   fm = nvforest.load_from_sklearn(skl_model, device="gpu")
+  X = np.array([[1,2],[-1,2]], dtype="float32")
+  y = np.array([0, 1], dtype="int32")
+
+  dtrain = xgb.DMatrix(X, label=y)
+  bst = xgb.train({"max_depth": 1}, dtrain, num_boost_round=1)
+  bst.save_model(model_dir / "xgboost_model.ubj")
+  bst.save_model(model_dir / "xgboost_model.json")
+
+  skl_model = RandomForestClassifier(n_estimators=1, max_depth=1)
+  skl_model.fit(X, y)
+
+.. testcode:: workflow
+
+    import nvforest
+
+    # model_dir: pathlib.Path object, pointing to a directory containing model files.
+
+    # Load XGBoost model, to run inference on GPU
+    fm = nvforest.load_model(model_dir / "xgboost_model.ubj", device="gpu",
+                             model_type="xgboost_ubj")
+
+    # Load XGBoost JSON model, to run inference on CPU
+    fm = nvforest.load_model(model_dir / "xgboost_model.json", device="cpu",
+                             model_type="xgboost_json")
+
+    # Load LightGBM model, to run inference on GPU
+    fm = nvforest.load_model(model_dir / "lightgbm_model.txt", device="gpu",
+                             model_type="lightgbm")
+
+    # Load scikit-learn random forest, to run inference on GPU
+    fm = nvforest.load_from_sklearn(skl_model, device="gpu")
 
 The ``fm`` object will be one of the following types:
 
@@ -36,6 +66,13 @@ The ``fm`` object will be one of the following types:
   The model object will reside in the main memory.
 * :py:class:`~nvforest.CPUForestInferenceRegressor`: a regression model, to run on CPU.
   The model object will reside in the main memory.
+
+You can inspect the type of the model by printing its type:
+
+.. doctest:: workflow
+
+    >>> print(type(fm).__name__)
+    GPUForestInferenceClassifier
 
 .. note:: Automatically detecting ``device``
 
@@ -63,7 +100,7 @@ The ``fm`` object will be one of the following types:
 After importing the model, run inference using :py:meth:`~nvforest.GPUForestInferenceRegressor.predict`
 or its variants.
 
-.. code-block:: python
+.. testcode:: workflow
 
   # Run inference
   pred = fm.predict(X)
@@ -77,6 +114,14 @@ or its variants.
 
   # Run inference and obtain prediction per individual tree
   pred_per_tree = fm.predict_per_tree(X)
+
+.. testcode:: workflow
+  :hide:
+
+  assert pred.shape == (X.shape[0],)
+  assert class_probs.shape == (X.shape[0], fm.num_outputs)
+  assert leaf_ids.shape == (X.shape[0], fm.num_trees)
+  assert pred_per_tree.shape == (X.shape[0], fm.num_trees, fm.num_outputs)
 
 nvForest with C++ (Advanced)
 ============================

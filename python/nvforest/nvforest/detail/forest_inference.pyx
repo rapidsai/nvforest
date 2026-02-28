@@ -127,7 +127,6 @@ cdef class ForestInference_impl():
         )
         self.device = device
 
-        print(f"device_id = {device_id}")
         self.model = import_from_treelite_handle(
             tl_handle,
             tree_layout,
