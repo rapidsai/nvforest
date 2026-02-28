@@ -9,31 +9,32 @@ To run inference for decision tree models, first **import** tree models into nvF
 
 .. testsetup:: workflow
 
-  import xgboost as xgb
-  from tempfile import TemporaryDirectory
-  from sklearn.ensemble import RandomForestClassifier
-  from pathlib import Path
-  import numpy as np
+    from pathlib import Path
+    from tempfile import TemporaryDirectory
 
-  with open("source/_static/example_lightgbm_model.txt") as f:
-      lgb_model_txt = f.read()
+    import numpy as np
+    import xgboost as xgb
+    from sklearn.ensemble import RandomForestClassifier
 
-  tempdir = TemporaryDirectory()
-  model_dir = Path(tempdir.name)
+    with open("source/_static/example_lightgbm_model.txt") as f:
+        lgb_model_txt = f.read()
 
-  with open(model_dir / "lightgbm_model.txt", "w") as f:
-      f.write(lgb_model_txt)
+    tempdir = TemporaryDirectory()
+    model_dir = Path(tempdir.name)
 
-  X = np.array([[1,2],[-1,2]], dtype="float32")
-  y = np.array([0, 1], dtype="int32")
+    with open(model_dir / "lightgbm_model.txt", "w") as f:
+        f.write(lgb_model_txt)
 
-  dtrain = xgb.DMatrix(X, label=y)
-  bst = xgb.train({"max_depth": 1}, dtrain, num_boost_round=1)
-  bst.save_model(model_dir / "xgboost_model.ubj")
-  bst.save_model(model_dir / "xgboost_model.json")
+    X = np.array([[1, 2], [-1, 2]], dtype="float32")
+    y = np.array([0, 1], dtype="int32")
 
-  skl_model = RandomForestClassifier(n_estimators=1, max_depth=1)
-  skl_model.fit(X, y)
+    dtrain = xgb.DMatrix(X, label=y)
+    bst = xgb.train({"max_depth": 1}, dtrain, num_boost_round=1)
+    bst.save_model(model_dir / "xgboost_model.ubj")
+    bst.save_model(model_dir / "xgboost_model.json")
+
+    skl_model = RandomForestClassifier(n_estimators=1, max_depth=1)
+    skl_model.fit(X, y)
 
 .. testcode:: workflow
 
