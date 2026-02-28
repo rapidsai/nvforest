@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""Benchmark suite for cuforest comparing against native ML framework inference."""
+"""Benchmark suite for nvforest comparing against native ML framework inference."""

@@ -5,16 +5,16 @@
 #
 
 """
-Comprehensive benchmark comparing cuforest against native ML framework inference.
+Comprehensive benchmark comparing nvforest against native ML framework inference.
 
 Supports sklearn, XGBoost, and LightGBM models with both regressor and classifier
 variants on CPU and GPU devices.
 
 Usage:
-    python -m cuforest.benchmark.benchmark run
-    python -m cuforest.benchmark.benchmark run --framework sklearn --framework xgboost
-    python -m cuforest.benchmark.benchmark run --dry-run
-    python -m cuforest.benchmark.benchmark run --quick-test
+    python -m nvforest.benchmark.benchmark run
+    python -m nvforest.benchmark.benchmark run --framework sklearn --framework xgboost
+    python -m nvforest.benchmark.benchmark run --dry-run
+    python -m nvforest.benchmark.benchmark run --quick-test
 """
 
 import gc
@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 import treelite
 
-import cuforest
+import nvforest
 
 # Conditional imports for ML frameworks
 try:
@@ -502,7 +502,7 @@ def run_benchmark_suite(
         "num_trees": [],
         "batch_size": [],
         "native_time": [],
-        "cuforest_time": [],
+        "nvforest_time": [],
         "optimal_layout": [],
         "optimal_chunk_size": [],
         "speedup": [],
@@ -588,10 +588,10 @@ def run_benchmark_suite(
                                     LOGGER.warning(f"Native inference failed: {e}")
                                     native_time = float("nan")
 
-                                # cuforest benchmark
-                                LOGGER.info("    Running cuforest inference...")
+                                # nvforest benchmark
+                                LOGGER.info("    Running nvforest inference...")
                                 try:
-                                    cuforest_model = cuforest.load_model(
+                                    nvforest_model = nvforest.load_model(
                                         model_path,
                                         device=device,
                                         precision="single",
@@ -603,18 +603,18 @@ def run_benchmark_suite(
                                         if device == "gpu"
                                         else X[:batch_size]
                                     )
-                                    cuforest_model = cuforest_model.optimize(data=batch)
-                                    optimal_layout = cuforest_model.layout
-                                    optimal_chunk_size = cuforest_model.default_chunk_size
+                                    nvforest_model = nvforest_model.optimize(data=batch)
+                                    optimal_layout = nvforest_model.layout
+                                    optimal_chunk_size = nvforest_model.default_chunk_size
 
-                                    cuforest_time = run_inference_benchmark(
-                                        lambda batch, m=cuforest_model: m.predict(batch),
+                                    nvforest_time = run_inference_benchmark(
+                                        lambda batch, m=nvforest_model: m.predict(batch),
                                         X_device if device == "gpu" else X,
                                         batch_size,
                                     )
                                 except Exception as e:
-                                    LOGGER.warning(f"cuforest inference failed: {e}")
-                                    cuforest_time = float("nan")
+                                    LOGGER.warning(f"nvforest inference failed: {e}")
+                                    nvforest_time = float("nan")
                                     optimal_layout = None
                                     optimal_chunk_size = None
 
@@ -627,18 +627,18 @@ def run_benchmark_suite(
                                 results["num_trees"].append(num_trees)
                                 results["batch_size"].append(batch_size)
                                 results["native_time"].append(native_time)
-                                results["cuforest_time"].append(cuforest_time)
+                                results["nvforest_time"].append(nvforest_time)
                                 results["optimal_layout"].append(optimal_layout)
                                 results["optimal_chunk_size"].append(optimal_chunk_size)
                                 results["speedup"].append(
-                                    native_time / cuforest_time
-                                    if cuforest_time and not np.isnan(cuforest_time)
+                                    native_time / nvforest_time
+                                    if nvforest_time and not np.isnan(nvforest_time)
                                     else float("nan")
                                 )
 
                                 # Clean up GPU memory
                                 if device == "gpu":
-                                    del cuforest_model
+                                    del nvforest_model
                                     gc.collect()
 
                             # Clean up native model after batch_size loop
@@ -663,7 +663,7 @@ def run_benchmark_suite(
 
 @click.group()
 def cli():
-    """Benchmark suite for cuforest."""
+    """Benchmark suite for nvforest."""
     pass
 
 

@@ -10,10 +10,10 @@ import numpy as np
 import pytest
 from click.testing import CliRunner
 
-from cuforest.testing.utils import unit_param
+from nvforest.testing.utils import unit_param
 
 # Import benchmark components
-from cuforest.benchmark.benchmark import (
+from nvforest.benchmark.benchmark import (
     FRAMEWORKS,
     FULL_VALUES,
     QUICK_TEST_VALUES,
@@ -492,7 +492,7 @@ class TestEndToEnd:
         if "sklearn" not in FRAMEWORKS:
             pytest.skip("sklearn not available")
 
-        import cuforest
+        import nvforest
         
         with tempfile.TemporaryDirectory() as tmpdir:
             framework = FRAMEWORKS["sklearn"]
@@ -514,12 +514,12 @@ class TestEndToEnd:
             
             assert os.path.exists(model_path)
             
-            # Load with cuforest
-            cuforest_model = cuforest.load_model(model_path, device="cpu")
-            assert cuforest_model is not None
+            # Load with nvforest
+            nvforest_model = nvforest.load_model(model_path, device="cpu")
+            assert nvforest_model is not None
             
             # Verify prediction works
-            preds = cuforest_model.predict(X[:10])
+            preds = nvforest_model.predict(X[:10])
             assert preds.shape[0] == 10
 
 
@@ -530,7 +530,7 @@ class TestAnalyze:
     def test_generate_summary_stats(self):
         """Test generating summary statistics."""
         import pandas as pd
-        from cuforest.benchmark.analyze import generate_summary_stats
+        from nvforest.benchmark.analyze import generate_summary_stats
         
         df = pd.DataFrame({
             "framework": ["sklearn", "sklearn", "xgboost", "xgboost"],
@@ -538,7 +538,7 @@ class TestAnalyze:
             "device": ["cpu", "cpu", "cpu", "cpu"],
             "speedup": [1.5, 2.0, 1.8, 2.2],
             "native_time": [0.1, 0.2, 0.15, 0.25],
-            "cuforest_time": [0.05, 0.1, 0.08, 0.12],
+            "nvforest_time": [0.05, 0.1, 0.08, 0.12],
         })
         
         summary = generate_summary_stats(df)
@@ -549,7 +549,7 @@ class TestAnalyze:
     def test_print_summary(self, capsys):
         """Test printing summary."""
         import pandas as pd
-        from cuforest.benchmark.analyze import print_summary
+        from nvforest.benchmark.analyze import print_summary
         
         df = pd.DataFrame({
             "framework": ["sklearn", "sklearn"],
@@ -560,7 +560,7 @@ class TestAnalyze:
             "batch_size": [1024, 1024],
             "speedup": [1.5, 2.0],
             "native_time": [0.1, 0.2],
-            "cuforest_time": [0.05, 0.1],
+            "nvforest_time": [0.05, 0.1],
         })
         
         print_summary(df)
@@ -571,7 +571,7 @@ class TestAnalyze:
     @pytest.mark.unit
     def test_analyze_cli_file_not_found(self):
         """Test analyze CLI with non-existent file."""
-        from cuforest.benchmark.analyze import analyze
+        from nvforest.benchmark.analyze import analyze
         
         runner = CliRunner()
         result = runner.invoke(analyze, ["nonexistent.csv"])
@@ -581,7 +581,7 @@ class TestAnalyze:
     def test_analyze_cli_with_results_file(self):
         """Test analyze CLI with valid results file."""
         import pandas as pd
-        from cuforest.benchmark.analyze import analyze
+        from nvforest.benchmark.analyze import analyze
         
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a sample results file
@@ -594,7 +594,7 @@ class TestAnalyze:
                 "num_trees": [16, 16],
                 "batch_size": [1024, 1024],
                 "native_time": [0.1, 0.2],
-                "cuforest_time": [0.05, 0.1],
+                "nvforest_time": [0.05, 0.1],
                 "optimal_layout": ["depth_first", "breadth_first"],
                 "optimal_chunk_size": [8, 16],
                 "speedup": [2.0, 2.0],
@@ -611,7 +611,7 @@ class TestAnalyze:
     def test_analyze_cli_with_filter(self):
         """Test analyze CLI with framework filter."""
         import pandas as pd
-        from cuforest.benchmark.analyze import analyze
+        from nvforest.benchmark.analyze import analyze
         
         with tempfile.TemporaryDirectory() as tmpdir:
             df = pd.DataFrame({
@@ -623,7 +623,7 @@ class TestAnalyze:
                 "num_trees": [16, 16],
                 "batch_size": [1024, 1024],
                 "native_time": [0.1, 0.15],
-                "cuforest_time": [0.05, 0.08],
+                "nvforest_time": [0.05, 0.08],
                 "optimal_layout": ["depth_first", "depth_first"],
                 "optimal_chunk_size": [8, 8],
                 "speedup": [2.0, 1.875],

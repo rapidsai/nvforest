@@ -1,18 +1,18 @@
-# cuforest Benchmark Suite
+# nvforest Benchmark Suite
 
-Comprehensive benchmark comparing cuforest inference performance against native ML framework inference (sklearn, XGBoost, LightGBM).
+Comprehensive benchmark comparing nvforest inference performance against native ML framework inference (sklearn, XGBoost, LightGBM).
 
 ## Quick Start
 
 ```bash
 # Dry run - see what will be benchmarked
-python -m cuforest.benchmark.benchmark run --dry-run
+python -m nvforest.benchmark.benchmark run --dry-run
 
 # Quick test - verify setup with minimal parameters
-python -m cuforest.benchmark.benchmark run --quick-test
+python -m nvforest.benchmark.benchmark run --quick-test
 
 # Full benchmark
-python -m cuforest.benchmark.benchmark run
+python -m nvforest.benchmark.benchmark run
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ python -m cuforest.benchmark.benchmark run
 ### Running Benchmarks
 
 ```bash
-python -m cuforest.benchmark.benchmark run [OPTIONS]
+python -m nvforest.benchmark.benchmark run [OPTIONS]
 ```
 
 **Options:**
@@ -38,19 +38,19 @@ python -m cuforest.benchmark.benchmark run [OPTIONS]
 
 ```bash
 # Benchmark only sklearn on CPU
-python -m cuforest.benchmark.benchmark run --framework sklearn --device cpu
+python -m nvforest.benchmark.benchmark run --framework sklearn --device cpu
 
 # Benchmark XGBoost and LightGBM classifiers only
-python -m cuforest.benchmark.benchmark run -f xgboost -f lightgbm -m classifier
+python -m nvforest.benchmark.benchmark run -f xgboost -f lightgbm -m classifier
 
 # Quick test with specific framework
-python -m cuforest.benchmark.benchmark run --quick-test --framework sklearn
+python -m nvforest.benchmark.benchmark run --quick-test --framework sklearn
 ```
 
 ### Analyzing Results
 
 ```bash
-python -m cuforest.benchmark.analyze RESULTS_FILE [OPTIONS]
+python -m nvforest.benchmark.analyze RESULTS_FILE [OPTIONS]
 ```
 
 **Options:**
@@ -67,10 +67,10 @@ python -m cuforest.benchmark.analyze RESULTS_FILE [OPTIONS]
 
 ```bash
 # Analyze results and generate plots
-python -m cuforest.benchmark.analyze data/final_results.csv
+python -m nvforest.benchmark.analyze data/final_results.csv
 
 # Summary only for GPU results
-python -m cuforest.benchmark.analyze data/final_results.csv --device gpu --summary-only
+python -m nvforest.benchmark.analyze data/final_results.csv --device gpu --summary-only
 ```
 
 ## Parameter Space
@@ -95,9 +95,9 @@ python -m cuforest.benchmark.analyze data/final_results.csv --device gpu --summa
 
 ## Device Handling
 
-The `--device` parameter affects how both native frameworks and cuforest run inference:
+The `--device` parameter affects how both native frameworks and nvforest run inference:
 
-### cuforest
+### nvforest
 - **CPU**: Uses CPU inference backend
 - **GPU**: Uses GPU inference backend with cupy arrays
 
@@ -111,7 +111,7 @@ The `--device` parameter affects how both native frameworks and cuforest run inf
   ```bash
   # Option 1: Build from source
   cmake -DUSE_GPU=1 ..
-  
+
   # Option 2: pip with GPU flag
   pip install lightgbm --install-option=--gpu
   ```
@@ -119,9 +119,9 @@ The `--device` parameter affects how both native frameworks and cuforest run inf
 
 ### sklearn
 - **CPU**: Standard CPU inference
-- **GPU**: sklearn is CPU-only. For GPU benchmarks, native inference runs on CPU as a baseline. The speedup comparison reflects cuforest GPU vs sklearn CPU.
+- **GPU**: sklearn is CPU-only. For GPU benchmarks, native inference runs on CPU as a baseline. The speedup comparison reflects nvforest GPU vs sklearn CPU.
 
-> **Note**: When `device=gpu`, XGBoost models are trained on GPU which enables GPU-native inference. This provides a fair comparison between XGBoost GPU inference and cuforest GPU inference.
+> **Note**: When `device=gpu`, XGBoost models are trained on GPU which enables GPU-native inference. This provides a fair comparison between XGBoost GPU inference and nvforest GPU inference.
 
 ## Output
 
@@ -142,10 +142,10 @@ Results are saved as CSV files in the output directory:
 | `num_trees` | Number of trees in ensemble |
 | `batch_size` | Inference batch size |
 | `native_time` | Native framework inference time (seconds) |
-| `cuforest_time` | cuforest inference time (seconds) |
-| `optimal_layout` | Layout selected by cuforest optimize() |
-| `optimal_chunk_size` | Chunk size selected by cuforest optimize() |
-| `speedup` | native_time / cuforest_time |
+| `nvforest_time` | nvforest inference time (seconds) |
+| `optimal_layout` | Layout selected by nvforest optimize() |
+| `optimal_chunk_size` | Chunk size selected by nvforest optimize() |
+| `speedup` | native_time / nvforest_time |
 
 ## Dependencies
 
@@ -156,6 +156,6 @@ Required:
 
 Optional (for specific frameworks):
 - `scikit-learn` - for sklearn benchmarks
-- `xgboost` - for XGBoost benchmarks  
+- `xgboost` - for XGBoost benchmarks
 - `lightgbm` - for LightGBM benchmarks
 - `matplotlib`, `seaborn` - for result visualization

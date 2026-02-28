@@ -8,8 +8,8 @@
 Analyze and visualize benchmark results.
 
 Usage:
-    python -m cuforest.benchmark.analyze results.csv
-    python -m cuforest.benchmark.analyze results.csv --output speedup_plots.png
+    python -m nvforest.benchmark.analyze results.csv
+    python -m nvforest.benchmark.analyze results.csv --output speedup_plots.png
 """
 
 import os
@@ -21,7 +21,7 @@ import pandas as pd
 
 def plot_speedup_heatmaps(
     df: pd.DataFrame,
-    title: str = "cuforest Speedups",
+    title: str = "nvforest Speedups",
     output_filename: str = "speedup_heatmaps.png",
     speedup_column: str = "speedup",
 ) -> None:
@@ -139,7 +139,7 @@ def generate_summary_stats(df: pd.DataFrame) -> pd.DataFrame:
             {
                 "speedup": ["mean", "median", "min", "max", "std"],
                 "native_time": ["mean", "sum"],
-                "cuforest_time": ["mean", "sum"],
+                "nvforest_time": ["mean", "sum"],
             }
         )
         .round(3)
@@ -162,7 +162,7 @@ def print_summary(df: pd.DataFrame) -> None:
 
     # Speedup stats
     print("\n" + "-" * 40)
-    print("SPEEDUP STATISTICS (native / cuforest)")
+    print("SPEEDUP STATISTICS (native / nvforest)")
     print("-" * 40)
 
     for framework in df["framework"].unique():
@@ -254,7 +254,7 @@ def analyze(
             base_name = os.path.splitext(results_file)[0]
             output = f"{base_name}_speedup.png"
 
-        title = "cuforest Speedup vs Native Inference"
+        title = "nvforest Speedup vs Native Inference"
         if framework:
             title += f" ({framework})"
         if device:
