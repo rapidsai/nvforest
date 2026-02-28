@@ -19,7 +19,7 @@ In addition, nvForest requires Cython 3.0 or later.
 .. note:: Building nvForest without GPU support
 
    It is possible to build nvForest without GPU support; in this case, the CUDA toolkit is not required.
-   To build nvForest without GPU, set the CMake option ``NVFOREST_ENABLE_GPU=ON``.
+   To build nvForest without GPU, set the CMake option ``NVFOREST_ENABLE_GPU=OFF``.
 
 **RAPIDS libraries.**
 The nvForest code base is updated in tandem with the rest of RAPIDS. So to build the latest nvForest, you
@@ -276,7 +276,7 @@ nvForest's cmake has the following configurable flags available:
      - [ON, OFF]
      - ON
      - Use detection of conda environment for dependencies. If set to ON, and no value for CMAKE_INSTALL_PREFIX is passed, then it will assign it to $CONDA_PREFIX (to install in the active environment).
-   * - DIABLE_DEPRECATION_WARNINGS
+   * - DISABLE_DEPRECATION_WARNINGS
      - [ON, OFF]
      - ON
      - Set to ON to disable deprecation warnings
