@@ -127,7 +127,6 @@ outputs:
         by_name:
           - cuda-cudart
           - cuda-version
-          - flatbuffers
           - libcurand
           - librmm
           - libcusparse
