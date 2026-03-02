@@ -44,7 +44,7 @@ reviews:
         - Identify outdated information contradicting the code changes
         - Recommend documenting performance characteristics, GPU requirements, or numerical tolerances
 
-    - path: "cpp/include/cuforest/**/*"
+    - path: "cpp/include/nvforest/**/*"
       instructions: |
         For public header files (C++ API):
         - Check if new public functions/classes have documentation comments (Doxygen format)
@@ -52,9 +52,9 @@ reviews:
         - Verify parameter descriptions match actual types/behavior
         - Suggest documenting thread-safety, GPU requirements, and numerical behavior
         - For breaking changes, recommend updating docs and docummented recommended migration paths
-        - Focus on cuForest-specific concerns: tree layouts, inference kinds, postprocessing ops
+        - Focus on nvforest-specific concerns: tree layouts, inference kinds, postprocessing ops
 
-    - path: "python/**/cuforest/**/*.{py,pyx,pxd}"
+    - path: "python/**/nvforest/**/*.{py,pyx,pxd}"
       instructions: |
         For Python/Cython code:
         - Check for docstrings on public functions/classes (NumPy style preferred)
@@ -76,7 +76,7 @@ reviews:
         - Verify stream usage is explicit and lifecycle is clear
         - Check that device memory is properly managed (allocation/deallocation balance)
 
-    - path: "cpp/include/cuforest/detail/**/*.cuh"
+    - path: "cpp/include/nvforest/detail/**/*.cuh"
       instructions: |
         For CUDA device code headers:
         - Review GPU kernel implementations for correctness and performance
