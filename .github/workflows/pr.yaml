@@ -10,7 +10,7 @@ jobs:
   # Please keep pr-builder as the top job here
   pr-builder:
     needs:
-      # - check-nightly-ci
+      - check-nightly-ci
       - changed-files
       - checks
       - clang-tidy
@@ -39,16 +39,23 @@ jobs:
       - name: Telemetry setup
         if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
         uses: rapidsai/shared-actions/telemetry-dispatch-stash-base-env-vars@main
-  # check-nightly-ci:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     RAPIDS_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #   steps:
-  #     - name: Check if nightly CI is passing
-  #       uses: rapidsai/shared-actions/check_nightly_success/dispatch@main
-  #       with:
-  #         repo: nvforest
-  #         max_days_without_success: 14
+  check-nightly-ci:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Get PR Info
+        id: get-pr-info
+        uses: nv-gha-runners/get-pr-info@main
+      - name: Check if nightly CI is passing
+        uses: rapidsai/shared-actions/check_nightly_success/dispatch@main
+        with:
+          repo: ${{ github.repository }}
+          target-branch: ${{ fromJSON(steps.get-pr-info.outputs.pr-info).base.ref }}
+          max-days-without-success: 7
   changed-files:
     secrets: inherit
     needs: telemetry-setup
