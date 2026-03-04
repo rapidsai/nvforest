@@ -15,8 +15,7 @@ rapids-logger "Begin cpp build"
 
 sccache --stop-server 2>/dev/null || true
 
-# TODO(hcho3): Use rapids-generate-version once nvForest has a git tag
-RAPIDS_PACKAGE_VERSION=$(cat VERSION)
+RAPIDS_PACKAGE_VERSION=$(rapids-generate-version)
 export RAPIDS_PACKAGE_VERSION
 
 # populates `RATTLER_CHANNELS` array and `RATTLER_ARGS` array
