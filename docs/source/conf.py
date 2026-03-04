@@ -241,5 +241,5 @@ model_dir = pathlib.Path(__file__).parent / "_static"
 doctest_global_setup = f"""
 import pathlib
 
-model_dir = pathlib.Path("{str(model_dir)}")
+model_dir = pathlib.Path({str(model_dir)!r})
 """
