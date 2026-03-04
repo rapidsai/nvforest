@@ -9,26 +9,8 @@ To run inference for decision tree models, first **import** tree models into nvF
 
 .. testsetup:: workflow
 
-    from pathlib import Path
-    from tempfile import TemporaryDirectory
-
     import numpy as np
     from sklearn.ensemble import RandomForestClassifier
-
-    with open("source/_static/example_lightgbm_model.txt", "r") as f:
-        lgb_model_txt = f.read()
-
-    with open("source/_static/xgboost_model.json", "r") as f:
-        xgb_model_json = f.read()
-
-    tempdir = TemporaryDirectory()
-    model_dir = Path(tempdir.name)
-
-    with open(model_dir / "lightgbm_model.txt", "w") as f:
-        f.write(lgb_model_txt)
-
-    with open(model_dir / "xgboost_model.json", "w") as f:
-        f.write(xgb_model_json)
 
     X = np.array([[1, 2], [-1, 2]], dtype="float32")
     y = np.array([0, 1], dtype="int32")

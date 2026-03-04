@@ -16,6 +16,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import datetime
+import pathlib
 import os
 import sys
 
@@ -236,3 +237,11 @@ linkcode_resolve = make_linkcode_resolve(
 # backticks`) to be a python object. See
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-default_role
 default_role = "py:obj"
+
+# Pre-populate model_dir
+model_dir = pathlib.Path(__file__).parent / "_static"
+doctest_global_setup = f'''
+import pathlib
+
+model_dir = pathlib.Path("{str(model_dir)}")
+'''
