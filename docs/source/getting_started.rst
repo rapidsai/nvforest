@@ -112,7 +112,6 @@ nvForest provides a CMake config file so that other C++ projects can find and us
 .. code-block:: cmake
 
     find_package(nvforest CONFIG REQUIRED)
-    find_package(Treelite CONFIG REQUIRED)
 
     target_link_libraries(my_target PRIVATE nvforest::nvforest++ treelite::treelite)
 
