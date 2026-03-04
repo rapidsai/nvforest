@@ -16,13 +16,12 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import datetime
-import pathlib
 import os
+import pathlib
 import sys
 
-from packaging.version import Version
-
 import nvforest
+from packaging.version import Version
 
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory
@@ -31,7 +30,6 @@ import nvforest
 sys.path.insert(0, os.path.abspath("sphinxext"))
 
 from github_link import make_linkcode_resolve  # noqa
-
 
 # -- General configuration ------------------------------------------------
 
@@ -240,8 +238,8 @@ default_role = "py:obj"
 
 # Pre-populate model_dir
 model_dir = pathlib.Path(__file__).parent / "_static"
-doctest_global_setup = f'''
+doctest_global_setup = f"""
 import pathlib
 
 model_dir = pathlib.Path("{str(model_dir)}")
-'''
+"""
