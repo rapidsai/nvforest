@@ -13,11 +13,13 @@ To run inference for decision tree models, first **import** tree models into nvF
     from tempfile import TemporaryDirectory
 
     import numpy as np
-    import xgboost as xgb
     from sklearn.ensemble import RandomForestClassifier
 
-    with open("source/_static/example_lightgbm_model.txt") as f:
+    with open("source/_static/example_lightgbm_model.txt", "r") as f:
         lgb_model_txt = f.read()
+
+    with open("source/_static/xgboost_model.json", "r") as f:
+        xgb_model_json = f.read()
 
     tempdir = TemporaryDirectory()
     model_dir = Path(tempdir.name)
@@ -25,13 +27,11 @@ To run inference for decision tree models, first **import** tree models into nvF
     with open(model_dir / "lightgbm_model.txt", "w") as f:
         f.write(lgb_model_txt)
 
+    with open(model_dir / "xgboost_model.json", "w") as f:
+        f.write(xgb_model_json)
+
     X = np.array([[1, 2], [-1, 2]], dtype="float32")
     y = np.array([0, 1], dtype="int32")
-
-    dtrain = xgb.DMatrix(X, label=y)
-    bst = xgb.train({"max_depth": 1}, dtrain, num_boost_round=1)
-    bst.save_model(model_dir / "xgboost_model.ubj")
-    bst.save_model(model_dir / "xgboost_model.json")
 
     skl_model = RandomForestClassifier(n_estimators=1, max_depth=1)
     skl_model.fit(X, y)
@@ -41,10 +41,6 @@ To run inference for decision tree models, first **import** tree models into nvF
     import nvforest
 
     # model_dir: pathlib.Path object, pointing to a directory containing model files.
-
-    # Load XGBoost model, to run inference on GPU
-    fm = nvforest.load_model(model_dir / "xgboost_model.ubj", device="gpu",
-                             model_type="xgboost_ubj")
 
     # Load XGBoost JSON model, to run inference on CPU
     fm = nvforest.load_model(model_dir / "xgboost_model.json", device="cpu",
