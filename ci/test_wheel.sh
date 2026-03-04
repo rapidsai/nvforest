@@ -4,6 +4,13 @@
 
 set -euo pipefail
 
+# TODO(jameslamb): revert before merging
+git clone --branch generate-pip-constraints \
+    https://github.com/rapidsai/gha-tools.git \
+    /tmp/gha-tools
+
+export PATH="/tmp/gha-tools/tools:${PATH}"
+
 source rapids-init-pip
 
 RAPIDS_PY_CUDA_SUFFIX="$(rapids-wheel-ctk-name-gen "${RAPIDS_CUDA_VERSION}")"
@@ -14,13 +21,12 @@ mkdir -p "${RAPIDS_TESTS_DIR}"
 
 # generate constraints, the constraints will limit the version of the
 # dependencies that can be installed later on when installing the wheel
-rapids-generate-pip-constraints test_python ./constraints.txt
+rapids-generate-pip-constraints test_python "${PIP_CONSTRAINT}"
 
 # Install just minimal dependencies first
 rapids-pip-retry install \
   "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl \
   "${NVFOREST_WHEELHOUSE}"/nvforest*.whl \
-  --constraint ./constraints.txt \
   --constraint "${PIP_CONSTRAINT}"
 
 # Try to import nvforest with just a minimal install"
@@ -30,13 +36,12 @@ python -c "import nvforest"
 # notes:
 #
 #   * echo to expand wildcard before adding `[test]` requires for pip
-#   * need to provide --constraint="${PIP_CONSTRAINT}" because that environment variable is
-#     ignored if any other --constraint are passed via the CLI
+#   * just providing --constraint="${PIP_CONSTRAINT}" to be explicit, and because
+#     that environment variable is ignored if any other --constraint are passed via the CLI
 #
 rapids-pip-retry install \
    "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl \
   "$(echo "${NVFOREST_WHEELHOUSE}"/nvforest*.whl)[test]" \
-  --constraint ./constraints.txt \
   --constraint "${PIP_CONSTRAINT}"
 
 EXITCODE=0
