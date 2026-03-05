@@ -856,3 +856,18 @@ def test_wide_data():
     # Inference should run without crashing
     fm = nvforest.load_from_sklearn(clf)
     _ = fm.predict(X)
+
+
+def test_incorrect_data_shape():
+    n_rows = 50
+    n_features = 5
+    X = np.random.normal(size=(n_rows, n_features)).astype(np.float32)
+    y = np.asarray([0, 1] * (n_rows // 2), dtype=np.int32)
+
+    clf = RandomForestClassifier(max_features="sqrt", n_estimators=10)
+    clf.fit(X, y)
+
+    fm = nvforest.load_from_sklearn(clf)
+    assert fm.num_features == n_features
+    with pytest.raises(ValueError, match=f"Expected {n_features} features"):
+        fm.predict(np.zeros((1, 4)))
