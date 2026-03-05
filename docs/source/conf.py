@@ -17,11 +17,11 @@
 #
 import datetime
 import os
+import pathlib
 import sys
 
-from packaging.version import Version
-
 import nvforest
+from packaging.version import Version
 
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory
@@ -30,7 +30,6 @@ import nvforest
 sys.path.insert(0, os.path.abspath("sphinxext"))
 
 from github_link import make_linkcode_resolve  # noqa
-
 
 # -- General configuration ------------------------------------------------
 
@@ -209,6 +208,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "scipy": ("https://docs.scipy.org/doc/scipy", None),
     "sklearn": ("https://scikit-learn.org/stable/", None),
+    "treelite": ("https://treelite.readthedocs.io/en/latest/", None),
 }
 
 # Config numpydoc
@@ -236,3 +236,11 @@ linkcode_resolve = make_linkcode_resolve(
 # backticks`) to be a python object. See
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-default_role
 default_role = "py:obj"
+
+# Pre-populate model_dir
+model_dir = pathlib.Path(__file__).parent / "_static"
+doctest_global_setup = f"""
+import pathlib
+
+model_dir = pathlib.Path({str(model_dir)!r})
+"""
