@@ -858,7 +858,17 @@ def test_wide_data():
     _ = fm.predict(X)
 
 
-def test_incorrect_data_shape():
+@pytest.mark.parametrize("input_size", [4, 6], ids=["too_narrow", "too_wide"])
+@pytest.mark.parametrize(
+    "predict_func",
+    [
+        nvforest.CPUForestInferenceClassifier.predict,
+        nvforest.CPUForestInferenceClassifier.predict_per_tree,
+        nvforest.CPUForestInferenceClassifier.apply,
+    ],
+    ids=["predict", "predict_per_tree", "apply"],
+)
+def test_incorrect_data_shape(input_size, predict_func):
     n_rows = 50
     n_features = 5
     X = np.random.normal(size=(n_rows, n_features)).astype(np.float32)
@@ -867,7 +877,8 @@ def test_incorrect_data_shape():
     clf = RandomForestClassifier(max_features="sqrt", n_estimators=10)
     clf.fit(X, y)
 
-    fm = nvforest.load_from_sklearn(clf)
+    fm = nvforest.load_from_sklearn(clf, device="cpu")
     assert fm.num_features == n_features
     with pytest.raises(ValueError, match=f"Expected {n_features} features"):
-        fm.predict(np.zeros((1, 4)))
+        X_test = np.zeros((1, input_size))
+        _ = predict_func(fm, X_test)
