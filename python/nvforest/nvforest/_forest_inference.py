@@ -411,6 +411,10 @@ class CPUForestInferenceClassifier(
     def layout(self) -> str:
         return self.forest.layout
 
+    @property
+    def device_id(self) -> int:
+        return self.forest.device_id
+
 
 class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def __init__(
@@ -507,6 +511,10 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     @property
     def layout(self) -> str:
         return self.forest.layout
+
+    @property
+    def device_id(self) -> int:
+        return self.forest.device_id
 
 
 class GPUForestInferenceClassifier(
@@ -619,6 +627,10 @@ class GPUForestInferenceClassifier(
     def layout(self) -> str:
         return self.forest.layout
 
+    @property
+    def device_id(self) -> int:
+        return self.forest.device_id
+
 
 class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def __init__(
@@ -717,3 +729,7 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     @property
     def layout(self) -> str:
         return self.forest.layout
+
+    @property
+    def device_id(self) -> int:
+        return self.forest.device_id

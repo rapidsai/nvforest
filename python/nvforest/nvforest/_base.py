@@ -125,6 +125,11 @@ class ForestInference(ABC):
     def is_classifier(self) -> bool:
         pass
 
+    @property
+    @abstractmethod
+    def device_id(self) -> str:
+        pass
+
     @abstractmethod
     def optimize(
         self,

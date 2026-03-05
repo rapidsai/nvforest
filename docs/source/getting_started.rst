@@ -76,6 +76,9 @@ You can inspect the type of the model by printing its type:
                                  device="gpu", device_id=1)
         fm = nvforest.load_from_sklearn(skl_model, device="gpu", device_id=1)
 
+    Each model object is associated with a single device. Use the ``device_id`` property to look up
+    which device the model object is located.
+
 After importing the model, run inference using :py:meth:`~nvforest.GPUForestInferenceRegressor.predict`
 or its variants.
 
