@@ -388,6 +388,10 @@ class CPUForestInferenceClassifier(
         return self.forest.apply(X, chunk_size=chunk_size)
 
     @property
+    def num_features(self) -> int:
+        return self.forest.num_features
+
+    @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
 
@@ -487,6 +491,10 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         chunk_size: Optional[int] = None,
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
+
+    @property
+    def num_features(self) -> int:
+        return self.forest.num_features
 
     @property
     def num_outputs(self) -> int:
@@ -604,6 +612,10 @@ class GPUForestInferenceClassifier(
         return self.forest.apply(X, chunk_size=chunk_size)
 
     @property
+    def num_features(self) -> int:
+        return self.forest.num_features
+
+    @property
     def num_outputs(self) -> int:
         return self.forest.num_outputs
 
@@ -705,6 +717,10 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         chunk_size: Optional[int] = None,
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
+
+    @property
+    def num_features(self) -> int:
+        return self.forest.num_features
 
     @property
     def num_outputs(self) -> int:
