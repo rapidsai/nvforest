@@ -92,6 +92,11 @@ class ForestInference(ABC):
 
     @property
     @abstractmethod
+    def num_features(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
     def num_outputs(self) -> int:
         pass
 
