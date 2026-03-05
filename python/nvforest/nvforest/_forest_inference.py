@@ -413,7 +413,7 @@ class CPUForestInferenceClassifier(
 
     @property
     def device_id(self) -> int:
-        return self.forest.device_id
+        return -1
 
 
 class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
@@ -514,7 +514,7 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
 
     @property
     def device_id(self) -> int:
-        return self.forest.device_id
+        return -1
 
 
 class GPUForestInferenceClassifier(
