@@ -8,6 +8,7 @@
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
 #include <nvforest/detail/raft_proto/ceildiv.hpp>
+#include <nvforest/exceptions.hpp>
 #include <nvforest/infer_kind.hpp>
 
 #ifdef _OPENMP
@@ -24,9 +25,11 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <new>
 #include <numeric>
+#include <string>
 #include <vector>
 
 namespace nvforest::detail {
@@ -93,6 +96,27 @@ void infer_kernel_cpu(forest_t const& forest,
   auto const num_tree  = forest.tree_count();
   auto const num_grove = raft_proto::ceildiv(num_tree, grove_size);
   auto const num_chunk = raft_proto::ceildiv(row_count, chunk_size);
+
+  /**
+   * Throw an error for large inputs that would cause integer overflow.
+   * TODO(hcho3): Support large inputs via streaming
+   **/
+  {
+    // Use 64-bit integers for intermediate computations, to avoid overflows
+    // while computing max_num_row.
+    auto max_num_row = static_cast<std::uint64_t>(std::numeric_limits<index_type>::max()) /
+                       (num_outputs * static_cast<std::uint64_t>(num_grove));
+
+    if (max_num_row >= 3) {
+      max_num_row -= 3;
+      // -3 is part of the upper bound on num_row, to ensure that the offset
+      // does not overflow past the uint32_t limit.
+    }
+    if (row_count > max_num_row) {
+      throw runtime_error(std::string("Input size too large! Input should be at most ") +
+                          std::to_string(max_num_row) + ".");
+    }
+  }
 
   auto output_workspace = std::vector<output_t>(row_count * num_outputs * num_grove, output_t{});
   auto const task_count = num_grove * num_chunk;
