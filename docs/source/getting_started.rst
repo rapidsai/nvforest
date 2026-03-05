@@ -5,8 +5,6 @@ Getting started with nvForest
 nvForest with Python
 ====================
 
-To run inference for decision tree models, first **import** tree models into nvForest.
-
 .. testsetup:: workflow
 
     import numpy as np
@@ -18,22 +16,67 @@ To run inference for decision tree models, first **import** tree models into nvF
     skl_model = RandomForestClassifier(n_estimators=1, max_depth=1)
     skl_model.fit(X, y)
 
+First example
+-------------
+
+To run inference for decision tree models, it takes only two lines of code:
+
 .. testcode:: workflow
 
     import nvforest
 
     # model_dir: pathlib.Path object, pointing to a directory containing model files.
+    fm = nvforest.load_model(model_dir / "xgboost_model.json")
+    y = fm.predict(X)
+
+Let us now look into all available options for nvForest.
+
+Model import and device selection
+---------------------------------
+
+With nvForest, you can run tree models using CPUs and NVIDIA GPUs.
+You may explicitly select which device to use by specifying the ``device`` parameter
+in :py:meth:`~nvforest.load_model`. If no ``device`` is given, it is set to ``"auto"``.
+(See the note below for the behavior of ``"auto"``.)
+
+.. testcode:: workflow
 
     # Load XGBoost JSON model, to run inference on CPU
-    fm = nvforest.load_model(model_dir / "xgboost_model.json", device="cpu",
-                             model_type="xgboost_json")
+    fm = nvforest.load_model(model_dir / "xgboost_model.json", device="cpu")
 
     # Load LightGBM model, to run inference on GPU
-    fm = nvforest.load_model(model_dir / "lightgbm_model.txt", device="gpu",
-                             model_type="lightgbm")
+    fm = nvforest.load_model(model_dir / "lightgbm_model.txt", device="gpu")
 
     # Load scikit-learn random forest, to run inference on GPU
     fm = nvforest.load_from_sklearn(skl_model, device="gpu")
+
+.. note:: Automatically detecting ``device``
+
+    Setting ``device="auto"`` in :py:meth:`~nvforest.load_model` will load the tree model
+    onto GPU memory, if a GPU is available. If no GPU is available, the tree model will be
+    loaded to the main memory instead. If no ``device`` parameter is specified, ``device="auto"``
+    will be used.
+
+    This feature allows you to use a single script to deploy tree models to heterogeneous array
+    of machines, some with NVIDIA GPUs and some without.
+
+.. note:: Automatically detecting ``model_type``
+
+    By default, nvForest will attempt to detect the type of the model file using the file
+    extension:
+
+    * ``.json``: XGBoost JSON
+    * ``.ubj``: XGBoost UBJSON
+    * ``.txt``: LightGBM
+    * Other: Treelite checkpoint (produced with :py:meth:`treelite.Model.serialize`)
+
+    In case where nvForest may fail to detect the right model file, you may want to
+    specify the ``model_type`` explicitly:
+
+    .. testcode:: workflow
+
+        fm = nvforest.load_model(model_dir / "lightgbm_model.txt", device="gpu",
+                                 model_type="lightgbm")
 
 The ``fm`` object will be one of the following types:
 
@@ -53,16 +96,6 @@ You can inspect the type of the model by printing its type:
     >>> print(type(fm).__name__)
     GPUForestInferenceClassifier
 
-.. note:: Automatically detecting ``device``
-
-    Setting ``device="auto"`` in :py:meth:`~nvforest.load_model` will load the tree model
-    onto GPU memory, if a GPU is available. If no GPU is available, the tree model will be
-    loaded to the main memory instead. If no ``device`` parameter is specified, ``device="auto"``
-    will be used.
-
-    This feature allows you to use a single script to deploy tree models to heterogeneous array
-    of machines, some with NVIDIA GPUs and some without.
-
 .. note:: Selecting among multiple GPUs
 
     If your system has more than one NVIDIA GPUs, you can select one of them to run tree inference
@@ -72,12 +105,14 @@ You can inspect the type of the model by printing its type:
 
         # Load model to GPU device 1
         fm = nvforest.load_model(model_dir / "xgboost_model.json",
-                                 model_type="xgboost_json",
                                  device="gpu", device_id=1)
         fm = nvforest.load_from_sklearn(skl_model, device="gpu", device_id=1)
 
     Each model object is associated with a single device. Use the ``device_id`` property to look up
     which device the model object is located.
+
+Running inference
+-----------------
 
 After importing the model, run inference using :py:meth:`~nvforest.GPUForestInferenceRegressor.predict`
 or its variants.
@@ -100,10 +135,10 @@ or its variants.
 .. testcode:: workflow
     :hide:
 
-    assert pred.shape == (X.shape[0],)
+    assert pred.shape == (X.shape[0], 1)
     assert class_probs.shape == (X.shape[0], fm.num_outputs)
     assert leaf_ids.shape == (X.shape[0], fm.num_trees)
-    assert pred_per_tree.shape == (X.shape[0], fm.num_trees, fm.num_outputs)
+    assert pred_per_tree.shape == (X.shape[0], fm.num_trees)
 
 nvForest with C++ (Advanced)
 ============================
