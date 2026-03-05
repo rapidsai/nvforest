@@ -70,7 +70,7 @@ in :py:meth:`~nvforest.load_model`. If no ``device`` is given, it is set to ``"a
     * ``.txt``: LightGBM
     * Other: Treelite checkpoint (produced with :py:meth:`treelite.Model.serialize`)
 
-    In case where nvForest may fail to detect the right model file, you may want to
+    In cases where nvForest fails to detect the right model type, you may want to
     specify the ``model_type`` explicitly:
 
     .. testcode:: workflow
@@ -98,7 +98,7 @@ You can inspect the type of the model by printing its type:
 
 .. note:: Selecting among multiple GPUs
 
-    If your system has more than one NVIDIA GPUs, you can select one of them to run tree inference
+    If your system has more than one NVIDIA GPU, you can select one of them to run tree inference
     by passing ``device_id`` parameter.
 
     .. code-block:: python
@@ -109,7 +109,7 @@ You can inspect the type of the model by printing its type:
         fm = nvforest.load_from_sklearn(skl_model, device="gpu", device_id=1)
 
     Each model object is associated with a single device. Use the ``device_id`` property to look up
-    which device the model object is located.
+    which device the model object is located on.
 
 Running inference
 -----------------
