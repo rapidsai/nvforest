@@ -10,8 +10,6 @@
 
 set -euo pipefail
 
-set -x
-
 # Parse command line arguments
 CLI_RUN_CONTEXT=""
 VERSION_ARG=""
