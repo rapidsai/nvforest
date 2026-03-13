@@ -3,7 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ## Usage
-# bash update-version.sh <new_version>
+# NOTE: This script must be run from the repository root, not from the ci/release/ directory
+# Primary interface:   bash ci/release/update-version.sh <new_version> [--run-context=main|release]
+# Fallback interface:  [RAPIDS_RUN_CONTEXT=main|release] bash ci/release/update-version.sh <new_version>
+# CLI arguments take precedence over environment variables
 
 set -euo pipefail
 
@@ -29,10 +32,10 @@ done
 NEXT_FULL_TAG="$VERSION_ARG"
 
 # Determine RUN_CONTEXT with CLI precedence over environment variable, defaulting to main
-if [[ -n "$CLI_RUN_CONTEXT" ]]; then
+if [[ -n "${CLI_RUN_CONTEXT:-}" ]]; then
     RUN_CONTEXT="$CLI_RUN_CONTEXT"
     echo "Using run-context from CLI: $RUN_CONTEXT"
-elif [[ -n "${RAPIDS_RUN_CONTEXT}" ]]; then
+elif [[ -n "${RAPIDS_RUN_CONTEXT:-}" ]]; then
     RUN_CONTEXT="$RAPIDS_RUN_CONTEXT"
     echo "Using run-context from environment: $RUN_CONTEXT"
 else
@@ -48,7 +51,7 @@ if [[ "${RUN_CONTEXT}" != "main" && "${RUN_CONTEXT}" != "release" ]]; then
 fi
 
 # Validate version argument
-if [[ -z "$NEXT_FULL_TAG" ]]; then
+if [[ -z "${NEXT_FULL_TAG:-}" ]]; then
     echo "Error: Version argument is required"
     echo "Usage: $0 <new_version> [--run-context=<context>]"
     echo "   or: [RAPIDS_RUN_CONTEXT=<context>] $0 <new_version>"
