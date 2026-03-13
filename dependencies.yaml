@@ -78,9 +78,6 @@ files:
       - cuda_version
       - docs
       - py_version
-      - depends_on_cuda_python
-      - depends_on_libraft_headers
-      - depends_on_librmm
       - depends_on_nvforest
       - depends_on_libnvforest
   test_cpp:
