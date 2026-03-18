@@ -312,6 +312,7 @@ dependencies:
           - breathe
           - graphviz
           - numpydoc
+          - &packaging packaging
           - pydata-sphinx-theme
           - sphinx
           - sphinx-copybutton
@@ -365,7 +366,7 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-          - packaging
+          - *packaging
           - pandas
           - pytest
           - pytest-cov
