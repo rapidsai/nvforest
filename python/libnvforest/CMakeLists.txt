@@ -44,20 +44,8 @@ set(NVFOREST_EXCLUDE_TREELITE_FROM_ALL ON)
 
 # --- CUDA --- #
 set(CUDA_STATIC_RUNTIME ON)
-set(CUDA_STATIC_MATH_LIBRARIES OFF)
 
 add_subdirectory(../../cpp nvforest-cpp)
-
-# assumes libnvforest++ is installed 2 levels deep, e.g. site-packages/nvforest/lib64/libnvforest++.so
-if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL 13.0)
-  # starting with CTK 13 wheels, all libraries except NCCL are grouped in this 'nvidia/cu13/lib' directory
-  set(rpaths "$ORIGIN/../../nvidia/cu13/lib")
-else()
-  set(rpaths
-      "$ORIGIN/../../nvidia/cublas/lib" "$ORIGIN/../../nvidia/cufft/lib" "$ORIGIN/../../nvidia/curand/lib"
-      "$ORIGIN/../../nvidia/cusolver/lib" "$ORIGIN/../../nvidia/cusparse/lib" "$ORIGIN/../../nvidia/nvjitlink/lib")
-endif()
-list(APPEND rpaths "$ORIGIN/../../nvidia/nccl/lib")
 
 set_property(
   TARGET ${NVFOREST_CPP_TARGET}

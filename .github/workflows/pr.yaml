@@ -206,7 +206,7 @@ jobs:
   wheel-build-libnvforest:
     needs: checks
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@release/26.04
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@build-wheels-old-ctk
     with:
       build_type: pull-request
       branch: ${{ inputs.branch }}
@@ -221,7 +221,7 @@ jobs:
   wheel-build-nvforest:
     needs: [checks, wheel-build-libnvforest]
     secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@release/26.04
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@build-wheels-old-ctk
     with:
       build_type: pull-request
       node_type: cpu8

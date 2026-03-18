@@ -141,13 +141,6 @@ endif()
 # ######################################################################################################################
 # * compiler options ---------------------------------------------------------
 
-set(_ctk_static_suffix "")
-set(_ctk_fft_static_suffix "")
-if(CUDA_STATIC_MATH_LIBRARIES)
-  set(_ctk_static_suffix "_static")
-  set(_ctk_fft_static_suffix "_static_nocallback")
-endif()
-
 if(NOT DISABLE_OPENMP)
   find_package(OpenMP)
   if(OpenMP_FOUND)
@@ -275,7 +268,6 @@ set_target_properties(
 
 target_compile_definitions(
   ${NVFOREST_CPP_TARGET}
-  PUBLIC DISABLE_CUSPARSE_DEPRECATED
   PRIVATE NVFOREST_CPP_API)
 
 target_compile_options(${NVFOREST_CPP_TARGET} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${NVFOREST_CXX_FLAGS}>"

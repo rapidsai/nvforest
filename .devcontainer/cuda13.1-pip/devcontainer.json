@@ -19,10 +19,10 @@
   "features": {
     "ghcr.io/rapidsai/devcontainers/features/cuda:26.4": {
       "version": "13.1",
-      "installcuBLAS": true,
-      "installcuSOLVER": true,
-      "installcuRAND": true,
-      "installcuSPARSE": true
+      "installcuBLAS": false,
+      "installcuSOLVER": false,
+      "installcuRAND": false,
+      "installcuSPARSE": false
     },
     "ghcr.io/rapidsai/devcontainers/features/rapids-build-utils:26.4": {}
   },
