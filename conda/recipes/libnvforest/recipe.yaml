@@ -76,11 +76,6 @@ cache:
       - rapids-logger =0.2
       - treelite ${{ treelite_version }}
       - cuda-cudart-dev
-      - libcublas-dev
-      - libcufft-dev
-      - libcurand-dev
-      - libcusolver-dev
-      - libcusparse-dev
 
 outputs:
   - package:
@@ -107,19 +102,9 @@ outputs:
         - librmm =${{ minor_version }}
         - treelite ${{ treelite_version }}
         - cuda-cudart-dev
-        - libcublas
-        - libcufft
-        - libcurand
-        - libcusolver
-        - libcusparse
       run:
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
         - cuda-cudart
-        - libcublas
-        - libcufft
-        - libcurand
-        - libcusolver
-        - libcusparse
         - librmm =${{ minor_version }}
         - rapids-logger =0.2
         - treelite ${{ treelite_version }}
@@ -127,11 +112,7 @@ outputs:
         by_name:
           - cuda-cudart
           - cuda-version
-          - libcurand
           - librmm
-          - libcusparse
-          - libcufft
-          - libcublas
           - libcusolver
     about:
       homepage: ${{ load_from_file("python/libnvforest/pyproject.toml").project.urls.Homepage }}
@@ -163,11 +144,6 @@ outputs:
         by_name:
           - cuda-cudart
           - cuda-version
-          - libcublas
-          - libcufft
-          - libcurand
-          - libcusolver
-          - libcusparse
           - librmm
     about:
       homepage: ${{ load_from_file("python/libnvforest/pyproject.toml").project.urls.Homepage }}

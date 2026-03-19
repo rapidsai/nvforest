@@ -28,7 +28,6 @@ license = "Apache-2.0"
 requires-python = ">=3.11"
 dependencies = [
     "cuda-python>=13.0.1,<14.0a0",
-    "cuda-toolkit>=12,<14",
     "cupy-cuda13x>=13.6.0",
     "libnvforest==26.4.*,>=0.0.0a0",
     "numpy>=1.23,<3.0a0",

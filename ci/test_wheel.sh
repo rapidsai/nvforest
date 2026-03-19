@@ -14,14 +14,14 @@ mkdir -p "${RAPIDS_TESTS_DIR}"
 
 # generate constraints, the constraints will limit the version of the
 # dependencies that can be installed later on when installing the wheel
-rapids-generate-pip-constraints test_python ./constraints.txt
+rapids-generate-pip-constraints test_python "${PIP_CONSTRAINT}"
 
 # Install just minimal dependencies first
 rapids-pip-retry install \
+  --prefer-binary \
+  --constraint "${PIP_CONSTRAINT}" \
   "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl \
-  "${NVFOREST_WHEELHOUSE}"/nvforest*.whl \
-  --constraint ./constraints.txt \
-  --constraint "${PIP_CONSTRAINT}"
+  "${NVFOREST_WHEELHOUSE}"/nvforest*.whl
 
 # Try to import nvforest with just a minimal install"
 rapids-logger "Importing nvforest with minimal dependencies"
@@ -34,10 +34,10 @@ python -c "import nvforest"
 #     ignored if any other --constraint are passed via the CLI
 #
 rapids-pip-retry install \
-   "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl \
-  "$(echo "${NVFOREST_WHEELHOUSE}"/nvforest*.whl)[test]" \
-  --constraint ./constraints.txt \
-  --constraint "${PIP_CONSTRAINT}"
+  --prefer-binary \
+  --constraint "${PIP_CONSTRAINT}" \
+  "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl \
+  "$(echo "${NVFOREST_WHEELHOUSE}"/nvforest*.whl)[test]"
 
 EXITCODE=0
 trap "EXITCODE=1" ERR
