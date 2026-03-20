@@ -25,7 +25,6 @@ classifiers = [
     "Environment :: GPU :: NVIDIA CUDA",
 ]
 dependencies = [
-    "cuda-toolkit>=12,<14",
     "libraft==26.6.*,>=0.0.0a0",
     "librmm==26.6.*,>=0.0.0a0",
     "rapids-logger==0.2.*,>=0.0.0a0",
