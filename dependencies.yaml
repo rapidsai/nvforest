@@ -231,14 +231,13 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-          - &cython cython>=3.0.0
+          - cython>=3.0.0
           - &treelite treelite>=4.6.1,<5.0
   py_run_nvforest:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-          - &numpy numpy>=1.23,<3.0a0
-          - packaging
+          - numpy>=1.23,<3.0a0
           - &scikit_learn scikit-learn>=1.5
           - *treelite
   # 'cuda_version' intentionally does not contain fallback entries... we want
@@ -329,6 +328,7 @@ dependencies:
           - breathe
           - graphviz
           - numpydoc
+          - &packaging packaging
           - pydata-sphinx-theme
           - sphinx
           - sphinx-copybutton
@@ -382,6 +382,7 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
+          - *packaging
           - pandas
           - pytest
           - pytest-cov

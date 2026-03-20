@@ -96,7 +96,6 @@ requirements:
     - libnvforest =${{ version }}
     - numpy >=1.23,<3.0a0
     - scikit-learn >=1.4
-    - packaging
     - pylibraft =${{ minor_version }}
     - python
     - treelite ${{ treelite_version }}
