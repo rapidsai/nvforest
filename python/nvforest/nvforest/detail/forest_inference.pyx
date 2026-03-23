@@ -355,12 +355,22 @@ class ForestInferenceImpl:
     def elem_postprocessing(self) -> str:
         return self.impl.elem_postprocessing()
 
+    def _validate_input_dims(self, X: DataType) -> None:
+        if len(X.shape) != 2:
+            raise ValueError("Expected a 2D array for X")
+        if X.shape[1] != self.num_features:
+            raise ValueError(
+                f"Expected {self.num_features} features in the input "
+                f"but X has {X.shape[1]} features"
+            )
+
     def predict(
         self,
         X: DataType,
         *,
         chunk_size: Optional[int] = None,
     ) -> DataType:
+        self._validate_input_dims(X)
         # Returns probabilities if the model is a classifier
         return self.impl.predict(
             X, chunk_size=(chunk_size or self.default_chunk_size)
@@ -372,6 +382,7 @@ class ForestInferenceImpl:
         *,
         chunk_size: Optional[int] = None,
     ) -> DataType:
+        self._validate_input_dims(X)
         chunk_size = (chunk_size or self.default_chunk_size)
         return self.impl.predict(
             X, predict_type="per_tree", chunk_size=chunk_size
@@ -383,6 +394,7 @@ class ForestInferenceImpl:
         *,
         chunk_size: Optional[int] = None,
     ) -> DataType:
+        self._validate_input_dims(X)
         chunk_size = (chunk_size or self.default_chunk_size)
         return self.impl.predict(
             X, predict_type="leaf_id", chunk_size=chunk_size
