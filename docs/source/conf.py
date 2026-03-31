@@ -203,10 +203,8 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "cudf": ("https://docs.rapids.ai/api/cudf/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy", None),
     "sklearn": ("https://scikit-learn.org/stable/", None),
     "treelite": ("https://treelite.readthedocs.io/en/latest/", None),
 }
