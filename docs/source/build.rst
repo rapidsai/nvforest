@@ -33,7 +33,7 @@ We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-
 
 **For development only.**
 
-* clang-format (= 20.1.4): enforces uniform C++ coding style; required for pre-commit hooks and CI checks. The packages ``clang=20`` and ``clang-tools=20`` from the conda-forge channel should be sufficient, if you are using conda. If not using conda, install the right version using your OS package manager.
+* clang-format (= 20.1.8): enforces uniform C++ coding style; required for pre-commit hooks and CI checks. The packages ``clang=20`` and ``clang-tools=20`` from the conda-forge channel should be sufficient, if you are using conda. If not using conda, install the right version using your OS package manager.
 
 .. note:: Use Conda to install all software dependencies
 
