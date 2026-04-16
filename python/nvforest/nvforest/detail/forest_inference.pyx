@@ -12,10 +12,11 @@ from nvforest._handle import Handle
 from nvforest._typing import DataType
 from nvforest.detail.treelite import safe_treelite_call
 
+from cython.operator cimport dereference as deref
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
-from pylibraft.common.handle cimport handle_t as raft_handle_t
 
+from nvforest.detail.handle cimport handle_t
 from nvforest.detail.infer_kind cimport infer_kind
 from nvforest.detail.postprocessing cimport element_op, row_op
 from nvforest.detail.raft_proto.cuda_stream cimport (
@@ -24,7 +25,6 @@ from nvforest.detail.raft_proto.cuda_stream cimport (
 from nvforest.detail.raft_proto.device_type cimport (
     device_type as raft_proto_device_t,
 )
-from nvforest.detail.raft_proto.handle cimport handle_t as raft_proto_handle_t
 from nvforest.detail.raft_proto.optional cimport nullopt, optional
 from nvforest.detail.tree_layout cimport tree_layout as nvforest_tree_layout
 from nvforest.detail.treelite cimport (
@@ -37,7 +37,7 @@ from nvforest.detail.treelite cimport (
 cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
     cdef cppclass forest_model:
         void predict[io_t](
-            const raft_proto_handle_t&,
+            const handle_t&,
             io_t*,
             io_t*,
             size_t,
@@ -69,13 +69,13 @@ cdef extern from "nvforest/treelite_importer.hpp" namespace "nvforest" nogil:
 
 cdef class ForestInference_impl():
     cdef forest_model model
-    cdef raft_proto_handle_t raft_proto_handle
-    cdef object raft_handle
+    cdef object py_handle
+    cdef handle_t* c_handle
     cdef object device
 
     def __cinit__(
         self,
-        raft_handle: object,
+        handle: object,
         tl_model_bytes: Union[bytes, bytearray],
         *,
         layout: str = "depth_first",
@@ -84,12 +84,8 @@ cdef class ForestInference_impl():
         device: str = "cpu",
         device_id: Optional[int] = None,
     ):
-        # Store reference to RAFT handle to control lifetime, since raft_proto
-        # handle keeps a pointer to it
-        self.raft_handle = raft_handle
-        self.raft_proto_handle = raft_proto_handle_t(
-            <raft_handle_t*><size_t>self.raft_handle.getHandle()
-        )
+        self.py_handle = handle
+        self.c_handle = <handle_t*><size_t>self.py_handle.getHandle()
 
         cdef optional[bool] use_double_precision_c
         cdef bool use_double_precision_bool
@@ -134,7 +130,7 @@ cdef class ForestInference_impl():
             use_double_precision_c,
             dev_type,
             device_id,
-            self.raft_proto_handle.get_next_usable_stream()
+            self.c_handle.get_next_usable_stream()
         )
 
         safe_treelite_call(
@@ -244,7 +240,7 @@ cdef class ForestInference_impl():
 
         if model_dtype == np.float32:
             self.model.predict[float](
-                self.raft_proto_handle,
+                deref(self.c_handle),
                 <float *> out_ptr,
                 <float *> in_ptr,
                 n_rows,
@@ -255,7 +251,7 @@ cdef class ForestInference_impl():
             )
         else:
             self.model.predict[double](
-                self.raft_proto_handle,
+                deref(self.c_handle),
                 <double *> out_ptr,
                 <double *> in_ptr,
                 n_rows,
@@ -266,7 +262,7 @@ cdef class ForestInference_impl():
             )
 
         if self.device == "gpu":
-            self.raft_proto_handle.synchronize()
+            self.c_handle.synchronize()
         return preds
 
 

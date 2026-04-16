@@ -74,6 +74,12 @@ rapids_cython_create_modules(
 
 rapids_cython_create_modules(
   CXX
+  SOURCE_FILES "nvforest/detail/handle.pyx"
+  LINKED_LIBRARIES "${linked_libraries}"
+  INSTALL_DIR nvforest/detail MODULE_PREFIX nvforest_)
+
+rapids_cython_create_modules(
+  CXX
   SOURCE_FILES "nvforest/detail/treelite.pyx"
   LINKED_LIBRARIES "${linked_libraries}"
   INSTALL_DIR nvforest/detail MODULE_PREFIX nvforest_)
