@@ -29,7 +29,6 @@ dependencies:
 - pandas
 - pre-commit
 - pydata-sphinx-theme
-- pylibraft==26.6.*,>=0.0.0a0
 - pytest
 - pytest-cov
 - pytest-xdist
