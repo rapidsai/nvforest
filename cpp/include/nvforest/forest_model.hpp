@@ -7,7 +7,7 @@
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
-#include <nvforest/detail/raft_proto/handle.hpp>
+#include <nvforest/handle.hpp>
 #include <nvforest/infer_kind.hpp>
 
 #include <cstddef>
@@ -152,8 +152,8 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The raft_proto::handle_t (wrapper for raft::handle_t
-   * on GPU) which will be used to provide streams for evaluation.
+   * @param[in] handle The nvforest::handle_t which will be used to provide
+   * streams for evaluation.
    * @param[out] output The buffer where model output should be stored. If
    * this buffer is on host while the model is on device or vice versa,
    * work will be distributed across available streams to copy the data back
@@ -177,7 +177,7 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(raft_proto::handle_t const& handle,
+  void predict(handle_t const& handle,
                raft_proto::buffer<io_t>& output,
                raft_proto::buffer<io_t> const& input,
                infer_kind predict_type                        = infer_kind::default_kind,
@@ -252,8 +252,8 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The raft_proto::handle_t (wrapper for raft::handle_t
-   * on GPU) which will be used to provide streams for evaluation.
+   * @param[in] handle The nvforest::handle_t which will be used to provide
+   * streams for evaluation.
    * @param[out] output Pointer to the memory location where output should end
    * up
    * @param[in] input Pointer to the input data
@@ -276,7 +276,7 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(raft_proto::handle_t const& handle,
+  void predict(handle_t const& handle,
                io_t* output,
                io_t* input,
                std::size_t num_rows,
