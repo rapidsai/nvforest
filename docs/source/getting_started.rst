@@ -195,11 +195,9 @@ Now that the tree model is fully imported into nvForest, let's run inference:
 
 .. code-block:: cpp
 
-    #include <raft/core/handle.hpp>
-    #include <nvforest/detail/raft_proto/handle.hpp>
+    #include <nvforest/handle.hpp>
 
-    raft::handle_t raft_handle{};
-    raft_proto::handle_t handle{raft_handle};
+    auto handle = nvforest::handle_t{};
 
     // Assumption:
     // * Both output and input are in the GPU memory.
