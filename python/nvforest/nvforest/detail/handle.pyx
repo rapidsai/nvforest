@@ -4,7 +4,7 @@
 #
 
 cdef class Handle:
-    def __cinit__(self, c_obj=None):
+    def __cinit__(self):
         self.c_obj.reset(new handle_t())
 
     def __getstate__(self):
