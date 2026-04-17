@@ -4,10 +4,11 @@
  */
 
 #include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/handle.hpp>
 #include <nvforest/postproc_ops.hpp>
 #include <nvforest/tree_layout.hpp>
 #include <nvforest/treelite_importer.hpp>
+
+#include <raft/core/device_resources.hpp>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -338,11 +339,11 @@ TEST(TreeliteImporter, DegenerateTree)
   auto fil_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
   ASSERT_FALSE(fil_model.has_vector_leaves());
 
-  auto handle         = nvforest::handle_t{};
+  auto resource       = raft::device_resources{};
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(1, 0.0);
   auto expected_preds = std::vector<double>{1.0};
-  fil_model.predict(handle,
+  fil_model.predict(resource,
                     preds.data(),
                     X.data(),
                     1,
@@ -359,11 +360,11 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
   auto fil_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
   ASSERT_TRUE(fil_model.has_vector_leaves());
 
-  auto handle         = nvforest::handle_t{};
+  auto resource       = raft::device_resources{};
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(2, 0.0);
   auto expected_preds = std::vector<double>{0.5, 0.5};
-  fil_model.predict(handle,
+  fil_model.predict(resource,
                     preds.data(),
                     X.data(),
                     1,

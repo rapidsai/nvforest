@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from nvforest.detail.handle import Handle as _Handle
+from pylibraft.common.handle import DeviceResources as RaftDeviceResources
 
-Handle = _Handle
+# For now, nvforest.handle.Handle is an alias of pylibraft.common.handle.DeviceResources
+Handle = RaftDeviceResources

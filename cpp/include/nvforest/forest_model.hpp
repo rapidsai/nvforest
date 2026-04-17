@@ -7,8 +7,9 @@
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
-#include <nvforest/handle.hpp>
 #include <nvforest/infer_kind.hpp>
+
+#include <raft/core/device_resources.hpp>
 
 #include <cstddef>
 #include <type_traits>
@@ -152,7 +153,7 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The nvforest::handle_t which will be used to provide
+   * @param[in] resource RAFT resource which will be used to provide
    * streams for evaluation.
    * @param[out] output The buffer where model output should be stored. If
    * this buffer is on host while the model is on device or vice versa,
@@ -177,31 +178,32 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(handle_t const& handle,
+  void predict(raft::device_resources const& resource,
                raft_proto::buffer<io_t>& output,
                raft_proto::buffer<io_t> const& input,
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
     std::visit(
-      [this, predict_type, &handle, &output, &input, &specified_chunk_size](
+      [this, predict_type, &resource, &output, &input, &specified_chunk_size](
         auto&& concrete_forest) {
         using model_io_t = typename std::remove_reference_t<decltype(concrete_forest)>::io_type;
         if constexpr (std::is_same_v<model_io_t, io_t>) {
           if (output.memory_type() == memory_type() && input.memory_type() == memory_type()) {
             concrete_forest.predict(
-              output, input, handle.get_next_usable_stream(), predict_type, specified_chunk_size);
+              output, input, resource.get_next_usable_stream(), predict_type, specified_chunk_size);
           } else {
             auto constexpr static const MIN_CHUNKS_PER_PARTITION = std::size_t{64};
             auto constexpr static const MAX_CHUNK_SIZE           = std::size_t{64};
 
-            auto row_count = input.size() / num_features();
+            auto row_count           = input.size() / num_features();
+            auto usable_stream_count = std::max(resource.get_stream_pool_size(), std::size_t{1});
             auto partition_size =
-              std::max(raft_proto::ceildiv(row_count, handle.get_usable_stream_count()),
+              std::max(raft_proto::ceildiv(row_count, usable_stream_count),
                        specified_chunk_size.value_or(MAX_CHUNK_SIZE) * MIN_CHUNKS_PER_PARTITION);
             auto partition_count = raft_proto::ceildiv(row_count, partition_size);
             for (auto i = std::size_t{}; i < partition_count; ++i) {
-              auto stream = handle.get_next_usable_stream();
+              auto stream = resource.get_next_usable_stream();
               auto rows_in_this_partition =
                 std::min(partition_size, row_count - i * partition_size);
               auto partition_in = raft_proto::buffer<io_t>{};
@@ -252,7 +254,7 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The nvforest::handle_t which will be used to provide
+   * @param[in] resource RAFT resource which will be used to provide
    * streams for evaluation.
    * @param[out] output Pointer to the memory location where output should end
    * up
@@ -276,7 +278,7 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(handle_t const& handle,
+  void predict(raft::device_resources const& resource,
                io_t* output,
                io_t* input,
                std::size_t num_rows,
@@ -296,7 +298,7 @@ struct forest_model {
       raft_proto::buffer{output, num_rows * num_outputs(), out_mem_type, current_device_id};
     auto in_buffer =
       raft_proto::buffer{input, num_rows * num_features(), in_mem_type, current_device_id};
-    predict(handle, out_buffer, in_buffer, predict_type, specified_chunk_size);
+    predict(resource, out_buffer, in_buffer, predict_type, specified_chunk_size);
   }
 
  private:

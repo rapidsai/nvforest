@@ -15,8 +15,8 @@ from nvforest.detail.treelite import safe_treelite_call
 from cython.operator cimport dereference as deref
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
+from rmm.librmm.cuda_stream_view cimport cuda_stream_view
 
-from nvforest.detail.handle cimport handle_t
 from nvforest.detail.infer_kind cimport infer_kind
 from nvforest.detail.postprocessing cimport element_op, row_op
 from nvforest.detail.raft_proto.cuda_stream cimport (
@@ -34,10 +34,18 @@ from nvforest.detail.treelite cimport (
 )
 
 
+cdef extern from "raft/core/device_resources.hpp" namespace "raft" nogil:
+    cdef cppclass device_resources:
+        device_resources() except +
+        cuda_stream_view get_next_usable_stream() except +
+        void sync_stream() except +
+        void sync_stream_pool() except +
+
+
 cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
     cdef cppclass forest_model:
         void predict[io_t](
-            const handle_t&,
+            const device_resources&,
             io_t*,
             io_t*,
             size_t,
@@ -70,7 +78,7 @@ cdef extern from "nvforest/treelite_importer.hpp" namespace "nvforest" nogil:
 cdef class ForestInference_impl():
     cdef forest_model model
     cdef object py_handle
-    cdef handle_t* c_handle
+    cdef device_resources* c_handle
     cdef object device
 
     def __cinit__(
@@ -85,7 +93,7 @@ cdef class ForestInference_impl():
         device_id: Optional[int] = None,
     ):
         self.py_handle = handle
-        self.c_handle = <handle_t*><size_t>self.py_handle.getHandle()
+        self.c_handle = <device_resources*><size_t>self.py_handle.getHandle()
 
         cdef optional[bool] use_double_precision_c
         cdef bool use_double_precision_bool
@@ -130,7 +138,7 @@ cdef class ForestInference_impl():
             use_double_precision_c,
             dev_type,
             device_id,
-            self.c_handle.get_next_usable_stream()
+            <raft_proto_stream_t> self.c_handle.get_next_usable_stream().value()
         )
 
         safe_treelite_call(
@@ -262,7 +270,8 @@ cdef class ForestInference_impl():
             )
 
         if self.device == "gpu":
-            self.c_handle.synchronize()
+            self.c_handle.sync_stream_pool()
+            self.c_handle.sync_stream()
         return preds
 
 
