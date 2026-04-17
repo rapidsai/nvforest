@@ -360,12 +360,10 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
   auto fil_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
   ASSERT_TRUE(fil_model.has_vector_leaves());
 
-  auto resource       = raft::device_resources{};
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(2, 0.0);
   auto expected_preds = std::vector<double>{0.5, 0.5};
-  fil_model.predict(resource,
-                    preds.data(),
+  fil_model.predict(preds.data(),
                     X.data(),
                     1,
                     raft_proto::device_type::cpu,

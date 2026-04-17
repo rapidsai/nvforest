@@ -301,6 +301,50 @@ struct forest_model {
     predict(resource, out_buffer, in_buffer, predict_type, specified_chunk_size);
   }
 
+  /**
+   * Perform inference on given input (with auto-instantiated RAFT resource)
+   *
+   * @param[out] output Pointer to the memory location where output should end
+   * up
+   * @param[in] input Pointer to the input data
+   * @param[in] num_rows Number of rows in input
+   * @param[in] out_mem_type The memory type (device/host) of the output
+   * buffer
+   * @param[in] in_mem_type The memory type (device/host) of the input buffer
+   * @param[in] predict_type Type of inference to perform. Defaults to summing
+   * the outputs of all trees and produce an output per row. If set to
+   * "per_tree", we will instead output all outputs of individual trees.
+   * If set to "leaf_id", we will output the integer ID of the leaf node
+   * for each tree.
+   * @param[in] specified_chunk_size: Specifies the mini-batch size for
+   * processing. This has different meanings on CPU and GPU, but on GPU it
+   * corresponds to the number of rows evaluated per inference iteration
+   * on a single block. It can take on any power of 2 from 1 to 32, and
+   * runtime performance is quite sensitive to the value chosen. In general,
+   * larger batches benefit from higher values, but it is hard to predict the
+   * optimal value a priori. If omitted, a heuristic will be used to select a
+   * reasonable value. On CPU, this argument can generally just be omitted.
+   */
+  template <typename io_t>
+  void predict(io_t* output,
+               io_t* input,
+               std::size_t num_rows,
+               raft_proto::device_type out_mem_type,
+               raft_proto::device_type in_mem_type,
+               infer_kind predict_type                        = infer_kind::default_kind,
+               std::optional<index_type> specified_chunk_size = std::nullopt)
+  {
+    auto resource = raft::device_resources{};
+    predict(resource,
+            output,
+            input,
+            num_rows,
+            out_mem_type,
+            in_mem_type,
+            predict_type,
+            specified_chunk_size);
+  }
+
  private:
   decision_forest_variant decision_forest_;
 };
