@@ -16,6 +16,7 @@ files:
       - depends_on_cupy
       - depends_on_libraft
       - depends_on_librmm
+      - depends_on_pylibraft
       - depends_on_rapids_logger
       - develop
       - docs
@@ -36,6 +37,7 @@ files:
       - depends_on_cupy
       - depends_on_libraft
       - depends_on_librmm
+      - depends_on_pylibraft
       - depends_on_rapids_logger
       - py_build_nvforest
       - py_run_nvforest
@@ -113,6 +115,7 @@ files:
       - depends_on_libnvforest
       - depends_on_libraft
       - depends_on_librmm
+      - depends_on_pylibraft
       - py_build_nvforest
   py_run_nvforest:
     output: pyproject
@@ -123,6 +126,7 @@ files:
       - depends_on_cuda_python
       - depends_on_cupy
       - depends_on_libnvforest
+      - depends_on_pylibraft
       - py_run_nvforest
   py_test_nvforest:
     output: pyproject
@@ -506,6 +510,31 @@ dependencies:
             packages:
               - librmm-cu13==26.6.*,>=0.0.0a0
           - {matrix: null, packages: [*librmm_unsuffixed]}
+  depends_on_pylibraft:
+    common:
+      - output_types: conda
+        packages:
+          - &pylibraft_unsuffixed pylibraft==26.6.*,>=0.0.0a0
+      - output_types: requirements
+        packages:
+          # pip recognizes the index as a global option for the requirements.txt file
+          - --extra-index-url=https://pypi.anaconda.org/rapidsai-wheels-nightly/simple
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - pylibraft-cu12==26.6.*,>=0.0.0a0
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - pylibraft-cu13==26.6.*,>=0.0.0a0
+          - matrix:
+            packages:
+              - *pylibraft_unsuffixed
   depends_on_rapids_logger:
     common:
       - output_types: [conda, requirements, pyproject]

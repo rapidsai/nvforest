@@ -249,7 +249,7 @@ model = treelite.Model.load(filepath, format='xgboost_json')
 **Lightweight Design Philosophy**:
 nvForest must remain a lean, focused inference library. When reviewing changes that add dependencies:
 - **Question every new dependency**: Is it absolutely necessary? Can we achieve the same with existing deps?
-- **Allowed dependencies**: numpy, treelite, and RAPIDS core libs (rmm)
+- **Allowed dependencies**: numpy, treelite, and RAPIDS core libs (rmm, pylibraft)
 - **Avoid**: Large ML frameworks, libraries with heavy transitive dependencies, optional "nice-to-have" deps
 - **Install size matters**: New deps should not significantly increase wheel/conda package size
 - **Runtime dependencies are costly**: Each new import adds startup time and potential version conflicts

@@ -112,6 +112,7 @@ DEPENDENCIES=(
   libraft
   libraft-headers
   librmm
+  pylibraft
   rapids-xgboost
   rmm
 )
