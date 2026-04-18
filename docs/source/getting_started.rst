@@ -202,3 +202,20 @@ Now that the tree model is fully imported into nvForest, let's run inference:
     fm.predict(output, input, num_rows,
                raft_proto::device_type::gpu, raft_proto::device_type::gpu,
                nvforest::infer_kind::default_kind);
+
+.. note:: Reuse the resource handle to reduce overhead
+
+    nvForest internally creates a resource handle (``raft::device_resources``)
+    to manage GPU resources. Creation of the resource handle adds a slight
+    performance overhead. If you plan to call :cpp:func:`nvforest::predict`
+    multiple times, consider creating the resource handle explicitly
+    and re-using the handle between the function calls.
+
+    .. code-block:: cpp
+
+        #include <raft/core/device_resources.hpp>
+
+        auto resource = raft::device_resources{};
+        fm.predict(resource, output, input, num_rows,
+                   raft_proto::device_type::gpu, raft_proto::device_type::gpu,
+                   nvforest::infer_kind::default_kind);
