@@ -205,11 +205,13 @@ Now that the tree model is fully imported into nvForest, let's run inference:
 
 .. note:: Reuse the resource handle to reduce overhead
 
-    nvForest internally creates a resource handle (``raft::device_resources``)
+    nvForest internally creates a resource handle
+    (:cpp:class:`raft::device_resources`)
     to manage GPU resources. Creation of the resource handle adds a slight
-    performance overhead. If you plan to call :cpp:func:`nvforest::predict`
-    multiple times, consider creating the resource handle explicitly
-    and re-using the handle between the function calls.
+    performance overhead. If you plan to call
+    :cpp:func:`~nvforest::forest_model::predict` multiple times, consider
+    creating the resource handle explicitly and re-using the handle between
+    the function calls.
 
     .. code-block:: cpp
 
