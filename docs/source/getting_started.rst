@@ -216,6 +216,8 @@ Now that the tree model is fully imported into nvForest, let's run inference:
         #include <raft/core/device_resources.hpp>
 
         auto resource = raft::device_resources{};
+
+        // Calling predict multiple times ...
         fm.predict(resource, output, input, num_rows,
                    raft_proto::device_type::gpu, raft_proto::device_type::gpu,
                    nvforest::infer_kind::default_kind);
