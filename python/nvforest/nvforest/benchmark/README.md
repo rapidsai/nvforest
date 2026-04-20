@@ -6,13 +6,13 @@ Comprehensive benchmark comparing nvforest inference performance against native 
 
 ```bash
 # Dry run - see what will be benchmarked
-python -m nvforest.benchmark.benchmark run --dry-run
+python -m nvforest.benchmark.run --dry-run
 
 # Quick test - verify setup with minimal parameters
-python -m nvforest.benchmark.benchmark run --quick-test
+python -m nvforest.benchmark.run --quick-test
 
 # Full benchmark
-python -m nvforest.benchmark.benchmark run
+python -m nvforest.benchmark.run
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ python -m nvforest.benchmark.benchmark run
 ### Running Benchmarks
 
 ```bash
-python -m nvforest.benchmark.benchmark run [OPTIONS]
+python -m nvforest.benchmark.run [OPTIONS]
 ```
 
 **Options:**
@@ -38,13 +38,13 @@ python -m nvforest.benchmark.benchmark run [OPTIONS]
 
 ```bash
 # Benchmark only sklearn on CPU
-python -m nvforest.benchmark.benchmark run --framework sklearn --device cpu
+python -m nvforest.benchmark.run --framework sklearn --device cpu
 
 # Benchmark XGBoost and LightGBM classifiers only
-python -m nvforest.benchmark.benchmark run -f xgboost -f lightgbm -m classifier
+python -m nvforest.benchmark.run -f xgboost -f lightgbm -m classifier
 
 # Quick test with specific framework
-python -m nvforest.benchmark.benchmark run --quick-test --framework sklearn
+python -m nvforest.benchmark.run --quick-test --framework sklearn
 ```
 
 ### Analyzing Results

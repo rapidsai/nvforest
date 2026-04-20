@@ -730,13 +730,7 @@ def run_benchmark_suite(
     )
 
 
-@click.group()
-def cli():
-    """Benchmark suite for nvforest."""
-    pass
-
-
-@cli.command()
+@click.command()
 @click.option(
     "--framework",
     "-f",
@@ -853,4 +847,4 @@ def run(
 
 
 if __name__ == "__main__":
-    cli()
+    run()
