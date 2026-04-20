@@ -105,6 +105,8 @@ The `--device` parameter affects how both native frameworks and nvforest run inf
 - **CPU**: Standard CPU inference with DMatrix
 - **GPU**: Models are trained with `device="cuda"` and use `inplace_predict` for GPU inference
 
+When `--device=gpu` is set, XGBoost models are trained on GPU which enables GPU-native inference. This provides a fair comparison between XGBoost GPU inference and nvforest GPU inference.
+
 ### LightGBM
 - **CPU**: Standard CPU inference
 - **GPU**: LightGBM GPU training and inference require the library to be built with GPU support:
@@ -117,8 +119,6 @@ When GPU is requested and LightGBM GPU support is available, models are trained 
 ### sklearn
 - **CPU**: Standard CPU inference
 - **GPU**: sklearn is CPU-only. For GPU benchmarks, native inference runs on CPU as a baseline. The speedup comparison reflects nvforest GPU vs sklearn CPU.
-
-> **Note**: When `device=gpu`, XGBoost models are trained on GPU which enables GPU-native inference. This provides a fair comparison between XGBoost GPU inference and nvforest GPU inference.
 
 ## Output
 
