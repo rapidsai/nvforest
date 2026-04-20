@@ -11,14 +11,14 @@ import pytest
 from click.testing import CliRunner
 
 # Import benchmark components
-from nvforest.benchmark.benchmark import (
+from nvforest.benchmark.run import (
     FRAMEWORKS,
     FULL_VALUES,
     QUICK_TEST_VALUES,
     FrameworkConfig,
-    cli,
     generate_data,
     print_dry_run_info,
+    run,
     run_inference_benchmark,
     train_model,
     write_checkpoint,
@@ -300,7 +300,7 @@ class TestCLI:
     def test_cli_dry_run(self):
         """Test CLI dry run option."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["run", "--dry-run"])
+        result = runner.invoke(run, ["--dry-run"])
         assert result.exit_code == 0
         assert "Benchmark Configuration" in result.output
 
@@ -308,9 +308,7 @@ class TestCLI:
     def test_cli_dry_run_with_framework(self):
         """Test CLI dry run with specific framework."""
         runner = CliRunner()
-        result = runner.invoke(
-            cli, ["run", "--dry-run", "--framework", "sklearn"]
-        )
+        result = runner.invoke(run, ["--dry-run", "--framework", "sklearn"])
         assert result.exit_code == 0
         assert "sklearn" in result.output
 
@@ -318,7 +316,7 @@ class TestCLI:
     def test_cli_dry_run_quick_test(self):
         """Test CLI dry run with quick test."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["run", "--dry-run", "--quick-test"])
+        result = runner.invoke(run, ["--dry-run", "--quick-test"])
         assert result.exit_code == 0
         # Quick test has fewer configurations
         assert any(
@@ -330,7 +328,7 @@ class TestCLI:
     def test_cli_dry_run_single_device(self):
         """Test CLI dry run with single device."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["run", "--dry-run", "--device", "cpu"])
+        result = runner.invoke(run, ["--dry-run", "--device", "cpu"])
         assert result.exit_code == 0
         assert "cpu" in result.output
 
@@ -338,9 +336,7 @@ class TestCLI:
     def test_cli_dry_run_single_model_type(self):
         """Test CLI dry run with single model type."""
         runner = CliRunner()
-        result = runner.invoke(
-            cli, ["run", "--dry-run", "--model-type", "regressor"]
-        )
+        result = runner.invoke(run, ["--dry-run", "--model-type", "regressor"])
         assert result.exit_code == 0
         assert "regressor" in result.output
 
@@ -348,9 +344,7 @@ class TestCLI:
     def test_cli_invalid_framework(self):
         """Test CLI with invalid framework."""
         runner = CliRunner()
-        result = runner.invoke(
-            cli, ["run", "--dry-run", "--framework", "invalid"]
-        )
+        result = runner.invoke(run, ["--dry-run", "--framework", "invalid"])
         assert result.exit_code != 0
 
     @pytest.mark.unit
@@ -358,7 +352,7 @@ class TestCLI:
         """Test CLI with multiple frameworks."""
         runner = CliRunner()
         result = runner.invoke(
-            cli, ["run", "--dry-run", "-f", "sklearn", "-f", "xgboost"]
+            run, ["--dry-run", "-f", "sklearn", "-f", "xgboost"]
         )
         # May fail if xgboost not installed, but should not error on parsing
         if result.exit_code == 0:
