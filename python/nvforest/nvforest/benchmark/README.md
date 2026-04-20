@@ -110,7 +110,7 @@ The `--device` parameter affects how both native frameworks and nvforest run inf
 - **GPU**: LightGBM GPU training and inference require the library to be built with GPU support:
   ```bash
   pip install lightgbm --no-binary lightgbm --config-settings=cmake.define.USE_GPU=ON
- ```
+  ```
 
 When GPU is requested and LightGBM GPU support is available, models are trained with `device="gpu"` and inference uses the GPU-trained model. If GPU support is not available, training/inference falls back to CPU with a warning.
 
