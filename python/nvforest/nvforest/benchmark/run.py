@@ -11,10 +11,10 @@ Supports sklearn, XGBoost, and LightGBM models with both regressor and classifie
 variants on CPU and GPU devices.
 
 Usage:
-    python -m nvforest.benchmark.benchmark run
-    python -m nvforest.benchmark.benchmark run --framework sklearn --framework xgboost
-    python -m nvforest.benchmark.benchmark run --dry-run
-    python -m nvforest.benchmark.benchmark run --quick-test
+    python -m nvforest.benchmark.run
+    python -m nvforest.benchmark.run --framework sklearn --framework xgboost
+    python -m nvforest.benchmark.run --dry-run
+    python -m nvforest.benchmark.run --quick-test
 """
 
 import gc
