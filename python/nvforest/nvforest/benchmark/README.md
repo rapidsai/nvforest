@@ -109,9 +109,9 @@ When `--device=gpu` is set, XGBoost models are trained on GPU which enables GPU-
 
 ### LightGBM
 - **CPU**: Standard CPU inference
-- **GPU**: LightGBM GPU training and inference require the library to be built with GPU support:
+- **GPU**: LightGBM GPU training and inference requires the presence of OpenCL Runtime libraries. Install LightGBM from PyPI to automatically enable OpenCL GPU support.
   ```bash
-  pip install lightgbm --no-binary lightgbm --config-settings=cmake.define.USE_GPU=ON
+  pip install lightgbm
   ```
 
 When GPU is requested and LightGBM GPU support is available, models are trained with `device="gpu"` and inference uses the GPU-trained model. If GPU support is not available, training/inference falls back to CPU with a warning.
