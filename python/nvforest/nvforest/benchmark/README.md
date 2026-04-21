@@ -150,9 +150,9 @@ Required:
 - `click`
 - `pandas`
 - `numpy`
+- `scikit-learn`
 
 Optional (for specific frameworks):
-- `scikit-learn` - for sklearn benchmarks
 - `xgboost` - for XGBoost benchmarks
 - `lightgbm` - for LightGBM benchmarks
 - `matplotlib`, `seaborn` - for result visualization
