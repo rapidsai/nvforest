@@ -8,15 +8,15 @@ from typing import Optional, Union
 import numpy as np
 import treelite
 
-from nvforest._handle import Handle
+from nvforest._device_resources import DeviceResources
 from nvforest._typing import DataType
 from nvforest.detail.treelite import safe_treelite_call
 
 from cython.operator cimport dereference as deref
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
-from rmm.librmm.cuda_stream_view cimport cuda_stream_view
 
+from nvforest.detail.device_resources cimport device_resources
 from nvforest.detail.infer_kind cimport infer_kind
 from nvforest.detail.postprocessing cimport element_op, row_op
 from nvforest.detail.raft_proto.cuda_stream cimport (
@@ -32,14 +32,6 @@ from nvforest.detail.treelite cimport (
     TreeliteFreeModel,
     TreeliteModelHandle,
 )
-
-
-cdef extern from "raft/core/device_resources.hpp" namespace "raft" nogil:
-    cdef cppclass device_resources:
-        device_resources() except +
-        cuda_stream_view get_next_usable_stream() except +
-        void sync_stream() except +
-        void sync_stream_pool() except +
 
 
 cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
@@ -77,13 +69,13 @@ cdef extern from "nvforest/treelite_importer.hpp" namespace "nvforest" nogil:
 
 cdef class ForestInference_impl():
     cdef forest_model model
-    cdef object py_handle
-    cdef device_resources* c_handle
+    cdef object py_resource
+    cdef device_resources* c_resource
     cdef object device
 
     def __cinit__(
         self,
-        handle: object,
+        resource: object,
         tl_model_bytes: Union[bytes, bytearray],
         *,
         layout: str = "depth_first",
@@ -92,8 +84,8 @@ cdef class ForestInference_impl():
         device: str = "cpu",
         device_id: Optional[int] = None,
     ):
-        self.py_handle = handle
-        self.c_handle = <device_resources*><size_t>self.py_handle.getHandle()
+        self.py_resource = resource
+        self.c_resource = <device_resources*><size_t>self.py_resource.get_c_obj()
 
         cdef optional[bool] use_double_precision_c
         cdef bool use_double_precision_bool
@@ -138,7 +130,7 @@ cdef class ForestInference_impl():
             use_double_precision_c,
             dev_type,
             device_id,
-            <raft_proto_stream_t> self.c_handle.get_next_usable_stream().value()
+            self.c_resource.get_next_usable_stream()
         )
 
         safe_treelite_call(
@@ -248,7 +240,7 @@ cdef class ForestInference_impl():
 
         if model_dtype == np.float32:
             self.model.predict[float](
-                deref(self.c_handle),
+                deref(self.c_resource),
                 <float *> out_ptr,
                 <float *> in_ptr,
                 n_rows,
@@ -259,7 +251,7 @@ cdef class ForestInference_impl():
             )
         else:
             self.model.predict[double](
-                deref(self.c_handle),
+                deref(self.c_resource),
                 <double *> out_ptr,
                 <double *> in_ptr,
                 n_rows,
@@ -270,8 +262,7 @@ cdef class ForestInference_impl():
             )
 
         if self.device == "gpu":
-            self.c_handle.sync_stream_pool()
-            self.c_handle.sync_stream()
+            self.c_resource.synchronize()
         return preds
 
 
@@ -282,7 +273,7 @@ class ForestInferenceImpl:
         treelite_model: treelite.Model,
         device: str,
         device_id: int,
-        handle: Optional[Handle] = None,
+        resource: Optional[DeviceResources] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
@@ -290,7 +281,7 @@ class ForestInferenceImpl:
     ):
         # Assumption: The caller needs to pass in correct (device, device_id) pair
         # This function will not contain any logic for auto-detecting device.
-        self.handle = Handle() if handle is None else handle
+        self.resource = DeviceResources() if resource is None else resource
         self._layout = layout
         self.precision = precision
         self.default_chunk_size = default_chunk_size
@@ -318,7 +309,7 @@ class ForestInferenceImpl:
         self._treelite_model_bytes = treelite_model.serialize_bytes()
 
         self.impl = ForestInference_impl(
-            self.handle,
+            self.resource,
             self._treelite_model_bytes,
             layout=self._layout,
             align_bytes=self.align_bytes,
