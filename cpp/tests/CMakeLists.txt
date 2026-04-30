@@ -84,6 +84,7 @@ ConfigureTest(NAME HOST_BUFFER_TEST raft_proto/buffer.cpp)
 ConfigureTest(NAME DEVICE_BUFFER_TEST raft_proto/buffer.cu)
 ConfigureTest(NAME FOREST_TRAVERSAL_TEST forest/traversal_forest.cpp)
 ConfigureTest(NAME TREELITE_TRAVERSAL_TEST forest/treelite_traversal.cpp)
-ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cpp)
+ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cpp treelite_importer_invalid_inputs.cpp
+                                          decision_forest_builder_invalid_inputs.cpp)
 
 rapids_test_install_relocatable(INSTALL_COMPONENT_SET testing DESTINATION bin/gtests/libnvforest)

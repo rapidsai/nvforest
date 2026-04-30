@@ -247,45 +247,45 @@ auto static const SAMPLE_FOREST               = []() {
 
 TEST(TreeliteImporter, depth_first)
 {
-  auto fil_model = import_from_treelite_model(*SAMPLE_FOREST, tree_layout::depth_first);
-  ASSERT_EQ(fil_model.num_features(), 7);
-  ASSERT_EQ(fil_model.num_outputs(), 1);
-  ASSERT_EQ(fil_model.num_trees(), 6);
-  ASSERT_FALSE(fil_model.has_vector_leaves());
-  ASSERT_EQ(fil_model.row_postprocessing(), row_op::disable);
-  ASSERT_EQ(fil_model.elem_postprocessing(), element_op::disable);
-  ASSERT_EQ(fil_model.memory_type(), raft_proto::device_type::cpu);
-  ASSERT_EQ(fil_model.device_index(), -1);
-  ASSERT_FALSE(fil_model.is_double_precision());
+  auto nvforest_model = import_from_treelite_model(*SAMPLE_FOREST, tree_layout::depth_first);
+  ASSERT_EQ(nvforest_model.num_features(), 7);
+  ASSERT_EQ(nvforest_model.num_outputs(), 1);
+  ASSERT_EQ(nvforest_model.num_trees(), 6);
+  ASSERT_FALSE(nvforest_model.has_vector_leaves());
+  ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
+  ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
+  ASSERT_EQ(nvforest_model.memory_type(), raft_proto::device_type::cpu);
+  ASSERT_EQ(nvforest_model.device_index(), -1);
+  ASSERT_FALSE(nvforest_model.is_double_precision());
 }
 
 TEST(TreeliteImporter, breadth_first)
 {
-  auto fil_model = import_from_treelite_model(*SAMPLE_FOREST, tree_layout::breadth_first);
-  ASSERT_EQ(fil_model.num_features(), 7);
-  ASSERT_EQ(fil_model.num_outputs(), 1);
-  ASSERT_EQ(fil_model.num_trees(), 6);
-  ASSERT_FALSE(fil_model.has_vector_leaves());
-  ASSERT_EQ(fil_model.row_postprocessing(), row_op::disable);
-  ASSERT_EQ(fil_model.elem_postprocessing(), element_op::disable);
-  ASSERT_EQ(fil_model.memory_type(), raft_proto::device_type::cpu);
-  ASSERT_EQ(fil_model.device_index(), -1);
-  ASSERT_FALSE(fil_model.is_double_precision());
+  auto nvforest_model = import_from_treelite_model(*SAMPLE_FOREST, tree_layout::breadth_first);
+  ASSERT_EQ(nvforest_model.num_features(), 7);
+  ASSERT_EQ(nvforest_model.num_outputs(), 1);
+  ASSERT_EQ(nvforest_model.num_trees(), 6);
+  ASSERT_FALSE(nvforest_model.has_vector_leaves());
+  ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
+  ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
+  ASSERT_EQ(nvforest_model.memory_type(), raft_proto::device_type::cpu);
+  ASSERT_EQ(nvforest_model.device_index(), -1);
+  ASSERT_FALSE(nvforest_model.is_double_precision());
 }
 
 TEST(TreeliteImporter, layered_children_together)
 {
-  auto fil_model =
+  auto nvforest_model =
     import_from_treelite_model(*SAMPLE_FOREST, tree_layout::layered_children_together);
-  ASSERT_EQ(fil_model.num_features(), 7);
-  ASSERT_EQ(fil_model.num_outputs(), 1);
-  ASSERT_EQ(fil_model.num_trees(), 6);
-  ASSERT_FALSE(fil_model.has_vector_leaves());
-  ASSERT_EQ(fil_model.row_postprocessing(), row_op::disable);
-  ASSERT_EQ(fil_model.elem_postprocessing(), element_op::disable);
-  ASSERT_EQ(fil_model.memory_type(), raft_proto::device_type::cpu);
-  ASSERT_EQ(fil_model.device_index(), -1);
-  ASSERT_FALSE(fil_model.is_double_precision());
+  ASSERT_EQ(nvforest_model.num_features(), 7);
+  ASSERT_EQ(nvforest_model.num_outputs(), 1);
+  ASSERT_EQ(nvforest_model.num_trees(), 6);
+  ASSERT_FALSE(nvforest_model.has_vector_leaves());
+  ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
+  ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
+  ASSERT_EQ(nvforest_model.memory_type(), raft_proto::device_type::cpu);
+  ASSERT_EQ(nvforest_model.device_index(), -1);
+  ASSERT_FALSE(nvforest_model.is_double_precision());
 }
 
 template <bool use_leaf_vector, typename leaf_t>
@@ -333,43 +333,43 @@ auto make_degenerate_tree(const leaf_t& leaf)
 
 TEST(TreeliteImporter, DegenerateTree)
 {
-  auto tl_model  = make_degenerate_tree<false>(1.0);
-  auto fil_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
-  ASSERT_FALSE(fil_model.has_vector_leaves());
+  auto tl_model       = make_degenerate_tree<false>(1.0);
+  auto nvforest_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
+  ASSERT_FALSE(nvforest_model.has_vector_leaves());
 
   auto handle         = raft::handle_t{};
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(1, 0.0);
   auto expected_preds = std::vector<double>{1.0};
-  fil_model.predict(handle,
-                    preds.data(),
-                    X.data(),
-                    1,
-                    raft_proto::device_type::cpu,
-                    raft_proto::device_type::cpu,
-                    nvforest::infer_kind::default_kind,
-                    1);
+  nvforest_model.predict(handle,
+                         preds.data(),
+                         X.data(),
+                         1,
+                         raft_proto::device_type::cpu,
+                         raft_proto::device_type::cpu,
+                         nvforest::infer_kind::default_kind,
+                         1);
   ASSERT_EQ(preds, expected_preds);
 }
 
 TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
 {
-  auto tl_model  = make_degenerate_tree<true>(std::vector<double>{0.5, 0.5});
-  auto fil_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
-  ASSERT_TRUE(fil_model.has_vector_leaves());
+  auto tl_model       = make_degenerate_tree<true>(std::vector<double>{0.5, 0.5});
+  auto nvforest_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
+  ASSERT_TRUE(nvforest_model.has_vector_leaves());
 
   auto handle         = raft::handle_t{};
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(2, 0.0);
   auto expected_preds = std::vector<double>{0.5, 0.5};
-  fil_model.predict(handle,
-                    preds.data(),
-                    X.data(),
-                    1,
-                    raft_proto::device_type::cpu,
-                    raft_proto::device_type::cpu,
-                    nvforest::infer_kind::default_kind,
-                    1);
+  nvforest_model.predict(handle,
+                         preds.data(),
+                         X.data(),
+                         1,
+                         raft_proto::device_type::cpu,
+                         raft_proto::device_type::cpu,
+                         nvforest::infer_kind::default_kind,
+                         1);
   ASSERT_EQ(preds, expected_preds);
 }
 
