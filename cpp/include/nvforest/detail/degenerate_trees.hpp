@@ -17,7 +17,7 @@ namespace nvforest::detail {
 // This function returns a modified copy of a given Treelite model if it contains
 // at least one degenerate tree (a single root node with no child).
 // If the model contains no degenerate tree, then the function returns nullptr.
-std::unique_ptr<treelite::Model> convert_degenerate_trees(treelite::Model const& tl_model)
+inline std::unique_ptr<treelite::Model> convert_degenerate_trees(treelite::Model const& tl_model)
 {
   bool contains_degenerate =
     nvforest::integration::tree_accumulate(tl_model, false, [](auto&& contains, auto&& tree) {
