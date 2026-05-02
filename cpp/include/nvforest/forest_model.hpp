@@ -7,10 +7,12 @@
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
-#include <nvforest/detail/raft_proto/handle.hpp>
 #include <nvforest/infer_kind.hpp>
 
+#include <raft/core/device_resources.hpp>
+
 #include <cstddef>
+#include <memory>
 #include <type_traits>
 #include <variant>
 
@@ -25,7 +27,7 @@ namespace nvforest {
 struct forest_model {
   /** Wrap a decision_forest in a full forest_model object */
   forest_model(decision_forest_variant&& forest = decision_forest_variant{})
-    : decision_forest_{forest}
+    : decision_forest_{forest}, cached_device_resources_{}
   {
   }
 
@@ -152,8 +154,8 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The raft_proto::handle_t (wrapper for raft::handle_t
-   * on GPU) which will be used to provide streams for evaluation.
+   * @param[in] resource RAFT resource which will be used to provide
+   * streams for evaluation.
    * @param[out] output The buffer where model output should be stored. If
    * this buffer is on host while the model is on device or vice versa,
    * work will be distributed across available streams to copy the data back
@@ -177,31 +179,32 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(raft_proto::handle_t const& handle,
+  void predict(raft::device_resources const& resource,
                raft_proto::buffer<io_t>& output,
                raft_proto::buffer<io_t> const& input,
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
     std::visit(
-      [this, predict_type, &handle, &output, &input, &specified_chunk_size](
+      [this, predict_type, &resource, &output, &input, &specified_chunk_size](
         auto&& concrete_forest) {
         using model_io_t = typename std::remove_reference_t<decltype(concrete_forest)>::io_type;
         if constexpr (std::is_same_v<model_io_t, io_t>) {
           if (output.memory_type() == memory_type() && input.memory_type() == memory_type()) {
             concrete_forest.predict(
-              output, input, handle.get_next_usable_stream(), predict_type, specified_chunk_size);
+              output, input, resource.get_next_usable_stream(), predict_type, specified_chunk_size);
           } else {
             auto constexpr static const MIN_CHUNKS_PER_PARTITION = std::size_t{64};
             auto constexpr static const MAX_CHUNK_SIZE           = std::size_t{64};
 
-            auto row_count = input.size() / num_features();
+            auto row_count           = input.size() / num_features();
+            auto usable_stream_count = std::max(resource.get_stream_pool_size(), std::size_t{1});
             auto partition_size =
-              std::max(raft_proto::ceildiv(row_count, handle.get_usable_stream_count()),
+              std::max(raft_proto::ceildiv(row_count, usable_stream_count),
                        specified_chunk_size.value_or(MAX_CHUNK_SIZE) * MIN_CHUNKS_PER_PARTITION);
             auto partition_count = raft_proto::ceildiv(row_count, partition_size);
             for (auto i = std::size_t{}; i < partition_count; ++i) {
-              auto stream = handle.get_next_usable_stream();
+              auto stream = resource.get_next_usable_stream();
               auto rows_in_this_partition =
                 std::min(partition_size, row_count - i * partition_size);
               auto partition_in = raft_proto::buffer<io_t>{};
@@ -252,8 +255,8 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The raft_proto::handle_t (wrapper for raft::handle_t
-   * on GPU) which will be used to provide streams for evaluation.
+   * @param[in] resource RAFT resource which will be used to provide
+   * streams for evaluation.
    * @param[out] output Pointer to the memory location where output should end
    * up
    * @param[in] input Pointer to the input data
@@ -276,7 +279,7 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(raft_proto::handle_t const& handle,
+  void predict(raft::device_resources const& resource,
                io_t* output,
                io_t* input,
                std::size_t num_rows,
@@ -296,11 +299,64 @@ struct forest_model {
       raft_proto::buffer{output, num_rows * num_outputs(), out_mem_type, current_device_id};
     auto in_buffer =
       raft_proto::buffer{input, num_rows * num_features(), in_mem_type, current_device_id};
-    predict(handle, out_buffer, in_buffer, predict_type, specified_chunk_size);
+    predict(resource, out_buffer, in_buffer, predict_type, specified_chunk_size);
+  }
+
+  /**
+   * Perform inference on given input (with auto-instantiated RAFT resource).
+   * Note. This function is blocking and will synchronize the underlying RAFT
+   * resource at return time.
+   *
+   * @param[out] output Pointer to the memory location where output should end
+   * up
+   * @param[in] input Pointer to the input data
+   * @param[in] num_rows Number of rows in input
+   * @param[in] out_mem_type The memory type (device/host) of the output
+   * buffer
+   * @param[in] in_mem_type The memory type (device/host) of the input buffer
+   * @param[in] predict_type Type of inference to perform. Defaults to summing
+   * the outputs of all trees and produce an output per row. If set to
+   * "per_tree", we will instead output all outputs of individual trees.
+   * If set to "leaf_id", we will output the integer ID of the leaf node
+   * for each tree.
+   * @param[in] specified_chunk_size: Specifies the mini-batch size for
+   * processing. This has different meanings on CPU and GPU, but on GPU it
+   * corresponds to the number of rows evaluated per inference iteration
+   * on a single block. It can take on any power of 2 from 1 to 32, and
+   * runtime performance is quite sensitive to the value chosen. In general,
+   * larger batches benefit from higher values, but it is hard to predict the
+   * optimal value a priori. If omitted, a heuristic will be used to select a
+   * reasonable value. On CPU, this argument can generally just be omitted.
+   */
+  template <typename io_t>
+  void predict(io_t* output,
+               io_t* input,
+               std::size_t num_rows,
+               raft_proto::device_type out_mem_type,
+               raft_proto::device_type in_mem_type,
+               infer_kind predict_type                        = infer_kind::default_kind,
+               std::optional<index_type> specified_chunk_size = std::nullopt)
+  {
+    // Auto-instantiate RAFT resource and cache it
+    if (!cached_device_resources_) {
+      cached_device_resources_ = std::make_unique<raft::device_resources>();
+    }
+    predict(*cached_device_resources_,
+            output,
+            input,
+            num_rows,
+            out_mem_type,
+            in_mem_type,
+            predict_type,
+            specified_chunk_size);
+    cached_device_resources_->sync_stream_pool();
+    cached_device_resources_->sync_stream();
   }
 
  private:
   decision_forest_variant decision_forest_;
+  // Cache for auto-instantiated RAFT device resource
+  std::unique_ptr<raft::device_resources> cached_device_resources_;
 };
 
 }  // namespace nvforest

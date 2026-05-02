@@ -195,16 +195,10 @@ Now that the tree model is fully imported into nvForest, let's run inference:
 
 .. code-block:: cpp
 
-    #include <raft/core/handle.hpp>
-    #include <nvforest/detail/raft_proto/handle.hpp>
-
-    raft::handle_t raft_handle{};
-    raft_proto::handle_t handle{raft_handle};
-
     // Assumption:
     // * Both output and input are in the GPU memory.
     // * The input buffer should be of dimension (num_rows, num_features)
     // * The output buffer should be of dimension (num_rows, fm.num_outputs())
-    fm.predict(handle, output, input, num_rows,
+    fm.predict(output, input, num_rows,
                raft_proto::device_type::gpu, raft_proto::device_type::gpu,
                nvforest::infer_kind::default_kind);
