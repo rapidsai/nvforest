@@ -7,8 +7,9 @@
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
-#include <nvforest/device_resources.hpp>
 #include <nvforest/infer_kind.hpp>
+
+#include <raft/core/device_resources.hpp>
 
 #include <cstddef>
 #include <type_traits>
@@ -152,7 +153,7 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] resource device resource which will be used to provide
+   * @param[in] resource RAFT resource which will be used to provide
    * streams for evaluation.
    * @param[out] output The buffer where model output should be stored. If
    * this buffer is on host while the model is on device or vice versa,
@@ -177,7 +178,7 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(nvforest::device_resources const& resource,
+  void predict(raft::device_resources const& resource,
                raft_proto::buffer<io_t>& output,
                raft_proto::buffer<io_t> const& input,
                infer_kind predict_type                        = infer_kind::default_kind,
@@ -253,7 +254,7 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] resource device resource which will be used to provide
+   * @param[in] resource RAFT resource which will be used to provide
    * streams for evaluation.
    * @param[out] output Pointer to the memory location where output should end
    * up
@@ -277,7 +278,7 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(nvforest::device_resources const& resource,
+  void predict(raft::device_resources const& resource,
                io_t* output,
                io_t* input,
                std::size_t num_rows,
@@ -301,7 +302,7 @@ struct forest_model {
   }
 
   /**
-   * Perform inference on given input (with auto-instantiated device resource)
+   * Perform inference on given input (with auto-instantiated RAFT resource)
    *
    * @param[out] output Pointer to the memory location where output should end
    * up
@@ -333,7 +334,7 @@ struct forest_model {
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
-    auto resource = nvforest::device_resources{};
+    auto resource = raft::device_resources{};
     predict(resource,
             output,
             input,
