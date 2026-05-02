@@ -14,11 +14,6 @@ class device_resources {
 
   auto get_next_usable_stream() const { return res_.get_next_usable_stream(); }
   auto get_stream_pool_size() const { return res_.get_stream_pool_size(); }
-  void synchronize() const
-  {
-    res_.sync_stream_pool();
-    res_.sync_stream();
-  }
 
  private:
   raft::device_resources res_;

@@ -13,7 +13,6 @@ else:
     libnvforest.load_library()
     del libnvforest
 
-from nvforest._device_resources import DeviceResources
 from nvforest._factory import (
     load_from_sklearn,
     load_from_treelite_model,
@@ -25,6 +24,7 @@ from nvforest._forest_inference import (
     GPUForestInferenceClassifier,
     GPUForestInferenceRegressor,
 )
+from nvforest._handle import Handle
 from nvforest._version import __git_commit__, __version__
 
 __all__ = [
@@ -32,7 +32,7 @@ __all__ = [
     "CPUForestInferenceRegressor",
     "GPUForestInferenceClassifier",
     "GPUForestInferenceRegressor",
-    "DeviceResources",
+    "Handle",
     "load_model",
     "load_from_sklearn",
     "load_from_treelite_model",
