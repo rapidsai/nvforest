@@ -12,6 +12,7 @@
 #include <raft/core/device_resources.hpp>
 
 #include <cstddef>
+#include <memory>
 #include <type_traits>
 #include <variant>
 
@@ -26,7 +27,7 @@ namespace nvforest {
 struct forest_model {
   /** Wrap a decision_forest in a full forest_model object */
   forest_model(decision_forest_variant&& forest = decision_forest_variant{})
-    : decision_forest_{forest}
+    : decision_forest_{forest}, cached_device_resources_{}
   {
   }
 
@@ -334,8 +335,11 @@ struct forest_model {
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
-    auto resource = raft::device_resources{};
-    predict(resource,
+    // Auto-instantiate RAFT resource and cache it
+    if (!cached_device_resources_) {
+      cached_device_resources_ = std::make_unique<raft::device_resources>();
+    }
+    predict(*cached_device_resources_,
             output,
             input,
             num_rows,
@@ -347,6 +351,8 @@ struct forest_model {
 
  private:
   decision_forest_variant decision_forest_;
+  // Cache for auto-instantiated RAFT device resource
+  std::unique_ptr<raft::device_resources> cached_device_resources_;
 };
 
 }  // namespace nvforest
