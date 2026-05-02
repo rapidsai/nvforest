@@ -303,7 +303,9 @@ struct forest_model {
   }
 
   /**
-   * Perform inference on given input (with auto-instantiated RAFT resource)
+   * Perform inference on given input (with auto-instantiated RAFT resource).
+   * Note. This function is blocking and will synchronize the underlying RAFT
+   * resource at return time.
    *
    * @param[out] output Pointer to the memory location where output should end
    * up
@@ -347,6 +349,8 @@ struct forest_model {
             in_mem_type,
             predict_type,
             specified_chunk_size);
+    cached_device_resources_->sync_stream_pool();
+    cached_device_resources_->sync_stream();
   }
 
  private:

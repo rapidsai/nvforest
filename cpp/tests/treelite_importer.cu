@@ -10,6 +10,8 @@
 
 #include <raft/core/device_resources.hpp>
 
+#include <thrust/device_vector.h>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <treelite/enum/task_type.h>
@@ -357,22 +359,29 @@ TEST(TreeliteImporter, DegenerateTree)
 TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
 {
   auto tl_model       = make_degenerate_tree<true>(std::vector<double>{0.5, 0.5});
-  auto nvforest_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
+  auto nvforest_model = import_from_treelite_model(*tl_model,
+                                                   tree_layout::breadth_first,
+                                                   index_type{},
+                                                   std::nullopt,
+                                                   raft_proto::device_type::gpu);
   ASSERT_TRUE(nvforest_model.has_vector_leaves());
 
-  auto X              = std::vector<double>{0.0};
-  auto preds          = std::vector<double>(2, 0.0);
+  auto X              = thrust::device_vector<double>{0.0};
+  auto preds          = thrust::device_vector<double>(2, 0.0);
+  auto h_preds        = std::vector<double>(2);
   auto expected_preds = std::vector<double>{0.5, 0.5};
   for (int i = 0; i < 3; ++i) {
     // Make sure that auto-instantiated RAFT resource gets cached properly
-    nvforest_model.predict(preds.data(),
-                           X.data(),
+    // For this interface, predict() will synchronize the stream automatically.
+    nvforest_model.predict(thrust::raw_pointer_cast(preds.data()),
+                           thrust::raw_pointer_cast(X.data()),
                            1,
-                           raft_proto::device_type::cpu,
-                           raft_proto::device_type::cpu,
+                           raft_proto::device_type::gpu,
+                           raft_proto::device_type::gpu,
                            nvforest::infer_kind::default_kind,
                            1);
-    ASSERT_EQ(preds, expected_preds);
+    thrust::copy(preds.begin(), preds.end(), h_preds.begin());
+    ASSERT_EQ(h_preds, expected_preds);
   }
 }
 
