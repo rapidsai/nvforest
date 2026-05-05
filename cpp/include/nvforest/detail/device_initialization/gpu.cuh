@@ -8,6 +8,7 @@
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
 #include <nvforest/detail/infer_kernel/gpu.cuh>
+#include <nvforest/detail/raft_proto/cuda_check.hpp>
 #include <nvforest/detail/raft_proto/device_id.hpp>
 #include <nvforest/detail/raft_proto/device_setter.hpp>
 #include <nvforest/detail/raft_proto/device_type.hpp>

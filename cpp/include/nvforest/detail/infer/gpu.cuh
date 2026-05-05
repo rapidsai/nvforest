@@ -11,6 +11,7 @@
 #include <nvforest/detail/postprocessor.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
 #include <nvforest/detail/raft_proto/ceildiv.hpp>
+#include <nvforest/detail/raft_proto/cuda_check.hpp>
 #include <nvforest/detail/raft_proto/cuda_stream.hpp>
 #include <nvforest/detail/raft_proto/device_id.hpp>
 #include <nvforest/detail/raft_proto/device_type.hpp>
