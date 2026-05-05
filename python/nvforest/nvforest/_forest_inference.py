@@ -735,7 +735,7 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         return self.forest.align_bytes
 
     @property
-    def precision(self) -> Optional[str]:
+    def precision(self) -> str:
         return self.forest.precision
 
     @property
