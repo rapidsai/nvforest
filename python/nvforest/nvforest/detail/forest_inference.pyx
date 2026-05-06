@@ -287,7 +287,6 @@ class ForestInferenceImpl:
         # This function will not contain any logic for auto-detecting device.
         self.handle = Handle() if handle is None else handle
         self._layout = layout
-        self.precision = precision
         self.default_chunk_size = default_chunk_size
         self.device = device
         self.device_id = device_id
@@ -300,14 +299,14 @@ class ForestInferenceImpl:
         # TODO(hcho3): Change this to use the match statement
         #              once Cython supports structural pattern matching.
         #              See https://github.com/cython/cython/issues/4029
-        if self.precision in ("native", None):
+        if precision in ("native", None):
             self._use_double_precision = None
-        elif self.precision in ("double", "float64"):
+        elif precision in ("double", "float64"):
             self._use_double_precision = True
-        elif self.precision in ("single", "float32"):
+        elif precision in ("single", "float32"):
             self._use_double_precision = False
         else:
-            raise ValueError(f"Unknown precision value: {self.precision}")
+            raise ValueError(f"Unknown precision value: {precision}")
 
         # Store treelite model bytes for creating new instances with different settings
         self._treelite_model_bytes = treelite_model.serialize_bytes()
@@ -321,6 +320,10 @@ class ForestInferenceImpl:
             device=self.device,
             device_id=self.device_id
         )
+        if self.impl.get_dtype() == np.float32:
+            self.precision = "float32"
+        else:
+            self.precision = "float64"
 
     @property
     def layout(self) -> str:
