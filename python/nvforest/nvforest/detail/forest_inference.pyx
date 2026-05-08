@@ -158,7 +158,7 @@ cdef class ForestInference_impl():
         elif isinstance(X, cp.ndarray):
             X_type = "cupy"
         else:
-            raise ValueError("X must be either NumPy or cuPy array")
+            raise TypeError("X must be either NumPy or cuPy array")
 
         if len(X.shape) != 2:
             raise ValueError("Expected a 2D array for X")
@@ -241,7 +241,8 @@ cdef class ForestInference_impl():
             raise ValueError(f"Unrecognized predict_type: {predict_type}")
 
         if self.device == "cpu":
-            X_converted = np.asarray(cp.asnumpy(X), dtype=model_dtype, order="C")
+            X_converted = cp.asnumpy(X) if X_type == "cupy" else X
+            X_converted = np.asarray(X_converted, dtype=model_dtype, order="C")
             preds = np.empty(
                 shape=output_shape,
                 dtype=model_dtype,
