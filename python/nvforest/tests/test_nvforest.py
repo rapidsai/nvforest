@@ -882,3 +882,43 @@ def test_incorrect_data_shape(input_size, predict_func):
     with pytest.raises(ValueError, match=f"Expected {n_features} features"):
         X_test = np.zeros((1, input_size))
         _ = predict_func(fm, X_test)
+
+
+@pytest.mark.parametrize("device", ("cpu", "gpu"))
+def test_array_type(device):
+    """
+    Ensure that nvForest makes consistent choices between NumPy and cuPy array types.
+    If X is a NumPy array, predict(X) should return a NumPy array.
+    If X is a cuPy array, predict(X) should return a cuPy array.
+    """
+    builder = treelite.model_builder.ModelBuilder(
+        threshold_type="float32",
+        leaf_output_type="float32",
+        metadata=treelite.model_builder.Metadata(
+            num_feature=1,
+            task_type="kRegressor",
+            average_tree_output=False,
+            num_target=1,
+            num_class=[1],
+            leaf_vector_shape=(1, 1),
+        ),
+        tree_annotation=treelite.model_builder.TreeAnnotation(
+            num_tree=1, target_id=[0], class_id=[0]
+        ),
+        postprocessor=treelite.model_builder.PostProcessorFunc(
+            name="identity"
+        ),
+        base_scores=[0.0],
+    )
+    builder.start_tree()
+    builder.start_node(0)
+    builder.leaf(0.0)
+    builder.end_node()
+    builder.end_tree()
+    tl_model = builder.commit()
+
+    nvforest_model = nvforest.load_from_treelite_model(tl_model, device=device)
+    X_numpy = np.array([[0.0]], dtype="float32")
+    X_cupy = cp.array([[0.0]], dtype="float32")
+    assert isinstance(nvforest_model.predict(X_numpy), np.ndarray)
+    assert isinstance(nvforest_model.predict(X_cupy), cp.ndarray)
