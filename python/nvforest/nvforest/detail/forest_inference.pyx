@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
+import cupy as cp
 import numpy as np
 import treelite
 
@@ -142,6 +143,32 @@ cdef class ForestInference_impl():
             "Failed to free Treelite model:"
         )
 
+    def _validate_input(self, X: DataType) -> Literal["numpy", "cupy"]:
+        """
+        Ensure the following:
+        1. X is a NumPy or cuPy array.
+        2. X has valid dimensions
+
+        The function returns either "numpy" or "cupy", indicating
+        the array type for X.
+        """
+
+        if isinstance(X, np.ndarray):
+            X_type = "numpy"
+        elif isinstance(X, cp.ndarray):
+            X_type = "cupy"
+        else:
+            raise ValueError("X must be either NumPy or cuPy array")
+
+        if len(X.shape) != 2:
+            raise ValueError("Expected a 2D array for X")
+        if X.shape[1] != self.num_features():
+            raise ValueError(
+                f"Expected {self.num_features()} features in the input "
+                f"but X has {X.shape[1]} features"
+            )
+        return X_type
+
     def get_dtype(self):
         return [np.float32, np.float64][self.model.is_double_precision()]
 
@@ -194,6 +221,7 @@ cdef class ForestInference_impl():
         cdef infer_kind infer_type_enum
         cdef optional[uint32_t] chunk_specification
 
+        X_type = self._validate_input(X)
         n_rows = X.shape[0]
         model_dtype = self.get_dtype()
 
@@ -213,26 +241,25 @@ cdef class ForestInference_impl():
             raise ValueError(f"Unrecognized predict_type: {predict_type}")
 
         if self.device == "cpu":
-            X = np.asarray(X, dtype=model_dtype, order="C")
+            X_converted = np.asarray(cp.asnumpy(X), dtype=model_dtype, order="C")
             preds = np.empty(
                 shape=output_shape,
                 dtype=model_dtype,
                 order="C",
             )
-            in_ptr = X.__array_interface__["data"][0]
+            in_ptr = X_converted.__array_interface__["data"][0]
             in_dev = raft_proto_device_t.cpu
             out_ptr = preds.__array_interface__["data"][0]
             out_dev = raft_proto_device_t.cpu
         else:
             assert self.device == "gpu"
-            import cupy as cp
-            X = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
+            X_converted = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
             preds = cp.empty(
                 shape=output_shape,
                 dtype=model_dtype,
                 order="C",
             )
-            in_ptr = X.__cuda_array_interface__["data"][0]
+            in_ptr = X_converted.__cuda_array_interface__["data"][0]
             in_dev = raft_proto_device_t.gpu
             out_ptr = preds.__cuda_array_interface__["data"][0]
             out_dev = raft_proto_device_t.gpu
@@ -267,6 +294,13 @@ cdef class ForestInference_impl():
 
         if self.device == "gpu":
             self.raft_proto_handle.synchronize()
+
+        # X and preds must be the same type
+        if X_type == "numpy":
+            preds = cp.asnumpy(preds)
+        elif X_type == "cupy":
+            preds = cp.asarray(preds)
+
         return preds
 
 
@@ -355,22 +389,12 @@ class ForestInferenceImpl:
     def elem_postprocessing(self) -> str:
         return self.impl.elem_postprocessing()
 
-    def _validate_input_dims(self, X: DataType) -> None:
-        if len(X.shape) != 2:
-            raise ValueError("Expected a 2D array for X")
-        if X.shape[1] != self.num_features:
-            raise ValueError(
-                f"Expected {self.num_features} features in the input "
-                f"but X has {X.shape[1]} features"
-            )
-
     def predict(
         self,
         X: DataType,
         *,
         chunk_size: Optional[int] = None,
     ) -> DataType:
-        self._validate_input_dims(X)
         # Returns probabilities if the model is a classifier
         return self.impl.predict(
             X, chunk_size=(chunk_size or self.default_chunk_size)
@@ -382,7 +406,6 @@ class ForestInferenceImpl:
         *,
         chunk_size: Optional[int] = None,
     ) -> DataType:
-        self._validate_input_dims(X)
         chunk_size = (chunk_size or self.default_chunk_size)
         return self.impl.predict(
             X, predict_type="per_tree", chunk_size=chunk_size
@@ -394,7 +417,6 @@ class ForestInferenceImpl:
         *,
         chunk_size: Optional[int] = None,
     ) -> DataType:
-        self._validate_input_dims(X)
         chunk_size = (chunk_size or self.default_chunk_size)
         return self.impl.predict(
             X, predict_type="leaf_id", chunk_size=chunk_size
