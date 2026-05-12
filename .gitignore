@@ -69,3 +69,5 @@ cpp/doxygen/html
 cpp/doxygen/xml
 cpp/doxygen/Doxyfile
 docs/_html
+
+!.devcontainer/**/devcontainer.json
