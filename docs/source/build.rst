@@ -48,7 +48,7 @@ We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-
 
     $ conda create -n nvforest_dev python=3.13
     $ conda env update -n nvforest_dev \
-        --file=conda/environments/all_cuda-131_arch-$(uname -m).yaml
+        --file=conda/environments/all_cuda-132_arch-$(uname -m).yaml
     $ conda activate nvforest_dev
 
 Installing from Source
