@@ -294,11 +294,9 @@ endif()
 # These are always private:
 list(APPEND _nvforest_cpp_private_libs ${TREELITE_LIBS} ${OpenMP_CXX_LIB_NAMES})
 
-# Add CTK include paths because we're going to make our CTK library links private below
-target_include_directories(${NVFOREST_CPP_TARGET} SYSTEM PUBLIC ${CUDAToolkit_INCLUDE_DIRS})
-
 target_link_libraries(
   ${NVFOREST_CPP_TARGET}
+  INTERFACE $<COMPILE_ONLY:CUDA::cudart_static>
   PUBLIC rapids_logger::rapids_logger rmm::rmm raft::raft ${_nvforest_cpp_public_libs}
   PRIVATE ${_nvforest_cpp_private_libs})
 
