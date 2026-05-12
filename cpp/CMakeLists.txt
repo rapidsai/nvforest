@@ -58,7 +58,6 @@ option(DISABLE_DEPRECATION_WARNINGS "Disable deprecation warnings " ON)
 option(DISABLE_OPENMP "Disable OpenMP" OFF)
 option(NVTX "Enable nvtx markers" OFF)
 option(USE_CCACHE "Cache build artifacts with ccache" OFF)
-option(CUDA_STATIC_RUNTIME "Statically link the CUDA runtime" OFF)
 option(NVFOREST_USE_RAFT_STATIC "Build and statically link the RAFT library" OFF)
 option(NVFOREST_USE_TREELITE_STATIC "Build and statically link the treelite library" OFF)
 option(NVFOREST_EXPORT_TREELITE_LINKAGE "Whether to publicly or privately link treelite to libnvforest++" OFF)
@@ -79,7 +78,6 @@ message(VERBOSE "NVFOREST_CPP: Enabling kernelinfo in nvcc: ${CUDA_ENABLE_KERNEL
 message(VERBOSE "NVFOREST_CPP: Enabling lineinfo in nvcc: ${CUDA_ENABLE_LINE_INFO}")
 message(VERBOSE "NVFOREST_CPP: Enabling nvtx markers: ${NVTX}")
 message(VERBOSE "NVFOREST_CPP: Cache build artifacts with ccache: ${USE_CCACHE}")
-message(VERBOSE "NVFOREST_CPP: Statically link the CUDA runtime: ${CUDA_STATIC_RUNTIME}")
 message(VERBOSE "NVFOREST_CPP: Build and statically link RAFT library: ${NVFOREST_USE_RAFT_STATIC}")
 message(VERBOSE "NVFOREST_CPP: Build and statically link Treelite library: ${NVFOREST_USE_TREELITE_STATIC}")
 
@@ -150,7 +148,7 @@ if(NOT DISABLE_OPENMP)
 endif()
 
 # CUDA runtime
-rapids_cuda_init_runtime(USE_STATIC ${CUDA_STATIC_RUNTIME})
+rapids_cuda_init_runtime(USE_STATIC ON)
 
 # * find CUDAToolkit package
 # * determine GPU architectures
@@ -296,12 +294,8 @@ endif()
 # These are always private:
 list(APPEND _nvforest_cpp_private_libs ${TREELITE_LIBS} ${OpenMP_CXX_LIB_NAMES})
 
-set(_nvforest_cpp_libs_var_name "_nvforest_cpp_public_libs")
-if(CUDA_STATIC_RUNTIME)
-  set(_nvforest_cpp_libs_var_name "_nvforest_cpp_private_libs")
-  # Add CTK include paths because we're going to make our CTK library links private below
-  target_include_directories(${NVFOREST_CPP_TARGET} SYSTEM PUBLIC ${CUDAToolkit_INCLUDE_DIRS})
-endif()
+# Add CTK include paths because we're going to make our CTK library links private below
+target_include_directories(${NVFOREST_CPP_TARGET} SYSTEM PUBLIC ${CUDAToolkit_INCLUDE_DIRS})
 
 target_link_libraries(
   ${NVFOREST_CPP_TARGET}

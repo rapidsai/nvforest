@@ -292,10 +292,6 @@ nvForest's cmake has the following configurable flags available:
      - [ON, OFF]
      - OFF
      - Whether to cache build artifacts with ccache.
-   * - CUDA_STATIC_RUNTIME
-     - [ON, OFF]
-     - OFF
-     - Whether to statically link the CUDA runtime.
    * - NVFOREST_USE_RAFT_STATIC
      - [ON, OFF]
      - OFF

@@ -42,9 +42,6 @@ set(NVFOREST_PYTHON_TREELITE_TARGET treelite::treelite_static)
 set(NVFOREST_USE_TREELITE_STATIC ON)
 set(NVFOREST_EXCLUDE_TREELITE_FROM_ALL ON)
 
-# --- CUDA --- #
-set(CUDA_STATIC_RUNTIME ON)
-
 add_subdirectory(../../cpp nvforest-cpp)
 
 set_property(
