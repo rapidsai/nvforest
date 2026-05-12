@@ -296,8 +296,7 @@ list(APPEND _nvforest_cpp_private_libs ${TREELITE_LIBS} ${OpenMP_CXX_LIB_NAMES})
 
 target_link_libraries(
   ${NVFOREST_CPP_TARGET}
-  INTERFACE $<COMPILE_ONLY:CUDA::cudart_static>
-  PUBLIC rapids_logger::rapids_logger rmm::rmm raft::raft ${_nvforest_cpp_public_libs}
+  PUBLIC rapids_logger::rapids_logger rmm::rmm raft::raft CUDA::cudart_static ${_nvforest_cpp_public_libs}
   PRIVATE ${_nvforest_cpp_private_libs})
 
 # Ensure CUDA symbols aren't relocated to the middle of the debug build binaries
