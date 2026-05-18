@@ -357,6 +357,9 @@ struct treelite_importer {
     }
     // Check tree annotation (assignment)
     if (tl_model.task_type == treelite::TaskType::kMultiClf) {
+      if (tl_model.num_class.Empty() || tl_model.num_class[0] <= 0) {
+        throw model_import_error("MultiClf model must define positive num_class");
+      }
       // Must be either vector leaf or grove-per-class
       if (tl_model.leaf_vector_shape[1] > 1) {  // vector-leaf
         if (tl_model.leaf_vector_shape[1] != int(tl_model.num_class[0])) {
