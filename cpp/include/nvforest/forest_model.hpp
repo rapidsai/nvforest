@@ -11,6 +11,8 @@
 #include <nvforest/detail/raft_proto/handle.hpp>
 #include <nvforest/infer_kind.hpp>
 
+#include <cuda_runtime_api.h>
+
 #include <cstddef>
 #include <type_traits>
 #include <variant>
