@@ -21,6 +21,7 @@
 #include <treelite/tree.h>
 
 #include <cmath>
+#include <string>
 #include <variant>
 
 namespace nvforest {
@@ -351,24 +352,31 @@ struct treelite_importer {
         *processed_tl_model.get(), align_bytes, use_double_precision, dev_type, device, stream);
     }
 
-    ASSERT(tl_model.num_target == 1, "nvForest does not support multi-target model");
+    if (tl_model.num_target != 1) {
+      throw model_import_error("nvForest does not support multi-target model");
+    }
     // Check tree annotation (assignment)
     if (tl_model.task_type == treelite::TaskType::kMultiClf) {
       // Must be either vector leaf or grove-per-class
       if (tl_model.leaf_vector_shape[1] > 1) {  // vector-leaf
-        ASSERT(tl_model.leaf_vector_shape[1] == int(tl_model.num_class[0]),
-               "Vector leaf must be equal to num_class = %d",
-               tl_model.num_class[0]);
+        if (tl_model.leaf_vector_shape[1] != int(tl_model.num_class[0])) {
+          throw model_import_error("Vector leaf must be equal to num_class = " +
+                                   std::to_string(tl_model.num_class[0]));
+        }
         auto tree_count = num_trees(tl_model);
         for (decltype(tree_count) tree_id = 0; tree_id < tree_count; ++tree_id) {
-          ASSERT(tl_model.class_id[tree_id] == -1, "Tree %d has invalid class assignment", tree_id);
+          if (tl_model.class_id[tree_id] != -1) {
+            throw model_import_error("Tree " + std::to_string(tree_id) +
+                                     " has invalid class assignment");
+          }
         }
       } else {  // grove-per-class
         auto tree_count = num_trees(tl_model);
         for (decltype(tree_count) tree_id = 0; tree_id < tree_count; ++tree_id) {
-          ASSERT(tl_model.class_id[tree_id] == int(tree_id % tl_model.num_class[0]),
-                 "Tree %d has invalid class assignment",
-                 tree_id);
+          if (tl_model.class_id[tree_id] != int(tree_id % tl_model.num_class[0])) {
+            throw model_import_error("Tree " + std::to_string(tree_id) +
+                                     " has invalid class assignment");
+          }
         }
       }
     }
