@@ -104,7 +104,6 @@ outputs:
         - cuda-cudart-dev
       run:
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
-        - cuda-cudart
         - librmm =${{ minor_version }}
         - rapids-logger =0.2
         - treelite ${{ treelite_version }}
@@ -139,7 +138,6 @@ outputs:
       run:
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
         - ${{ pin_subpackage("libnvforest", exact=True) }}
-        - cuda-cudart
       ignore_run_exports:
         by_name:
           - cuda-cudart
