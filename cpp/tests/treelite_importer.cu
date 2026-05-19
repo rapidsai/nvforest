@@ -356,6 +356,44 @@ TEST(TreeliteImporter, DegenerateTree)
   ASSERT_EQ(preds, expected_preds);
 }
 
+TEST(TreeliteImporter, RejectNullPointers)
+{
+  auto tl_model       = make_degenerate_tree<false>(1.0);
+  auto nvforest_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
+
+  auto resource      = raft::device_resources{};
+  auto X             = std::vector<double>{0.0};
+  auto preds         = std::vector<double>(1, 0.0);
+  auto* null_pointer = static_cast<double*>(nullptr);
+
+  EXPECT_THROW(nvforest_model.predict(resource,
+                                      null_pointer,
+                                      X.data(),
+                                      1,
+                                      raft_proto::device_type::cpu,
+                                      raft_proto::device_type::cpu,
+                                      nvforest::infer_kind::default_kind,
+                                      1),
+               nvforest::runtime_error);
+  EXPECT_THROW(nvforest_model.predict(resource,
+                                      preds.data(),
+                                      null_pointer,
+                                      1,
+                                      raft_proto::device_type::cpu,
+                                      raft_proto::device_type::cpu,
+                                      nvforest::infer_kind::default_kind,
+                                      1),
+               nvforest::runtime_error);
+  EXPECT_THROW(nvforest_model.predict(null_pointer,
+                                      X.data(),
+                                      1,
+                                      raft_proto::device_type::cpu,
+                                      raft_proto::device_type::cpu,
+                                      nvforest::infer_kind::default_kind,
+                                      1),
+               nvforest::runtime_error);
+}
+
 TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
 {
   auto tl_model       = make_degenerate_tree<true>(std::vector<double>{0.5, 0.5});

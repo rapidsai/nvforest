@@ -295,6 +295,10 @@ struct forest_model {
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
+    if (num_rows != 0 && (output == nullptr || input == nullptr)) {
+      throw runtime_error{"Input and output pointers must be non-null when num_rows > 0"};
+    }
+
     int current_device_id;
     if (out_mem_type == raft_proto::device_type::gpu ||
         in_mem_type == raft_proto::device_type::gpu) {
