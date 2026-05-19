@@ -23,7 +23,6 @@ struct unusable_model_exception : std::exception {
 struct model_import_error : std::exception {
   model_import_error() : model_import_error("Error while importing model") {}
   model_import_error(std::string msg) : msg_{msg} {}
-  model_import_error(char const* msg) : msg_{msg} {}
   virtual char const* what() const noexcept { return msg_.c_str(); }
 
  private:
