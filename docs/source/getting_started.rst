@@ -202,3 +202,17 @@ Now that the tree model is fully imported into nvForest, let's run inference:
     fm.predict(output, input, num_rows,
                raft_proto::device_type::gpu, raft_proto::device_type::gpu,
                nvforest::infer_kind::default_kind);
+
+The overload shown above auto-instantiates and caches a ``raft::device_resources``
+object and synchronizes before returning. Code that previously constructed a
+``raft_proto::handle_t`` should instead pass a ``raft::device_resources`` object
+directly when it needs to control CUDA stream or stream-pool usage:
+
+.. code-block:: cpp
+
+    #include <raft/core/device_resources.hpp>
+
+    raft::device_resources resource{};
+    fm.predict(resource, output, input, num_rows,
+               raft_proto::device_type::gpu, raft_proto::device_type::gpu,
+               nvforest::infer_kind::default_kind);
