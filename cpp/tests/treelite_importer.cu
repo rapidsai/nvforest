@@ -409,8 +409,8 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
   auto h_preds        = std::vector<double>(2);
   auto expected_preds = std::vector<double>{0.5, 0.5};
   for (int i = 0; i < 3; ++i) {
-    // Make sure that auto-instantiated RAFT resource gets cached properly
-    // For this interface, predict() will synchronize the stream automatically.
+    // Repeatedly exercise the auto-resource overload. This interface
+    // synchronizes the stream before returning.
     nvforest_model.predict(thrust::raw_pointer_cast(preds.data()),
                            thrust::raw_pointer_cast(X.data()),
                            1,
