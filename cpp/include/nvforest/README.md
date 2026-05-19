@@ -106,10 +106,7 @@ cudaMalloc((void**)&output, num_rows * num_outputs * sizeof(float));
 
 // Assuming that input is a float* pointing to data already located on-device
 
-auto handle = raft_proto::handle_t{};
-
 nvforest_model.predict(
-  handle,
   output,
   input,
   num_rows,
@@ -119,11 +116,31 @@ nvforest_model.predict(
 );
 ```
 
-**handle**: To provide a unified interface on CPU and GPU, we introduce
-`raft_proto::handle_t` as a wrapper for `raft::handle_t`. This is currently just a
-placeholder in CPU-only builds, and using it does not require any CUDA
-functionality. For GPU-enabled builds, you can construct a
-`raft_proto_handle_t` directly from the `raft::handle_t` you wish to use.
+This is the primary C++ inference path. nvForest creates the RAFT handle it
+needs internally and synchronizes before returning.
+
+Applications that already manage RAFT handles can pass one explicitly:
+
+```cpp
+auto raft_handle = raft::handle_t{};
+auto handle = raft_proto::handle_t{raft_handle};
+
+nvforest_model.predict(
+  handle,
+  output,
+  input,
+  num_rows,
+  raft_proto::device_type::gpu,
+  raft_proto::device_type::gpu,
+  4
+);
+```
+
+**handle**: The explicit-handle overload accepts `raft_proto::handle_t`, a
+wrapper for `raft::handle_t`. This is currently just a placeholder in CPU-only
+builds, and using it does not require any CUDA functionality. For GPU-enabled
+builds, construct a `raft_proto::handle_t` directly from the `raft::handle_t`
+you wish to use.
 
 **output**: Pointer to pre-allocated buffer where results should be
 written. If the model has been loaded at single precision, this should be a
