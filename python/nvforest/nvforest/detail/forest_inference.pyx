@@ -8,7 +8,7 @@ from typing import Optional, Union
 import numpy as np
 import treelite
 
-from nvforest._handle import Handle
+from nvforest._handle import DeviceResources
 from nvforest._typing import DataType
 from nvforest.detail.treelite import safe_treelite_call
 
@@ -282,7 +282,7 @@ class ForestInferenceImpl:
         treelite_model: treelite.Model,
         device: str,
         device_id: int,
-        handle: Optional[Handle] = None,
+        handle: Optional[DeviceResources] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
@@ -290,7 +290,7 @@ class ForestInferenceImpl:
     ):
         # Assumption: The caller needs to pass in correct (device, device_id) pair
         # This function will not contain any logic for auto-detecting device.
-        self.handle = Handle() if handle is None else handle
+        self.handle = DeviceResources() if handle is None else handle
         self._layout = layout
         self.precision = precision
         self.default_chunk_size = default_chunk_size
