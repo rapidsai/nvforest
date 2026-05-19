@@ -106,10 +106,7 @@ cudaMalloc((void**)&output, num_rows * num_outputs * sizeof(float));
 
 // Assuming that input is a float* pointing to data already located on-device
 
-auto handle = raft_proto::handle_t{};
-
 nvforest_model.predict(
-  handle,
   output,
   input,
   num_rows,
@@ -119,11 +116,10 @@ nvforest_model.predict(
 );
 ```
 
-**handle**: To provide a unified interface on CPU and GPU, we introduce
-`raft_proto::handle_t` as a wrapper for `raft::handle_t`. This is currently just a
-placeholder in CPU-only builds, and using it does not require any CUDA
-functionality. For GPU-enabled builds, you can construct a
-`raft_proto_handle_t` directly from the `raft::handle_t` you wish to use.
+The overload shown above auto-instantiates and caches a `raft::device_resources`
+object. It synchronizes the resource before returning. Applications that need to
+control stream or stream-pool usage can instead pass an existing
+`raft::device_resources` object as the first argument.
 
 **output**: Pointer to pre-allocated buffer where results should be
 written. If the model has been loaded at single precision, this should be a
