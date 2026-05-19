@@ -62,9 +62,9 @@ function(ConfigureTest)
   set_target_properties(
     ${_NVFOREST_TEST_NAME}
     PROPERTIES INSTALL_RPATH "\$ORIGIN/../../../lib"
-               CXX_STANDARD 20
+               CXX_STANDARD 17
                CXX_STANDARD_REQUIRED ON
-               CUDA_STANDARD 20
+               CUDA_STANDARD 17
                CUDA_STANDARD_REQUIRED ON)
 
   set(_NVFOREST_TEST_COMPONENT_NAME testing)
@@ -84,6 +84,6 @@ ConfigureTest(NAME HOST_BUFFER_TEST raft_proto/buffer.cpp)
 ConfigureTest(NAME DEVICE_BUFFER_TEST raft_proto/buffer.cu)
 ConfigureTest(NAME FOREST_TRAVERSAL_TEST forest/traversal_forest.cpp)
 ConfigureTest(NAME TREELITE_TRAVERSAL_TEST forest/treelite_traversal.cpp)
-ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cu)
+ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cpp)
 
 rapids_test_install_relocatable(INSTALL_COMPONENT_SET testing DESTINATION bin/gtests/libnvforest)

@@ -24,13 +24,12 @@ from nvforest._forest_inference import (
     GPUForestInferenceClassifier,
     GPUForestInferenceRegressor,
 )
-from nvforest._handle import DeviceResources
+from nvforest._handle import Handle
 from nvforest._version import __git_commit__, __version__
 
 __all__ = [
     "CPUForestInferenceClassifier",
     "CPUForestInferenceRegressor",
-    "DeviceResources",
     "GPUForestInferenceClassifier",
     "GPUForestInferenceRegressor",
     "Handle",
@@ -40,17 +39,3 @@ __all__ = [
     "__git_commit__",
     "__version__",
 ]
-
-
-def __getattr__(name):
-    if name == "Handle":
-        import warnings
-
-        warnings.warn(
-            "nvforest.Handle was renamed to nvforest.DeviceResources in 26.06 "
-            "and will be removed in 26.08.",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return DeviceResources
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

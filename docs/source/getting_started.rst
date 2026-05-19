@@ -195,35 +195,16 @@ Now that the tree model is fully imported into nvForest, let's run inference:
 
 .. code-block:: cpp
 
+    #include <raft/core/handle.hpp>
+    #include <nvforest/detail/raft_proto/handle.hpp>
+
+    raft::handle_t raft_handle{};
+    raft_proto::handle_t handle{raft_handle};
+
     // Assumption:
     // * Both output and input are in the GPU memory.
     // * The input buffer should be of dimension (num_rows, num_features)
     // * The output buffer should be of dimension (num_rows, fm.num_outputs())
-    fm.predict(output, input, num_rows,
+    fm.predict(handle, output, input, num_rows,
                raft_proto::device_type::gpu, raft_proto::device_type::gpu,
                nvforest::infer_kind::default_kind);
-
-The overload shown above auto-instantiates and caches a ``raft::device_resources``
-object and synchronizes before returning. This is the recommended path unless
-your application needs to control CUDA stream or stream-pool usage directly. For
-that advanced use case, pass an explicit ``raft::device_resources`` object:
-
-.. code-block:: cpp
-
-    #include <raft/core/device_resources.hpp>
-
-    raft::device_resources resource{};
-    fm.predict(resource, output, input, num_rows,
-               raft_proto::device_type::gpu, raft_proto::device_type::gpu,
-               nvforest::infer_kind::default_kind);
-
-.. note::
-
-    In version 26.06, the C++ prediction API changed from ``raft_proto::handle_t``
-    to ``raft::device_resources``. Code that previously constructed a
-    ``raft_proto::handle_t`` should use the no-resource overload shown above, or
-    if the previous call site relied on explicit CUDA stream or stream-pool
-    control, replace calls of the form
-    ``fm.predict(handle, output, input, num_rows, ...)`` with
-    ``fm.predict(resource, output, input, num_rows, ...)`` using
-    ``raft::device_resources``.
