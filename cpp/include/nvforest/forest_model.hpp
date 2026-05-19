@@ -8,9 +8,8 @@
 #include <nvforest/detail/raft_proto/buffer.hpp>
 #include <nvforest/detail/raft_proto/cuda_check.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
+#include <nvforest/detail/raft_proto/resources.hpp>
 #include <nvforest/infer_kind.hpp>
-
-#include <raft/core/device_resources.hpp>
 
 #ifdef NVFOREST_ENABLE_GPU
 #include <cuda_runtime_api.h>
@@ -198,7 +197,7 @@ struct forest_model {
           if (output.memory_type() == memory_type() && input.memory_type() == memory_type()) {
             concrete_forest.predict(output,
                                     input,
-                                    get_next_raft_proto_stream(resource),
+                                    raft_proto::get_next_usable_stream(resource),
                                     predict_type,
                                     specified_chunk_size);
           } else {
@@ -212,7 +211,7 @@ struct forest_model {
                        specified_chunk_size.value_or(MAX_CHUNK_SIZE) * MIN_CHUNKS_PER_PARTITION);
             auto partition_count = raft_proto::ceildiv(row_count, partition_size);
             for (auto i = std::size_t{}; i < partition_count; ++i) {
-              auto stream = get_next_raft_proto_stream(resource);
+              auto stream = raft_proto::get_next_usable_stream(resource);
               auto rows_in_this_partition =
                 std::min(partition_size, row_count - i * partition_size);
               auto partition_in = raft_proto::buffer<io_t>{};
@@ -366,17 +365,6 @@ struct forest_model {
   }
 
  private:
-  static raft_proto::cuda_stream get_next_raft_proto_stream(
-    raft::device_resources const& resource)
-  {
-#ifdef NVFOREST_ENABLE_GPU
-    return resource.get_next_usable_stream().value();
-#else
-    (void)resource;
-    return raft_proto::cuda_stream{};
-#endif
-  }
-
   decision_forest_variant decision_forest_;
   // Cache for auto-instantiated RAFT device resource
   std::unique_ptr<raft::device_resources> cached_device_resources_;
