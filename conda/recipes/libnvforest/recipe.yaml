@@ -40,6 +40,7 @@ cache:
         CMAKE_CXX_COMPILER_LAUNCHER: ${{ env.get("CMAKE_CXX_COMPILER_LAUNCHER") }}
         CMAKE_GENERATOR: ${{ env.get("CMAKE_GENERATOR") }}
         NVCC_APPEND_FLAGS: ${{ env.get("NVCC_APPEND_FLAGS", default="") }}
+        NVFOREST_EXTRA_CMAKE_ARGS: ${{ env.get("NVFOREST_EXTRA_CMAKE_ARGS", default="") }}
         PARALLEL_LEVEL: ${{ env.get("PARALLEL_LEVEL", default="8") }}
         RAPIDS_ARTIFACTS_DIR: ${{ env.get("RAPIDS_ARTIFACTS_DIR", default="") }}
         SCCACHE_BUCKET: ${{ env.get("SCCACHE_BUCKET", default="") }}
@@ -104,7 +105,6 @@ outputs:
         - cuda-cudart-dev
       run:
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
-        - cuda-cudart
         - librmm =${{ minor_version }}
         - rapids-logger =0.2
         - treelite ${{ treelite_version }}
@@ -139,7 +139,6 @@ outputs:
       run:
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
         - ${{ pin_subpackage("libnvforest", exact=True) }}
-        - cuda-cudart
       ignore_run_exports:
         by_name:
           - cuda-cudart

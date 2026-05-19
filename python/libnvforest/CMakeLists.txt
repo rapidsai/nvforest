@@ -5,7 +5,7 @@
 # cmake-format: on
 # =============================================================================
 
-cmake_minimum_required(VERSION 3.30.4 FATAL_ERROR)
+cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
 
 include(../../cmake/rapids_config.cmake)
 
@@ -41,9 +41,6 @@ set(NVFOREST_EXCLUDE_RAFT_FROM_ALL ON)
 set(NVFOREST_PYTHON_TREELITE_TARGET treelite::treelite_static)
 set(NVFOREST_USE_TREELITE_STATIC ON)
 set(NVFOREST_EXCLUDE_TREELITE_FROM_ALL ON)
-
-# --- CUDA --- #
-set(CUDA_STATIC_RUNTIME ON)
 
 add_subdirectory(../../cpp nvforest-cpp)
 

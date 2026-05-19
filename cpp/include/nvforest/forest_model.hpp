@@ -6,10 +6,15 @@
 #include <nvforest/decision_forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
+#include <nvforest/detail/raft_proto/cuda_check.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
 #include <nvforest/infer_kind.hpp>
 
 #include <raft/core/device_resources.hpp>
+
+#ifdef NVFOREST_ENABLE_GPU
+#include <cuda_runtime_api.h>
+#endif
 
 #include <cstddef>
 #include <memory>
@@ -291,7 +296,11 @@ struct forest_model {
     int current_device_id;
     if (out_mem_type == raft_proto::device_type::gpu ||
         in_mem_type == raft_proto::device_type::gpu) {
+#ifdef NVFOREST_ENABLE_GPU
       raft_proto::cuda_check(cudaGetDevice(&current_device_id));
+#else
+      throw raft_proto::gpu_unsupported("Tried to use GPU memory in CPU-only build");
+#endif
     } else {
       current_device_id = -1;
     }

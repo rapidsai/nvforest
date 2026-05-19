@@ -48,7 +48,7 @@ We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-
 
     $ conda create -n nvforest_dev python=3.13
     $ conda env update -n nvforest_dev \
-        --file=conda/environments/all_cuda-131_arch-$(uname -m).yaml
+        --file=conda/environments/all_cuda-132_arch-$(uname -m).yaml
     $ conda activate nvforest_dev
 
 Installing from Source
@@ -292,10 +292,6 @@ nvForest's cmake has the following configurable flags available:
      - [ON, OFF]
      - OFF
      - Whether to cache build artifacts with ccache.
-   * - CUDA_STATIC_RUNTIME
-     - [ON, OFF]
-     - OFF
-     - Whether to statically link the CUDA runtime.
    * - NVFOREST_USE_RAFT_STATIC
      - [ON, OFF]
      - OFF
