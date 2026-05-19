@@ -134,6 +134,9 @@ struct forest_model {
    * optimal value a priori. If omitted, a heuristic will be used to select a
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
+  // TODO(nvforest#121): This lower-level overload still exposes
+  // raft_proto::cuda_stream. Revisit it as part of the internal migration to
+  // consistent RAFT/RMM resource and stream abstractions.
   template <typename io_t>
   void predict(raft_proto::buffer<io_t>& output,
                raft_proto::buffer<io_t> const& input,
