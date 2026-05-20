@@ -18,23 +18,55 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <limits>
 #include <numeric>
 #include <optional>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace nvforest::detail {
 
-/*
- * Exception indicating that nvForest model could not be built from given input
- */
-struct model_builder_error : std::exception {
-  model_builder_error() : model_builder_error("Error while building model") {}
-  model_builder_error(char const* msg) : msg_{msg} {}
-  virtual char const* what() const noexcept { return msg_; }
+struct floating_point_truncation_error : std::exception {
+  floating_point_truncation_error() = default;
+  floating_point_truncation_error(std::string msg) : msg_{std::move(msg)} {}
+  floating_point_truncation_error(char const* msg) : msg_{msg} {}
+  char const* what() const noexcept override { return msg_.c_str(); }
 
  private:
-  char const* msg_;
+  std::string msg_;
 };
+
+template <typename dest_t, typename src_t>
+dest_t safe_cast_floating_point(src_t x)
+{
+  static_assert(std::is_floating_point_v<src_t> && std::is_floating_point_v<dest_t>,
+                "Source and destination types must be both floating-point types.");
+  if constexpr (sizeof(dest_t) >= sizeof(src_t)) {
+    return static_cast<dest_t>(x);
+  } else {
+    if (!std::isfinite(x)) {
+      throw floating_point_truncation_error{"Cannot cast an INF or NaN value"};
+    }
+    auto constexpr lower_limit = static_cast<src_t>(std::numeric_limits<dest_t>::lowest());
+    auto constexpr upper_limit = static_cast<src_t>(std::numeric_limits<dest_t>::max());
+    if (x < lower_limit) {
+      std::ostringstream ss;
+      ss << "Input must be at least " << lower_limit << ".";
+      throw floating_point_truncation_error{ss.str()};
+    }
+    if (x > upper_limit) {
+      std::ostringstream ss;
+      ss << "Input must be at most " << upper_limit << ".";
+      throw floating_point_truncation_error{ss.str()};
+    }
+    return static_cast<dest_t>(x);
+  }
+}
 
 /*
  * Struct used to build nvForest forests
@@ -55,20 +87,36 @@ struct decision_forest_builder {
     typename node_type::metadata_storage_type feature = typename node_type::metadata_storage_type{},
     typename node_type::offset_type offset            = typename node_type::offset_type{})
   {
-    auto constexpr const bin_width = index_type(sizeof(typename node_type::index_type) * 8);
-    auto node_value                = typename node_type::index_type{};
-    auto set_storage               = &node_value;
-    auto max_node_categories =
-      (vec_begin != vec_end) ? *std::max_element(vec_begin, vec_end) + 1 : 1;
+    auto constexpr const bin_width =
+      typename node_type::index_type{sizeof(typename node_type::index_type) * 8};
+    auto node_value  = typename node_type::index_type{};
+    auto set_storage = &node_value;
+
+    using cat_t   = typename std::iterator_traits<iter_t>::value_type;
+    using index_t = typename node_type::index_type;
+    static_assert(std::is_unsigned_v<cat_t>, "Category value must be an unsigned integer type");
+    static_assert(std::is_same_v<index_t, std::uint32_t> || std::is_same_v<index_t, std::uint64_t>,
+                  "Index type in tree node must be either uint32_t or uint64_t");
+
+    auto max_cat = (vec_begin != vec_end) ? *std::max_element(vec_begin, vec_end) : cat_t{0};
+    auto const max_index = static_cast<std::uintmax_t>(std::numeric_limits<index_t>::max());
+    auto const max_bitset_size =
+      static_cast<std::uintmax_t>(std::numeric_limits<std::uint32_t>::max());
+    auto const cat_unsigned      = static_cast<std::uintmax_t>(max_cat);
+    auto const max_representable = std::min(max_index, max_bitset_size);
+    if (cat_unsigned >= max_representable) {
+      throw model_import_error{std::string{"Category index must be at most "} +
+                               std::to_string(max_representable - 1)};
+    }
+    auto max_cat_plus_one = static_cast<index_t>(cat_unsigned + std::uintmax_t{1});
     if (max_num_categories_ > bin_width) {
-      // TODO(wphicks): Check for overflow here
       node_value         = categorical_storage_.size();
-      auto bins_required = raft_proto::ceildiv(max_node_categories, bin_width);
-      categorical_storage_.push_back(max_node_categories);
+      auto bins_required = raft_proto::ceildiv(max_cat_plus_one, bin_width);
+      categorical_storage_.push_back(max_cat_plus_one);
       categorical_storage_.resize(categorical_storage_.size() + bins_required);
       set_storage = &(categorical_storage_[node_value + 1]);
     }
-    auto set = bitset{set_storage, max_node_categories};
+    auto set = bitset{set_storage, max_cat_plus_one};
     std::for_each(vec_begin, vec_end, [&set](auto&& cat_index) { set.set(cat_index); });
 
     add_node(
@@ -151,7 +199,7 @@ struct decision_forest_builder {
   void set_output_size(index_type val)
   {
     if (output_size_ != index_type{1} && output_size_ != val) {
-      throw model_import_error("Inconsistent leaf vector size");
+      throw model_import_error{"Inconsistent leaf vector size"};
     }
     output_size_ = val;
   }
@@ -183,11 +231,65 @@ struct decision_forest_builder {
     // Set device = -1 when loading the model onto CPU
     if (mem_type == raft_proto::device_type::cpu) { device = -1; }
 
-    // Allow narrowing for preprocessing constants. They are stored as doubles
-    // for consistency in the builder but must be converted to the proper types
-    // for the concrete forest model.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnarrowing"
+    // Validate forest invariants the inference kernel relies on. After this
+    // function returns, the forest is treated as trusted by the kernel.
+    if (root_node_indexes_.size() > std::numeric_limits<index_type>::max()) {
+      throw model_import_error{std::string{"Forest has "} +
+                               std::to_string(root_node_indexes_.size()) +
+                               " trees, which exceeds the maximum representable in index_type (" +
+                               std::to_string(std::numeric_limits<index_type>::max()) + ")"};
+    }
+
+    for (auto i = std::size_t{0}; i < root_node_indexes_.size(); ++i) {
+      if (root_node_indexes_[i] >= nodes_.size()) {
+        throw model_import_error{
+          std::string{"Tree "} + std::to_string(i) + ": root node index out of bounds (" +
+          std::to_string(root_node_indexes_[i]) + " >= " + std::to_string(nodes_.size()) + ")"};
+      }
+    }
+
+    auto constexpr const cat_bin_width =
+      typename node_type::index_type{sizeof(typename node_type::index_type) * 8};
+    if (max_num_categories_ > cat_bin_width) {
+      auto const storage_size = categorical_storage_.size();
+      for (auto i = std::size_t{0}; i < nodes_.size(); ++i) {
+        auto const& n = nodes_[i];
+        if (n.is_leaf() || !n.is_categorical()) { continue; }
+        auto const offset = n.index();
+
+        if (offset >= storage_size) {
+          throw model_import_error{std::string{"Categorical node "} + std::to_string(i) +
+                                   ": storage offset out of bounds (" + std::to_string(offset) +
+                                   " >= " + std::to_string(storage_size) + ")"};
+        }
+        auto const stored_num_cats = categorical_storage_[offset];
+        auto const bins_required   = raft_proto::ceildiv(stored_num_cats, cat_bin_width);
+        auto const bits_begin      = static_cast<std::size_t>(offset) + std::size_t{1};
+        auto const bits_end        = bits_begin + static_cast<std::size_t>(bins_required);
+        if (bits_end > storage_size) {
+          throw model_import_error{std::string{"Categorical node "} + std::to_string(i) +
+                                   ": bitset extends past categorical_storage end"};
+        }
+      }
+    }
+
+    auto average_factor_casted    = typename node_type::threshold_type{};
+    auto postproc_constant_casted = typename node_type::threshold_type{};
+    try {
+      average_factor_casted =
+        safe_cast_floating_point<typename node_type::threshold_type>(average_factor_);
+    } catch (const floating_point_truncation_error& e) {
+      throw model_import_error{std::string{"Found an invalid value for averaging factor: "} +
+                               e.what()};
+    }
+    try {
+      postproc_constant_casted =
+        safe_cast_floating_point<typename node_type::threshold_type>(postproc_constant_);
+    } catch (const floating_point_truncation_error& e) {
+      throw model_import_error{std::string{"Found an invalid value for postprocessing constant: "} +
+                               e.what()};
+    }
+
     return decision_forest_t{
       raft_proto::buffer{
         raft_proto::buffer{nodes_.data(), nodes_.size()}, mem_type, device, stream},
@@ -220,9 +322,8 @@ struct decision_forest_builder {
       output_size_,
       row_postproc_,
       element_postproc_,
-      static_cast<typename node_type::threshold_type>(average_factor_),
-      static_cast<typename node_type::threshold_type>(postproc_constant_)};
-#pragma GCC diagnostic pop
+      average_factor_casted,
+      postproc_constant_casted};
   }
 
  private:
