@@ -260,6 +260,9 @@ struct treelite_importer {
             try {
               if (node.is_leaf()) {
                 auto output = node.get_output();
+                if (output.empty()) {
+                  throw model_import_error{"Leaf node must contain at least one output value"};
+                }
                 builder.set_output_size(output.size());
                 if (output.size() > index_type{1}) {
                   builder.add_leaf_vector_node(
