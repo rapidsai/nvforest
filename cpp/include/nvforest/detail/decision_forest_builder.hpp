@@ -113,7 +113,7 @@ struct decision_forest_builder {
                                                  static_cast<std::uintmax_t>(max_num_categories_)) {
       throw model_import_error{"Category index exceeds configured max_num_categories"};
     }
-    if (max_cat_plus_one > bin_width) {
+    if (max_num_categories_ > bin_width) {
       node_value         = categorical_storage_.size();
       auto bins_required = raft_proto::ceildiv(max_cat_plus_one, bin_width);
       categorical_storage_.push_back(max_cat_plus_one);
