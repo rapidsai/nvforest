@@ -86,6 +86,16 @@ struct treelite_importer {
     return result;
   }
 
+  void validate_model_shape(treelite::Model const& tl_model)
+  {
+    if (num_trees(tl_model) < index_type{1}) {
+      throw model_import_error{"Treelite model must contain at least one decision tree"};
+    }
+    if (tl_model.num_class.Empty() || tl_model.num_class[0] < 1) {
+      throw model_import_error{"Treelite model must contain at least one output"};
+    }
+  }
+
   auto get_tree_sizes(treelite::Model const& tl_model)
   {
     auto result = std::vector<index_type>{};
@@ -346,6 +356,8 @@ struct treelite_importer {
                       int device                               = 0,
                       raft_proto::cuda_stream stream           = raft_proto::cuda_stream{})
   {
+    validate_model_shape(tl_model);
+
     // Handle degenerate trees (a single root node with no child)
     if (auto processed_tl_model = detail::convert_degenerate_trees(tl_model); processed_tl_model) {
       return import(

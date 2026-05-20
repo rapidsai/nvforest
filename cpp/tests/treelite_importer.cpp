@@ -289,6 +289,38 @@ TEST(TreeliteImporter, layered_children_together)
   ASSERT_FALSE(fil_model.is_double_precision());
 }
 
+auto make_empty_forest()
+{
+  auto metadata = treelite::model_builder::Metadata{
+    1,
+    treelite::TaskType::kRegressor,
+    false,
+    1,
+    {1},
+    {1, 1},
+  };
+  auto tree_annotation = treelite::model_builder::TreeAnnotation{0, {}, {}};
+  auto model_builder =
+    treelite::model_builder::GetModelBuilder(treelite::TypeInfo::kFloat32,
+                                             treelite::TypeInfo::kFloat32,
+                                             metadata,
+                                             tree_annotation,
+                                             treelite::model_builder::PostProcessorFunc{"identity"},
+                                             std::vector<double>{0.0});
+  return model_builder->CommitModel();
+}
+
+TEST(TreeliteImporter, EmptyForest)
+{
+  auto tl_model = make_empty_forest();
+  try {
+    import_from_treelite_model(*tl_model, tree_layout::breadth_first);
+    FAIL() << "Expected model_import_error";
+  } catch (model_import_error const& e) {
+    EXPECT_THAT(std::string{e.what()}, testing::HasSubstr("at least one decision tree"));
+  }
+}
+
 template <bool use_leaf_vector, typename leaf_t>
 auto make_degenerate_tree(const leaf_t& leaf)
 {
@@ -330,6 +362,18 @@ auto make_degenerate_tree(const leaf_t& leaf)
   model_builder->EndNode();
   model_builder->EndTree();
   return model_builder->CommitModel();
+}
+
+TEST(TreeliteImporter, NoOutputs)
+{
+  auto tl_model       = make_degenerate_tree<false>(1.0);
+  tl_model->num_class = std::vector<std::int32_t>{};
+  try {
+    import_from_treelite_model(*tl_model, tree_layout::breadth_first);
+    FAIL() << "Expected model_import_error";
+  } catch (model_import_error const& e) {
+    EXPECT_THAT(std::string{e.what()}, testing::HasSubstr("at least one output"));
+  }
 }
 
 TEST(TreeliteImporter, DegenerateTree)
