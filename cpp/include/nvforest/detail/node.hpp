@@ -9,6 +9,7 @@
 #include <nvforest/tree_layout.hpp>
 
 #include <iostream>
+#include <string>
 #include <type_traits>
 
 namespace nvforest {
