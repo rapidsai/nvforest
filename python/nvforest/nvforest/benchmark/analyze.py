@@ -59,13 +59,8 @@ def plot_speedup_heatmaps(
         ncols=len(num_trees_values),
         figsize=(len(num_trees_values) * 4, len(max_depth_values) * 4),
         constrained_layout=True,
+        squeeze=False,
     )
-
-    # Handle single row/column case
-    if len(max_depth_values) == 1:
-        axes = axes.reshape(1, -1)
-    if len(num_trees_values) == 1:
-        axes = axes.reshape(-1, 1)
 
     min_speedup = df[speedup_column].min()
     max_speedup = df[speedup_column].max()
