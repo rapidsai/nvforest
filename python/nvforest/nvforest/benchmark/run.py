@@ -533,7 +533,8 @@ def run_benchmark_suite(
     for model_type in model_types:
         for num_features in param_values["num_features"]:
             # Generate data once per feature count
-            X, y = generate_data(num_features, MAX_BATCH_SIZE, model_type)
+            num_samples = max(max(param_values["batch_size"]), TRAIN_SAMPLES)
+            X, y = generate_data(num_features, num_samples, model_type)
             X_train, y_train = X[:TRAIN_SAMPLES], y[:TRAIN_SAMPLES]
 
             for max_depth in param_values["max_depth"]:

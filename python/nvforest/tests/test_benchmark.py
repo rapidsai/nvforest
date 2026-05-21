@@ -391,6 +391,41 @@ class TestCLI:
         assert captured["data_dir"] == "data"
 
 
+class TestRunBenchmarkSuite:
+    """Tests for benchmark suite orchestration."""
+
+    @pytest.mark.unit
+    def test_quick_test_uses_configured_sample_count(
+        self, monkeypatch, tmp_path
+    ):
+        """Test quick-test does not allocate the full benchmark dataset."""
+        generated_sample_counts = []
+
+        def fake_generate_data(num_features, num_samples, model_type):
+            generated_sample_counts.append(num_samples)
+            raise RuntimeError("stop after sample count capture")
+
+        monkeypatch.setattr(
+            benchmark_run, "generate_data", fake_generate_data
+        )
+
+        with pytest.raises(RuntimeError, match="sample count capture"):
+            benchmark_run.run_benchmark_suite(
+                frameworks=["sklearn"],
+                model_types=["regressor"],
+                devices=["cpu"],
+                param_values=QUICK_TEST_VALUES,
+                data_dir=str(tmp_path),
+            )
+
+        assert generated_sample_counts == [
+            max(
+                max(QUICK_TEST_VALUES["batch_size"]),
+                benchmark_run.TRAIN_SAMPLES,
+            )
+        ]
+
+
 class TestDeviceHandling:
     """Tests for device-aware inference."""
 
