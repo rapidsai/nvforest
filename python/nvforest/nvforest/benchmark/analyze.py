@@ -173,17 +173,21 @@ def print_summary(df: pd.DataFrame) -> None:
 
     # Overall stats
     print(f"\nTotal benchmark runs: {len(df)}")
-    print(f"Frameworks tested: {', '.join(df['framework'].unique())}")
+    print(
+        "Native baseline frameworks tested: "
+        f"{', '.join(df['framework'].unique())}"
+    )
     print(f"Model types: {', '.join(df['model_type'].unique())}")
-    print(f"Devices: {', '.join(df['device'].unique())}")
+    print(f"nvforest devices tested: {', '.join(df['device'].unique())}")
 
     # Speedup stats
     print("\n" + "-" * 40)
-    print("SPEEDUP STATISTICS (native / nvforest)")
+    print("SPEEDUP STATISTICS")
+    print("Formula: speedup = native_baseline_time / nvforest_time")
     print("-" * 40)
 
     for framework in df["framework"].unique():
-        print(f"\n{framework.upper()}:")
+        print(f"\nNative baseline: {framework}")
         fw_df = df[df["framework"] == framework]
 
         for device in fw_df["device"].unique():
@@ -191,7 +195,7 @@ def print_summary(df: pd.DataFrame) -> None:
             valid_speedups = dev_df["speedup"].dropna()
 
             if len(valid_speedups) > 0:
-                print(f"  {device}:")
+                print(f"  nvforest device: {device}")
                 print(f"    Mean speedup:   {valid_speedups.mean():.2f}x")
                 print(f"    Median speedup: {valid_speedups.median():.2f}x")
                 print(f"    Min speedup:    {valid_speedups.min():.2f}x")
@@ -200,6 +204,7 @@ def print_summary(df: pd.DataFrame) -> None:
     # Best configurations
     print("\n" + "-" * 40)
     print("TOP 5 CONFIGURATIONS BY SPEEDUP")
+    print("speedup = native_baseline_time / nvforest_time")
     print("-" * 40)
 
     top_5 = df.nlargest(5, "speedup")[
@@ -212,7 +217,12 @@ def print_summary(df: pd.DataFrame) -> None:
             "batch_size",
             "speedup",
         ]
-    ]
+    ].rename(
+        columns={
+            "framework": "baseline_framework",
+            "device": "nvforest_device",
+        }
+    )
     print(top_5.to_string(index=False))
 
     print("\n" + "=" * 60)

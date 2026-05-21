@@ -697,7 +697,15 @@ class TestAnalyze:
         print_summary(df)
         captured = capsys.readouterr()
         assert "BENCHMARK SUMMARY" in captured.out
-        assert "SKLEARN" in captured.out.upper()
+        assert "Native baseline: sklearn" in captured.out
+        assert "nvforest device: cpu" in captured.out
+        assert (
+            "Formula: speedup = native_baseline_time / nvforest_time"
+            in captured.out
+        )
+        assert "baseline_framework" in captured.out
+        assert "nvforest_device" in captured.out
+        assert " speedup" in captured.out
 
     @pytest.mark.unit
     def test_heatmap_data_preserves_benchmark_dimensions(self):
