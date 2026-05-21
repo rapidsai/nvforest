@@ -18,6 +18,28 @@ from typing import Optional
 import click
 import pandas as pd
 
+HEATMAP_INDEX_COLUMNS = [
+    "framework",
+    "model_type",
+    "device",
+    "num_features",
+]
+
+
+def _build_heatmap_data(
+    subset: pd.DataFrame, speedup_column: str
+) -> pd.DataFrame:
+    """Build heatmap data with one cell per benchmark configuration."""
+    heatmap_data = subset.pivot(
+        index=HEATMAP_INDEX_COLUMNS,
+        columns="batch_size",
+        values=speedup_column,
+    )
+    heatmap_data.columns = pd.Index(
+        [f"{x:.0e}" for x in heatmap_data.columns], name="Batch Size"
+    )
+    return heatmap_data
+
 
 def plot_speedup_heatmaps(
     df: pd.DataFrame,
@@ -79,14 +101,7 @@ def plot_speedup_heatmaps(
                 continue
 
             # Pivot data for heatmap
-            heatmap_data = subset.pivot_table(
-                index="num_features",
-                columns="batch_size",
-                values=speedup_column,
-            )
-            heatmap_data.columns = pd.Index(
-                [f"{x:.0e}" for x in heatmap_data.columns], name="Batch Size"
-            )
+            heatmap_data = _build_heatmap_data(subset, speedup_column)
 
             # Plot heatmap
             sns.heatmap(
@@ -108,7 +123,10 @@ def plot_speedup_heatmaps(
             else:
                 ax.set_xlabel("")
             if j == 0:
-                ax.set_ylabel(f"Maximum Depth: {max_depth}\nFeature Count")
+                ax.set_ylabel(
+                    f"Maximum Depth: {max_depth}\n"
+                    "Configuration / Feature Count"
+                )
             else:
                 ax.set_ylabel("")
 

@@ -665,6 +665,46 @@ class TestAnalyze:
         assert "SKLEARN" in captured.out.upper()
 
     @pytest.mark.unit
+    def test_heatmap_data_preserves_benchmark_dimensions(self):
+        """Test heatmap data does not average unrelated configurations."""
+        import pandas as pd
+
+        from nvforest.benchmark.analyze import _build_heatmap_data
+
+        df = pd.DataFrame(
+            {
+                "framework": ["sklearn", "xgboost"],
+                "model_type": ["regressor", "classifier"],
+                "device": ["cpu", "gpu"],
+                "num_features": [32, 32],
+                "batch_size": [1024, 1024],
+                "speedup": [2.0, 10.0],
+            }
+        )
+
+        heatmap_data = _build_heatmap_data(df, "speedup")
+
+        assert heatmap_data.index.names == [
+            "framework",
+            "model_type",
+            "device",
+            "num_features",
+        ]
+        assert len(heatmap_data) == 2
+        assert (
+            heatmap_data.loc[
+                ("sklearn", "regressor", "cpu", 32), "1e+03"
+            ]
+            == 2.0
+        )
+        assert (
+            heatmap_data.loc[
+                ("xgboost", "classifier", "gpu", 32), "1e+03"
+            ]
+            == 10.0
+        )
+
+    @pytest.mark.unit
     def test_analyze_cli_file_not_found(self):
         """Test analyze CLI with non-existent file."""
         from nvforest.benchmark.analyze import analyze
