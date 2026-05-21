@@ -10,6 +10,8 @@ import numpy as np
 import pytest
 from click.testing import CliRunner
 
+import nvforest.benchmark.run as benchmark_run
+
 # Import benchmark components
 from nvforest.benchmark.run import (
     FRAMEWORKS,
@@ -357,6 +359,36 @@ class TestCLI:
         # May fail if xgboost not installed, but should not error on parsing
         if result.exit_code == 0:
             assert "sklearn" in result.output
+
+    @pytest.mark.unit
+    def test_cli_default_output_dir_is_cwd_relative(self, monkeypatch):
+        """Test that default benchmark output stays in the working directory."""
+        captured = {}
+
+        def fake_run_benchmark_suite(**kwargs):
+            captured.update(kwargs)
+
+        monkeypatch.setattr(
+            benchmark_run, "run_benchmark_suite", fake_run_benchmark_suite
+        )
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                run,
+                [
+                    "--quick-test",
+                    "--framework",
+                    "sklearn",
+                    "--device",
+                    "cpu",
+                    "--model-type",
+                    "regressor",
+                ],
+            )
+
+        assert result.exit_code == 0
+        assert captured["data_dir"] == "data"
 
 
 class TestDeviceHandling:

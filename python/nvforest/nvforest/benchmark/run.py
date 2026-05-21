@@ -64,7 +64,7 @@ MAX_BATCH_SIZE = 16_777_216
 TRAIN_SAMPLES = 10_000
 RANDOM_STATE = 0
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DEFAULT_OUTPUT_DIR = "data"
 
 # Parameter spaces
 FULL_VALUES = {
@@ -773,7 +773,7 @@ def run_benchmark_suite(
     "--output-dir",
     "-o",
     default=None,
-    help="Output directory for results. Default: benchmark/data/",
+    help="Output directory for results. Default: ./data",
 )
 def run(
     frameworks: tuple[str, ...],
@@ -821,7 +821,7 @@ def run(
 
     # Resolve output directory
     if output_dir is None:
-        output_dir = DATA_DIR
+        output_dir = DEFAULT_OUTPUT_DIR
 
     if dry_run:
         print_dry_run_info(

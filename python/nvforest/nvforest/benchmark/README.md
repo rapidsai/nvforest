@@ -32,7 +32,7 @@ python -m nvforest.benchmark.run [OPTIONS]
 | `--quick-test` | `-q` | Run with minimal parameters for quick verification |
 | `--device` | `-d` | Device: `cpu`, `gpu`, or `both`. Default: `both` |
 | `--model-type` | `-m` | Model type: `regressor`, `classifier`, or `both`. Default: `both` |
-| `--output-dir` | `-o` | Output directory for results. Default: `benchmark/data/` |
+| `--output-dir` | `-o` | Output directory for results. Default: `./data` |
 
 **Examples:**
 
