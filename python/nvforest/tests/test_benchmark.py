@@ -405,9 +405,7 @@ class TestRunBenchmarkSuite:
             generated_sample_counts.append(num_samples)
             raise RuntimeError("stop after sample count capture")
 
-        monkeypatch.setattr(
-            benchmark_run, "generate_data", fake_generate_data
-        )
+        monkeypatch.setattr(benchmark_run, "generate_data", fake_generate_data)
 
         with pytest.raises(RuntimeError, match="sample count capture"):
             benchmark_run.run_benchmark_suite(
@@ -735,15 +733,11 @@ class TestAnalyze:
         ]
         assert len(heatmap_data) == 2
         assert (
-            heatmap_data.loc[
-                ("sklearn", "regressor", "cpu", 32), "1e+03"
-            ]
+            heatmap_data.loc[("sklearn", "regressor", "cpu", 32), "1e+03"]
             == 2.0
         )
         assert (
-            heatmap_data.loc[
-                ("xgboost", "classifier", "gpu", 32), "1e+03"
-            ]
+            heatmap_data.loc[("xgboost", "classifier", "gpu", 32), "1e+03"]
             == 10.0
         )
 
