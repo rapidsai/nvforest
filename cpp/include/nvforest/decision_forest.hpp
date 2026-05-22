@@ -10,6 +10,7 @@
 #include <nvforest/detail/infer.hpp>
 #include <nvforest/detail/postprocessor.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
+#include <nvforest/detail/raft_proto/ceildiv.hpp>
 #include <nvforest/detail/raft_proto/cuda_stream.hpp>
 #include <nvforest/detail/raft_proto/exceptions.hpp>
 #include <nvforest/detail/specialization_types.hpp>

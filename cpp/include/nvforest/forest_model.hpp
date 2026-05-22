@@ -6,7 +6,11 @@
 #include <nvforest/decision_forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/raft_proto/buffer.hpp>
+#include <nvforest/detail/raft_proto/ceildiv.hpp>
 #include <nvforest/detail/raft_proto/cuda_check.hpp>
+#include <nvforest/detail/raft_proto/cuda_stream.hpp>
+#include <nvforest/detail/raft_proto/detail/copy.hpp>
+#include <nvforest/detail/raft_proto/device_type.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
 #include <nvforest/detail/raft_proto/handle.hpp>
 #include <nvforest/infer_kind.hpp>

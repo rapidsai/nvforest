@@ -9,6 +9,8 @@
 #include <nvforest/detail/degenerate_trees.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/integration/treelite.hpp>
+#include <nvforest/detail/raft_proto/cuda_stream.hpp>
+#include <nvforest/detail/raft_proto/device_type.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/forest_model.hpp>
 #include <nvforest/postproc_ops.hpp>
