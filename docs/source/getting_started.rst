@@ -151,7 +151,7 @@ nvForest provides a CMake config file so that other C++ projects can find and us
 
     find_package(nvforest CONFIG REQUIRED)
 
-    target_link_libraries(my_target PRIVATE nvforest::nvforest++ treelite::treelite)
+    target_link_libraries(my_target PRIVATE nvforest::nvforest treelite::treelite)
 
 To ensure that CMake can locate nvForest and Treelite, we recommend the use of Conda to install nvForest.
 
@@ -179,9 +179,9 @@ Once the tree model is available as a Treelite object, pass it to the
 .. code-block:: cpp
 
     #include <nvforest/constants.hpp>
+    #include <nvforest/device_type.hpp>
     #include <nvforest/treelite_importer.hpp>
     #include <nvforest/detail/index_type.hpp>
-    #include <nvforest/detail/raft_proto/device_type.hpp>
     #include <optional>
 
     auto fm = nvforest::import_from_treelite_model(
@@ -189,22 +189,22 @@ Once the tree model is available as a Treelite object, pass it to the
         nvforest::preferred_tree_layout,
         nvforest::index_type{},
         std::nullopt,
-        raft_proto::device_type::gpu);
+        nvforest::device_type::gpu);
 
 Now that the tree model is fully imported into nvForest, let's run inference:
 
 .. code-block:: cpp
 
     #include <raft/core/handle.hpp>
-    #include <nvforest/detail/raft_proto/handle.hpp>
+    #include <nvforest/handle.hpp>
 
     raft::handle_t raft_handle{};
-    raft_proto::handle_t handle{raft_handle};
+    nvforest::handle_t handle{raft_handle};
 
     // Assumption:
     // * Both output and input are in the GPU memory.
     // * The input buffer should be of dimension (num_rows, num_features)
     // * The output buffer should be of dimension (num_rows, fm.num_outputs())
     fm.predict(handle, output, input, num_rows,
-               raft_proto::device_type::gpu, raft_proto::device_type::gpu,
+               nvforest::device_type::gpu, nvforest::device_type::gpu,
                nvforest::infer_kind::default_kind);
