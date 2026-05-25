@@ -24,7 +24,7 @@ project(
 # * User Options  --------------------------------------------------------------
 option(USE_LIBNVFOREST_WHEEL "Use libnvforest wheel to provide some dependencies" OFF)
 
-set(NVFOREST_CPP_TARGET "nvforest++")
+set(NVFOREST_CPP_TARGET "nvforest")
 set(NVFOREST_CPP_SRC "../../cpp")
 
 # ######################################################################################################################

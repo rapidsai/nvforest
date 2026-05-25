@@ -20,7 +20,7 @@ LIBNVFOREST_WHEELHOUSE=$(RAPIDS_PY_WHEEL_NAME="libnvforest_${RAPIDS_PY_CUDA_SUFF
 echo "libnvforest-${RAPIDS_PY_CUDA_SUFFIX} @ file://$(echo "${LIBNVFOREST_WHEELHOUSE}"/libnvforest_*.whl)" >> "${PIP_CONSTRAINT}"
 
 EXCLUDE_ARGS=(
-  --exclude "libnvforest++.so"
+  --exclude "libnvforest.so"
   --exclude "libraft.so"
   --exclude "libcublas.so.*"
   --exclude "libcublasLt.so.*"

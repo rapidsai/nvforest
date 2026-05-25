@@ -91,7 +91,7 @@ outputs:
       prefix_detection:
         ignore:
           # See https://github.com/rapidsai/build-planning/issues/160
-          - lib/libnvforest++.so
+          - lib/libnvforest.so
       string: cuda${{ cuda_major }}_${{ date_string }}_${{ head_rev }}
     requirements:
       build:

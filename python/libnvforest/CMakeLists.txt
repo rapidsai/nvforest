@@ -30,7 +30,7 @@ unset(nvforest_FOUND)
 # --- nvForest --- #
 set(BUILD_NVFOREST_TESTS OFF)
 
-set(NVFOREST_CPP_TARGET "nvforest++")
+set(NVFOREST_CPP_TARGET "nvforest")
 set(NVFOREST_CPP_SRC "../../cpp")
 
 # --- raft --- #
