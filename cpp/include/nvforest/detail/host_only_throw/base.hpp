@@ -5,8 +5,8 @@
 #pragma once
 #include <nvforest/detail/gpu_support.hpp>
 
-namespace raft_proto::detail {
-template <typename T, bool host>
+namespace nvforest::detail {
+template <typename T, bool host = !GPU_COMPILATION>
 struct host_only_throw {
   template <typename... Args>
   host_only_throw(Args&&... args)
@@ -14,4 +14,4 @@ struct host_only_throw {
     static_assert(host);  // Do not allow constexpr branch to compile if !host
   }
 };
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

@@ -12,7 +12,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace raft_proto {
+namespace nvforest {
 
 TEST(Buffer, default_buffer)
 {
@@ -202,10 +202,10 @@ TEST(Buffer, copy_buffer)
     test_dev_buffers.emplace_back(orig_buffer, device_type::gpu, 0, cuda_stream{});
     for (auto& dev_buf : test_dev_buffers) {
       data_out = std::vector<int>(data.size());
-      cuda_check(cudaMemcpy(static_cast<void*>(data_out.data()),
-                            static_cast<void*>(dev_buf.data()),
-                            dev_buf.size() * sizeof(int),
-                            cudaMemcpyDefault));
+      detail::cuda_check(cudaMemcpy(static_cast<void*>(data_out.data()),
+                                    static_cast<void*>(dev_buf.data()),
+                                    dev_buf.size() * sizeof(int),
+                                    cudaMemcpyDefault));
       EXPECT_THAT(data_out, ::testing::ElementsAreArray(data));
 
       auto test_dev_copies = std::vector<buffer<int>>{};
@@ -214,10 +214,10 @@ TEST(Buffer, copy_buffer)
       test_dev_copies.emplace_back(dev_buf, device_type::gpu, 0, cuda_stream{});
       for (auto& copy_buf : test_dev_copies) {
         data_out = std::vector<int>(data.size());
-        cuda_check(cudaMemcpy(static_cast<void*>(data_out.data()),
-                              static_cast<void*>(copy_buf.data()),
-                              copy_buf.size() * sizeof(int),
-                              cudaMemcpyDefault));
+        detail::cuda_check(cudaMemcpy(static_cast<void*>(data_out.data()),
+                                      static_cast<void*>(copy_buf.data()),
+                                      copy_buf.size() * sizeof(int),
+                                      cudaMemcpyDefault));
         EXPECT_THAT(data_out, ::testing::ElementsAreArray(data));
       }
 
@@ -268,10 +268,10 @@ TEST(Buffer, move_buffer)
     ASSERT_NE(buf.data(), data.data());
 
     auto data_out = std::vector<int>(buf.size());
-    cuda_check(cudaMemcpy(static_cast<void*>(data_out.data()),
-                          static_cast<void*>(buf.data()),
-                          buf.size() * sizeof(int),
-                          cudaMemcpyDefault));
+    detail::cuda_check(cudaMemcpy(static_cast<void*>(data_out.data()),
+                                  static_cast<void*>(buf.data()),
+                                  buf.size() * sizeof(int),
+                                  cudaMemcpyDefault));
     EXPECT_THAT(data_out, ::testing::ElementsAreArray(data));
   }
 #endif
@@ -306,7 +306,7 @@ TEST(Buffer, partial_buffer_copy)
   auto buf2 = buffer<int>{data2.data(), data2.size(), device_type::cpu};
   copy<true>(buf2, buf1, 1, 2, 3, cuda_stream{});
   copy<false>(buf2, buf1, 1, 2, 3, cuda_stream{});
-  EXPECT_THROW(copy<true>(buf2, buf1, 1, 2, 4, cuda_stream{}), out_of_bounds);
+  EXPECT_THROW(copy<true>(buf2, buf1, 1, 2, 4, cuda_stream{}), detail::out_of_bounds);
 }
 
 TEST(Buffer, buffer_copy_overloads)
@@ -360,4 +360,4 @@ TEST(Buffer, buffer_copy_overloads)
 #endif
 }
 
-}  // namespace raft_proto
+}  // namespace nvforest

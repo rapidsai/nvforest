@@ -11,14 +11,14 @@
 #include <raft/core/handle.hpp>
 #endif
 
-namespace raft_proto {
+namespace nvforest {
 #ifdef NVFOREST_ENABLE_GPU
 struct handle_t {
   handle_t(raft::handle_t const* handle_ptr = nullptr) : raft_handle_{handle_ptr} {}
   handle_t(raft::handle_t const& raft_handle) : raft_handle_{&raft_handle} {}
   auto get_next_usable_stream() const
   {
-    return raft_proto::cuda_stream{raft_handle_->get_next_usable_stream().value()};
+    return cuda_stream{raft_handle_->get_next_usable_stream().value()};
   }
   auto get_stream_pool_size() const { return raft_handle_->get_stream_pool_size(); }
   auto get_usable_stream_count() const { return std::max(get_stream_pool_size(), std::size_t{1}); }
@@ -34,10 +34,10 @@ struct handle_t {
 };
 #else
 struct handle_t {
-  auto get_next_usable_stream() const { return raft_proto::cuda_stream{}; }
+  auto get_next_usable_stream() const { return cuda_stream{}; }
   auto get_stream_pool_size() const { return std::size_t{}; }
   auto get_usable_stream_count() const { return std::max(get_stream_pool_size(), std::size_t{1}); }
   void synchronize() const {}
 };
 #endif
-}  // namespace raft_proto
+}  // namespace nvforest

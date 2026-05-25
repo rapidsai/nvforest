@@ -10,7 +10,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace raft_proto::detail {
+namespace nvforest::detail {
 template <typename T>
 struct owning_buffer<device_type::cpu, T> {
   // TODO(wphicks): Assess need for buffers of const T
@@ -26,4 +26,4 @@ struct owning_buffer<device_type::cpu, T> {
   // TODO(wphicks): Back this with RMM-allocated host memory
   std::unique_ptr<T[]> data_;
 };
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

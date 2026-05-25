@@ -16,12 +16,12 @@
 namespace nvforest::detail::inference {
 
 /* The CUDA-free header declaration of the GPU infer template */
-template <raft_proto::device_type D,
+template <device_type D,
           bool has_categorical_nodes,
           typename forest_t,
           typename vector_output_t    = std::nullptr_t,
           typename categorical_data_t = std::nullptr_t>
-std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
+std::enable_if_t<D == device_type::gpu, void> infer(
   forest_t const& forest,
   postprocessor<typename forest_t::io_type> const& postproc,
   typename forest_t::io_type* output,
@@ -33,7 +33,7 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
   categorical_data_t categorical_data            = nullptr,
   infer_kind infer_type                          = infer_kind::default_kind,
   std::optional<index_type> specified_chunk_size = std::nullopt,
-  raft_proto::device_id<D> device                = raft_proto::device_id<D>{},
-  raft_proto::cuda_stream stream                 = raft_proto::cuda_stream{});
+  device_id<D> device                            = device_id<D>{},
+  cuda_stream stream                             = cuda_stream{});
 
 }  // namespace nvforest::detail::inference

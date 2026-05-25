@@ -9,7 +9,7 @@
 
 #include <type_traits>
 
-namespace raft_proto::detail {
+namespace nvforest::detail {
 
 template <device_type D, typename T>
 struct owning_buffer {
@@ -18,4 +18,4 @@ struct owning_buffer {
   auto* get() const { return static_cast<T*>(nullptr); }
 };
 
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

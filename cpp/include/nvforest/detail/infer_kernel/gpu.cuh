@@ -109,7 +109,7 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
 
     auto task_count = chunk_size * forest.tree_count();
 
-    auto num_grove = raft_proto::ceildiv(min(index_type(blockDim.x), task_count), chunk_size) *
+    auto num_grove = ceildiv(min(index_type(blockDim.x), task_count), chunk_size) *
                        (infer_type == infer_kind::default_kind) +
                      (infer_type != infer_kind::default_kind);
 
@@ -121,7 +121,7 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
     // deadlock on __syncthreads, so we round the task_count up to the next
     // multiple of the number of threads in this block. We then only perform
     // work within the loop if the task_index is below the actual task_count.
-    auto const task_count_rounded_up = blockDim.x * raft_proto::ceildiv(task_count, blockDim.x);
+    auto const task_count_rounded_up = blockDim.x * ceildiv(task_count, blockDim.x);
 
     // Infer on each tree and row
     for (auto task_index = threadIdx.x; task_index < task_count_rounded_up;
@@ -175,7 +175,7 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
       __syncthreads();
     }
 
-    auto padded_num_groves = raft_proto::padded_size(num_grove, WARP_SIZE);
+    auto padded_num_groves = padded_size(num_grove, WARP_SIZE);
     for (auto row_index = threadIdx.x / WARP_SIZE; row_index < rows_in_this_iteration;
          row_index += blockDim.x / WARP_SIZE) {
       for (auto class_index = index_type{}; class_index < num_outputs; ++class_index) {

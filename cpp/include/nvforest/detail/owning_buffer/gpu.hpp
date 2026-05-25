@@ -14,7 +14,7 @@
 
 #include <type_traits>
 
-namespace raft_proto::detail {
+namespace nvforest::detail {
 template <typename T>
 struct owning_buffer<device_type::gpu, T> {
   // TODO(wphicks): Assess need for buffers of const T
@@ -36,4 +36,4 @@ struct owning_buffer<device_type::gpu, T> {
  private:
   mutable rmm::device_buffer data_;
 };
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

@@ -5,7 +5,7 @@
 #pragma once
 #include <nvforest/detail/gpu_support.hpp>
 
-namespace raft_proto {
+namespace nvforest::detail {
 
 /* Return the value that must be added to val to equal the next multiple of
  * alignment greater than or equal to val */
@@ -45,4 +45,4 @@ HOST DEVICE auto downpadded_size(T val, U alignment)
   return val - downpadding_size(val, alignment);
 }
 
-}  // namespace raft_proto
+}  // namespace nvforest::detail

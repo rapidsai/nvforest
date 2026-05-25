@@ -51,7 +51,7 @@ namespace nvforest::detail {
  * @param device The device on which to execute evaluation
  * @param stream Optionally, the CUDA stream to use
  */
-template <raft_proto::device_type D, typename forest_t>
+template <device_type D, typename forest_t>
 void infer(forest_t const& forest,
            postprocessor<typename forest_t::io_type> const& postproc,
            typename forest_t::io_type* output,
@@ -64,8 +64,8 @@ void infer(forest_t const& forest,
            typename forest_t::node_type::index_type* categorical_data = nullptr,
            infer_kind infer_type                                      = infer_kind::default_kind,
            std::optional<index_type> specified_chunk_size             = std::nullopt,
-           raft_proto::device_id<D> device                            = raft_proto::device_id<D>{},
-           raft_proto::cuda_stream stream                             = raft_proto::cuda_stream{})
+           device_id<D> device                                        = device_id<D>{},
+           cuda_stream stream                                         = cuda_stream{})
 {
   if (vector_output == nullptr) {
     if (categorical_data == nullptr) {

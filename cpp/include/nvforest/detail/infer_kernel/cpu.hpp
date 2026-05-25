@@ -94,8 +94,8 @@ void infer_kernel_cpu(forest_t const& forest,
   using output_t = typename forest_t::template raw_output_type<vector_output_t>;
 
   auto const num_tree  = forest.tree_count();
-  auto const num_grove = raft_proto::ceildiv(num_tree, grove_size);
-  auto const num_chunk = raft_proto::ceildiv(row_count, chunk_size);
+  auto const num_grove = ceildiv(num_tree, grove_size);
+  auto const num_chunk = ceildiv(row_count, chunk_size);
 
   /**
    * Throw an error for large inputs that would cause integer overflow.

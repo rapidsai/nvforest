@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace raft_proto {
+namespace nvforest {
 
 NVFOREST_KERNEL void check_buffer_access(int* buf)
 {
@@ -39,4 +39,4 @@ TEST(Buffer, device_buffer_access)
   EXPECT_THAT(data_out, testing::ElementsAreArray(expected));
 }
 
-}  // namespace raft_proto
+}  // namespace nvforest

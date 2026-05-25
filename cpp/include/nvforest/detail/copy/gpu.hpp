@@ -13,17 +13,17 @@
 
 #include <type_traits>
 
-namespace raft_proto::detail {
+namespace nvforest {
 
 template <device_type dst_type, device_type src_type, typename T>
 std::enable_if_t<
   std::conjunction_v<std::disjunction<std::bool_constant<dst_type == device_type::gpu>,
                                       std::bool_constant<src_type == device_type::gpu>>,
-                     std::bool_constant<GPU_ENABLED>>,
+                     std::bool_constant<detail::GPU_ENABLED>>,
   void>
 copy(T* dst, T const* src, uint32_t size, cuda_stream stream)
 {
-  raft_proto::cuda_check(cudaMemcpyAsync(dst, src, size * sizeof(T), cudaMemcpyDefault, stream));
+  detail::cuda_check(cudaMemcpyAsync(dst, src, size * sizeof(T), cudaMemcpyDefault, stream));
 }
 
-}  // namespace raft_proto::detail
+}  // namespace nvforest

@@ -10,10 +10,10 @@
 #include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/device_type.hpp>
 
-namespace raft_proto {
+namespace nvforest::detail {
 template <typename error_t>
 void cuda_check(error_t const& err) noexcept(!GPU_ENABLED)
 {
-  detail::cuda_check<device_type::gpu>(err);
+  cuda_check<device_type::gpu>(err);
 }
-}  // namespace raft_proto
+}  // namespace nvforest::detail

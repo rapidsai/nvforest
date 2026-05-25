@@ -115,7 +115,7 @@ struct decision_forest_builder {
     }
     if (max_num_categories_ > bin_width) {
       node_value         = categorical_storage_.size();
-      auto bins_required = raft_proto::ceildiv(max_cat_plus_one, bin_width);
+      auto bins_required = ceildiv(max_cat_plus_one, bin_width);
       categorical_storage_.push_back(max_cat_plus_one);
       categorical_storage_.resize(categorical_storage_.size() + bins_required);
       set_storage = &(categorical_storage_[node_value + 1]);
@@ -228,12 +228,12 @@ struct decision_forest_builder {
   /* Return the nvForest decision forest built by this builder */
   auto get_decision_forest(index_type num_feature,
                            index_type num_class,
-                           raft_proto::device_type mem_type = raft_proto::device_type::cpu,
-                           int device                       = 0,
-                           raft_proto::cuda_stream stream   = raft_proto::cuda_stream{})
+                           device_type mem_type = device_type::cpu,
+                           int device           = 0,
+                           cuda_stream stream   = cuda_stream{})
   {
     // Set device = -1 when loading the model onto CPU
-    if (mem_type == raft_proto::device_type::cpu) { device = -1; }
+    if (mem_type == device_type::cpu) { device = -1; }
 
     // Validate forest invariants the inference kernel relies on. After this
     // function returns, the forest is treated as trusted by the kernel.
@@ -267,7 +267,7 @@ struct decision_forest_builder {
                                    " >= " + std::to_string(storage_size) + ")"};
         }
         auto const stored_num_cats = categorical_storage_[offset];
-        auto const bins_required   = raft_proto::ceildiv(stored_num_cats, cat_bin_width);
+        auto const bins_required   = ceildiv(stored_num_cats, cat_bin_width);
         auto const bits_begin      = static_cast<std::size_t>(offset) + std::size_t{1};
         auto const bits_end        = bits_begin + static_cast<std::size_t>(bins_required);
         if (bits_end > storage_size) {
@@ -295,31 +295,22 @@ struct decision_forest_builder {
     }
 
     return decision_forest_t{
-      raft_proto::buffer{
-        raft_proto::buffer{nodes_.data(), nodes_.size()}, mem_type, device, stream},
-      raft_proto::buffer{raft_proto::buffer{root_node_indexes_.data(), root_node_indexes_.size()},
-                         mem_type,
-                         device,
-                         stream},
-      raft_proto::buffer{raft_proto::buffer{node_id_mapping_.data(), node_id_mapping_.size()},
-                         mem_type,
-                         device,
-                         stream},
-      raft_proto::buffer{raft_proto::buffer{bias_.data(), bias_.size()}, mem_type, device, stream},
+      buffer{buffer{nodes_.data(), nodes_.size()}, mem_type, device, stream},
+      buffer{
+        buffer{root_node_indexes_.data(), root_node_indexes_.size()}, mem_type, device, stream},
+      buffer{buffer{node_id_mapping_.data(), node_id_mapping_.size()}, mem_type, device, stream},
+      buffer{buffer{bias_.data(), bias_.size()}, mem_type, device, stream},
       num_feature,
       num_class,
       max_num_categories_ != 0,
       vector_output_.empty()
         ? std::nullopt
-        : std::make_optional<raft_proto::buffer<typename node_type::threshold_type>>(
-            raft_proto::buffer{vector_output_.data(), vector_output_.size()},
-            mem_type,
-            device,
-            stream),
+        : std::make_optional<buffer<typename node_type::threshold_type>>(
+            buffer{vector_output_.data(), vector_output_.size()}, mem_type, device, stream),
       categorical_storage_.empty()
         ? std::nullopt
-        : std::make_optional<raft_proto::buffer<typename node_type::index_type>>(
-            raft_proto::buffer{categorical_storage_.data(), categorical_storage_.size()},
+        : std::make_optional<buffer<typename node_type::index_type>>(
+            buffer{categorical_storage_.data(), categorical_storage_.size()},
             mem_type,
             device,
             stream),

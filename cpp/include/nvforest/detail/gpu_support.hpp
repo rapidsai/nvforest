@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <exception>
 
-namespace raft_proto {
+namespace nvforest::detail {
 #ifdef NVFOREST_ENABLE_GPU
 auto constexpr static const GPU_ENABLED = true;
 #else
@@ -42,4 +42,4 @@ struct gpu_unsupported : std::exception {
   char const* msg_;
 };
 
-}  // namespace raft_proto
+}  // namespace nvforest::detail

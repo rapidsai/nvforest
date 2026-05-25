@@ -8,7 +8,7 @@
 #include <nvforest/device_type.hpp>
 
 #include <cuda_runtime_api.h>
-namespace raft_proto::detail {
+namespace nvforest::detail {
 
 template <>
 inline void cuda_check<device_type::gpu, cudaError_t>(cudaError_t const& err) noexcept(false)
@@ -19,4 +19,4 @@ inline void cuda_check<device_type::gpu, cudaError_t>(cudaError_t const& err) no
   }
 }
 
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

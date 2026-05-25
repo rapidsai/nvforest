@@ -8,7 +8,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace raft_proto::detail {
+namespace nvforest::detail {
 template <device_type D, typename T>
 struct non_owning_buffer {
   // TODO(wphicks): Assess need for buffers of const T
@@ -23,4 +23,4 @@ struct non_owning_buffer {
   // TODO(wphicks): Back this with RMM-allocated host memory
   T* data_;
 };
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

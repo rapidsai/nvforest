@@ -8,7 +8,3 @@
 #ifdef NVFOREST_ENABLE_GPU
 #include <nvforest/detail/owning_buffer/gpu.hpp>
 #endif
-namespace raft_proto {
-template <device_type D, typename T>
-using owning_buffer = detail::owning_buffer<D, T>;
-}  // namespace raft_proto

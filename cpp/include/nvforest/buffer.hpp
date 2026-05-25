@@ -21,7 +21,8 @@
 #include <utility>
 #include <variant>
 
-namespace raft_proto {
+namespace nvforest {
+
 /**
  * @brief A container which may or may not own its own data on host or device
  *
@@ -31,10 +32,10 @@ struct buffer {
   using index_type = std::size_t;
   using value_type = T;
 
-  using data_store = std::variant<non_owning_buffer<device_type::cpu, T>,
-                                  non_owning_buffer<device_type::gpu, T>,
-                                  owning_buffer<device_type::cpu, T>,
-                                  owning_buffer<device_type::gpu, T>>;
+  using data_store = std::variant<detail::non_owning_buffer<device_type::cpu, T>,
+                                  detail::non_owning_buffer<device_type::gpu, T>,
+                                  detail::owning_buffer<device_type::cpu, T>,
+                                  detail::owning_buffer<device_type::gpu, T>>;
 
   buffer() : device_{}, data_{}, size_{}, cached_ptr{nullptr} {}
 
@@ -44,19 +45,19 @@ struct buffer {
          int device           = 0,
          cuda_stream stream   = 0)
     : device_{[mem_type, &device]() {
-        auto result = device_id_variant{};
+        auto result = detail::device_id_variant{};
         switch (mem_type) {
-          case device_type::cpu: result = device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = device_id<device_type::gpu>{device}; break;
+          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
+          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
         }
         return result;
       }()},
       data_{[this, mem_type, size, stream]() {
         auto result = data_store{};
         switch (mem_type) {
-          case device_type::cpu: result = owning_buffer<device_type::cpu, T>{size}; break;
+          case device_type::cpu: result = detail::owning_buffer<device_type::cpu, T>{size}; break;
           case device_type::gpu:
-            result = owning_buffer<device_type::gpu, T>{std::get<1>(device_), size, stream};
+            result = detail::owning_buffer<device_type::gpu, T>{std::get<1>(device_), size, stream};
             break;
         }
         return result;
@@ -78,18 +79,22 @@ struct buffer {
   /** Construct non-owning buffer */
   buffer(T* input_data, index_type size, device_type mem_type = device_type::cpu, int device = 0)
     : device_{[mem_type, &device]() {
-        auto result = device_id_variant{};
+        auto result = detail::device_id_variant{};
         switch (mem_type) {
-          case device_type::cpu: result = device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = device_id<device_type::gpu>{device}; break;
+          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
+          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
         }
         return result;
       }()},
       data_{[input_data, mem_type]() {
         auto result = data_store{};
         switch (mem_type) {
-          case device_type::cpu: result = non_owning_buffer<device_type::cpu, T>{input_data}; break;
-          case device_type::gpu: result = non_owning_buffer<device_type::gpu, T>{input_data}; break;
+          case device_type::cpu:
+            result = detail::non_owning_buffer<device_type::cpu, T>{input_data};
+            break;
+          case device_type::gpu:
+            result = detail::non_owning_buffer<device_type::gpu, T>{input_data};
+            break;
         }
         return result;
       }()},
@@ -118,10 +123,10 @@ struct buffer {
          int device         = 0,
          cuda_stream stream = cuda_stream{})
     : device_{[mem_type, &device]() {
-        auto result = device_id_variant{};
+        auto result = detail::device_id_variant{};
         switch (mem_type) {
-          case device_type::cpu: result = device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = device_id<device_type::gpu>{device}; break;
+          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
+          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
         }
         return result;
       }()},
@@ -129,11 +134,12 @@ struct buffer {
         auto result      = data_store{};
         auto result_data = static_cast<T*>(nullptr);
         if (mem_type == device_type::cpu) {
-          auto buf    = owning_buffer<device_type::cpu, T>(other.size());
+          auto buf    = detail::owning_buffer<device_type::cpu, T>(other.size());
           result_data = buf.get();
           result      = std::move(buf);
         } else if (mem_type == device_type::gpu) {
-          auto buf = owning_buffer<device_type::gpu, T>(std::get<1>(device_), other.size(), stream);
+          auto buf =
+            detail::owning_buffer<device_type::gpu, T>(std::get<1>(device_), other.size(), stream);
           result_data = buf.get();
           result      = std::move(buf);
         }
@@ -188,10 +194,10 @@ struct buffer {
    */
   buffer(buffer<T>&& other, device_type mem_type, int device, cuda_stream stream)
     : device_{[mem_type, &device]() {
-        auto result = device_id_variant{};
+        auto result = detail::device_id_variant{};
         switch (mem_type) {
-          case device_type::cpu: result = device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = device_id<device_type::gpu>{device}; break;
+          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
+          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
         }
         return result;
       }()},
@@ -202,11 +208,11 @@ struct buffer {
         } else {
           auto* result_data = static_cast<T*>(nullptr);
           if (mem_type == device_type::cpu) {
-            auto buf    = owning_buffer<device_type::cpu, T>{other.size()};
+            auto buf    = detail::owning_buffer<device_type::cpu, T>{other.size()};
             result_data = buf.get();
             result      = std::move(buf);
           } else if (mem_type == device_type::gpu) {
-            auto buf    = owning_buffer<device_type::gpu, T>{device, other.size(), stream};
+            auto buf    = detail::owning_buffer<device_type::gpu, T>{device, other.size(), stream};
             result_data = buf.get();
             result      = std::move(buf);
           }
@@ -306,23 +312,23 @@ struct buffer {
   ~buffer() = default;
 
  private:
-  device_id_variant device_;
+  detail::device_id_variant device_;
   data_store data_;
   index_type size_;
   T* cached_ptr;
 };
 
 template <bool bounds_check, typename T, typename U>
-const_agnostic_same_t<T, U> copy(buffer<T>& dst,
-                                 buffer<U> const& src,
-                                 typename buffer<T>::index_type dst_offset,
-                                 typename buffer<U>::index_type src_offset,
-                                 typename buffer<T>::index_type size,
-                                 cuda_stream stream)
+detail::const_agnostic_same_t<T, U> copy(buffer<T>& dst,
+                                         buffer<U> const& src,
+                                         typename buffer<T>::index_type dst_offset,
+                                         typename buffer<U>::index_type src_offset,
+                                         typename buffer<T>::index_type size,
+                                         cuda_stream stream)
 {
   if constexpr (bounds_check) {
     if (src.size() - src_offset < size || dst.size() - dst_offset < size) {
-      throw out_of_bounds("Attempted copy to or from buffer of inadequate size");
+      throw detail::out_of_bounds("Attempted copy to or from buffer of inadequate size");
     }
   }
   copy(dst.data() + dst_offset,
@@ -334,27 +340,27 @@ const_agnostic_same_t<T, U> copy(buffer<T>& dst,
 }
 
 template <bool bounds_check, typename T, typename U>
-const_agnostic_same_t<T, U> copy(buffer<T>& dst, buffer<U> const& src, cuda_stream stream)
+detail::const_agnostic_same_t<T, U> copy(buffer<T>& dst, buffer<U> const& src, cuda_stream stream)
 {
   copy<bounds_check>(dst, src, 0, 0, src.size(), stream);
 }
 template <bool bounds_check, typename T, typename U>
-const_agnostic_same_t<T, U> copy(buffer<T>& dst, buffer<U> const& src)
+detail::const_agnostic_same_t<T, U> copy(buffer<T>& dst, buffer<U> const& src)
 {
   copy<bounds_check>(dst, src, 0, 0, src.size(), cuda_stream{});
 }
 
 template <bool bounds_check, typename T, typename U>
-const_agnostic_same_t<T, U> copy(buffer<T>&& dst,
-                                 buffer<U>&& src,
-                                 typename buffer<T>::index_type dst_offset,
-                                 typename buffer<U>::index_type src_offset,
-                                 typename buffer<T>::index_type size,
-                                 cuda_stream stream)
+detail::const_agnostic_same_t<T, U> copy(buffer<T>&& dst,
+                                         buffer<U>&& src,
+                                         typename buffer<T>::index_type dst_offset,
+                                         typename buffer<U>::index_type src_offset,
+                                         typename buffer<T>::index_type size,
+                                         cuda_stream stream)
 {
   if constexpr (bounds_check) {
     if (src.size() - src_offset < size || dst.size() - dst_offset < size) {
-      throw out_of_bounds("Attempted copy to or from buffer of inadequate size");
+      throw detail::out_of_bounds("Attempted copy to or from buffer of inadequate size");
     }
   }
   copy(dst.data() + dst_offset,
@@ -366,23 +372,23 @@ const_agnostic_same_t<T, U> copy(buffer<T>&& dst,
 }
 
 template <bool bounds_check, typename T, typename U>
-const_agnostic_same_t<T, U> copy(buffer<T>&& dst,
-                                 buffer<U>&& src,
-                                 typename buffer<T>::index_type dst_offset,
-                                 cuda_stream stream)
+detail::const_agnostic_same_t<T, U> copy(buffer<T>&& dst,
+                                         buffer<U>&& src,
+                                         typename buffer<T>::index_type dst_offset,
+                                         cuda_stream stream)
 {
   copy<bounds_check>(dst, src, dst_offset, 0, src.size(), stream);
 }
 
 template <bool bounds_check, typename T, typename U>
-const_agnostic_same_t<T, U> copy(buffer<T>&& dst, buffer<U>&& src, cuda_stream stream)
+detail::const_agnostic_same_t<T, U> copy(buffer<T>&& dst, buffer<U>&& src, cuda_stream stream)
 {
   copy<bounds_check>(dst, src, 0, 0, src.size(), stream);
 }
 template <bool bounds_check, typename T, typename U>
-const_agnostic_same_t<T, U> copy(buffer<T>&& dst, buffer<U>&& src)
+detail::const_agnostic_same_t<T, U> copy(buffer<T>&& dst, buffer<U>&& src)
 {
   copy<bounds_check>(dst, src, 0, 0, src.size(), cuda_stream{});
 }
 
-}  // namespace raft_proto
+}  // namespace nvforest

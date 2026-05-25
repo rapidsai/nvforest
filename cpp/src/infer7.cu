@@ -8,7 +8,7 @@
 #include <nvforest/detail/specializations/infer_macros.hpp>
 namespace nvforest::detail {
 namespace inference {
-NVFOREST_INFER_ALL(template, raft_proto::device_type::gpu, 7)
+NVFOREST_INFER_ALL(template, nvforest::device_type::gpu, 7)
 }  // namespace inference
 namespace device_initialization {
 NVFOREST_INITIALIZE_DEVICE(template, 7)

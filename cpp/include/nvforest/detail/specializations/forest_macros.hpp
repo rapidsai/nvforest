@@ -15,7 +15,7 @@
  * to specify all forest variants we wish to support in one location and then
  * reference them by index elsewhere. */
 #define NVFOREST_SPEC(variant_index) \
-  std::variant_alternative_t<variant_index, nvforest::detail::specialization_variant>
+  std::variant_alternative_t<variant_index, specialization_variant>
 
 /* Macro which expands to a full declaration of a forest type corresponding to
  * the given variant index. */

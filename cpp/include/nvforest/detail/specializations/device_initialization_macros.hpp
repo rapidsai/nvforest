@@ -8,7 +8,6 @@
 #include <nvforest/device_type.hpp>
 /* Declare device initialization function for the types specified by the given
  * variant index */
-#define NVFOREST_INITIALIZE_DEVICE(template_type, variant_index)                     \
-  template_type void                                                                 \
-    initialize_device<NVFOREST_FOREST(variant_index), raft_proto::device_type::gpu>( \
-      raft_proto::device_id<raft_proto::device_type::gpu>);
+#define NVFOREST_INITIALIZE_DEVICE(template_type, variant_index)                          \
+  template_type void initialize_device<NVFOREST_FOREST(variant_index), device_type::gpu>( \
+    device_id<device_type::gpu>);

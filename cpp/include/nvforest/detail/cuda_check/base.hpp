@@ -5,11 +5,11 @@
 #pragma once
 #include <nvforest/device_type.hpp>
 
-namespace raft_proto::detail {
+namespace nvforest::detail {
 
 template <device_type D, typename error_t>
 void cuda_check(error_t const& err)
 {
 }
 
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

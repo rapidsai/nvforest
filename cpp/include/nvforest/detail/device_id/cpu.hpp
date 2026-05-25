@@ -6,7 +6,7 @@
 #include <nvforest/detail/device_id/base.hpp>
 #include <nvforest/device_type.hpp>
 
-namespace raft_proto::detail {
+namespace nvforest::detail {
 template <>
 struct device_id<device_type::cpu> {
   using value_type = int;
@@ -18,4 +18,4 @@ struct device_id<device_type::cpu> {
  private:
   value_type id_;
 };
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

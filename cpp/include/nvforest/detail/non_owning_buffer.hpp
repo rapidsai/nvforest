@@ -5,8 +5,3 @@
 #pragma once
 #include <nvforest/detail/non_owning_buffer/base.hpp>
 #include <nvforest/device_type.hpp>
-
-namespace raft_proto {
-template <device_type D, typename T>
-using non_owning_buffer = detail::non_owning_buffer<D, T>;
-}  // namespace raft_proto

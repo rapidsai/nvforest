@@ -8,9 +8,3 @@
 #include <nvforest/detail/device_setter/gpu.hpp>
 #endif
 #include <nvforest/device_type.hpp>
-
-namespace raft_proto {
-
-using device_setter = detail::device_setter<device_type::gpu>;
-
-}

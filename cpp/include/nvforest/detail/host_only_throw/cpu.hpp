@@ -6,7 +6,7 @@
 #include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/host_only_throw/base.hpp>
 
-namespace raft_proto::detail {
+namespace nvforest::detail {
 template <typename T>
 struct host_only_throw<T, true> {
   template <typename... Args>
@@ -15,4 +15,4 @@ struct host_only_throw<T, true> {
     throw T{std::forward<Args>(args)...};
   }
 };
-}  // namespace raft_proto::detail
+}  // namespace nvforest::detail

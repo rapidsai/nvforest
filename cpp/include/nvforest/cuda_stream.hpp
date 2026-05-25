@@ -7,7 +7,7 @@
 #include <cuda_runtime_api.h>
 #endif
 
-namespace raft_proto {
+namespace nvforest {
 #ifdef NVFOREST_ENABLE_GPU
 using cuda_stream = cudaStream_t;
 #else
@@ -19,4 +19,9 @@ inline void synchronize(cuda_stream stream)
   cudaStreamSynchronize(stream);
 #endif
 }
-}  // namespace raft_proto
+}  // namespace nvforest
+
+namespace nvforest::detail {
+using nvforest::cuda_stream;
+using nvforest::synchronize;
+}  // namespace nvforest::detail

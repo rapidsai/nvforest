@@ -120,7 +120,7 @@ struct forest_model {
    * @param[out] output The buffer where model output should be stored.
    * This must be of size at least ROWS x num_outputs().
    * @param[in] input The buffer containing input data.
-   * @param[in] stream A raft_proto::cuda_stream, which (on GPU-enabled builds) is
+   * @param[in] stream A nvforest::cuda_stream, which (on GPU-enabled builds) is
    * a transparent wrapper for the cudaStream_t or (on CPU-only builds) a
    * CUDA-free placeholder object.
    * @param[in] predict_type Type of inference to perform. Defaults to summing
@@ -138,9 +138,9 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(raft_proto::buffer<io_t>& output,
-               raft_proto::buffer<io_t> const& input,
-               raft_proto::cuda_stream stream                 = raft_proto::cuda_stream{},
+  void predict(buffer<io_t>& output,
+               buffer<io_t> const& input,
+               cuda_stream stream                             = cuda_stream{},
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
@@ -161,7 +161,7 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The raft_proto::handle_t (wrapper for raft::handle_t
+   * @param[in] handle The nvforest::handle_t (wrapper for raft::handle_t
    * on GPU) which will be used to provide streams for evaluation.
    * @param[out] output The buffer where model output should be stored. If
    * this buffer is on host while the model is on device or vice versa,
@@ -186,9 +186,9 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(raft_proto::handle_t const& handle,
-               raft_proto::buffer<io_t>& output,
-               raft_proto::buffer<io_t> const& input,
+  void predict(handle_t const& handle,
+               buffer<io_t>& output,
+               buffer<io_t> const& input,
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
@@ -206,48 +206,44 @@ struct forest_model {
 
             auto row_count = input.size() / num_features();
             auto partition_size =
-              std::max(raft_proto::ceildiv(row_count, handle.get_usable_stream_count()),
+              std::max(detail::ceildiv(row_count, handle.get_usable_stream_count()),
                        specified_chunk_size.value_or(MAX_CHUNK_SIZE) * MIN_CHUNKS_PER_PARTITION);
-            auto partition_count = raft_proto::ceildiv(row_count, partition_size);
+            auto partition_count = detail::ceildiv(row_count, partition_size);
             for (auto i = std::size_t{}; i < partition_count; ++i) {
               auto stream = handle.get_next_usable_stream();
               auto rows_in_this_partition =
                 std::min(partition_size, row_count - i * partition_size);
-              auto partition_in = raft_proto::buffer<io_t>{};
+              auto partition_in = buffer<io_t>{};
               if (input.memory_type() != memory_type()) {
-                partition_in =
-                  raft_proto::buffer<io_t>{rows_in_this_partition * num_features(), memory_type()};
-                raft_proto::copy<raft_proto::DEBUG_ENABLED>(partition_in,
-                                                            input,
-                                                            0,
-                                                            i * partition_size * num_features(),
-                                                            partition_in.size(),
-                                                            stream);
+                partition_in = buffer<io_t>{rows_in_this_partition * num_features(), memory_type()};
+                copy<detail::DEBUG_ENABLED>(partition_in,
+                                            input,
+                                            0,
+                                            i * partition_size * num_features(),
+                                            partition_in.size(),
+                                            stream);
               } else {
-                partition_in =
-                  raft_proto::buffer<io_t>{input.data() + i * partition_size * num_features(),
-                                           rows_in_this_partition * num_features(),
-                                           memory_type()};
+                partition_in = buffer<io_t>{input.data() + i * partition_size * num_features(),
+                                            rows_in_this_partition * num_features(),
+                                            memory_type()};
               }
-              auto partition_out = raft_proto::buffer<io_t>{};
+              auto partition_out = buffer<io_t>{};
               if (output.memory_type() != memory_type()) {
-                partition_out =
-                  raft_proto::buffer<io_t>{rows_in_this_partition * num_outputs(), memory_type()};
+                partition_out = buffer<io_t>{rows_in_this_partition * num_outputs(), memory_type()};
               } else {
-                partition_out =
-                  raft_proto::buffer<io_t>{output.data() + i * partition_size * num_outputs(),
-                                           rows_in_this_partition * num_outputs(),
-                                           memory_type()};
+                partition_out = buffer<io_t>{output.data() + i * partition_size * num_outputs(),
+                                             rows_in_this_partition * num_outputs(),
+                                             memory_type()};
               }
               concrete_forest.predict(
                 partition_out, partition_in, stream, predict_type, specified_chunk_size);
               if (output.memory_type() != memory_type()) {
-                raft_proto::copy<raft_proto::DEBUG_ENABLED>(output,
-                                                            partition_out,
-                                                            i * partition_size * num_outputs(),
-                                                            0,
-                                                            partition_out.size(),
-                                                            stream);
+                copy<detail::DEBUG_ENABLED>(output,
+                                            partition_out,
+                                            i * partition_size * num_outputs(),
+                                            0,
+                                            partition_out.size(),
+                                            stream);
               }
             }
           }
@@ -261,7 +257,7 @@ struct forest_model {
   /**
    * Perform inference on given input
    *
-   * @param[in] handle The raft_proto::handle_t (wrapper for raft::handle_t
+   * @param[in] handle The nvforest::handle_t (wrapper for raft::handle_t
    * on GPU) which will be used to provide streams for evaluation.
    * @param[out] output Pointer to the memory location where output should end
    * up
@@ -285,30 +281,27 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    */
   template <typename io_t>
-  void predict(raft_proto::handle_t const& handle,
+  void predict(handle_t const& handle,
                io_t* output,
                io_t* input,
                std::size_t num_rows,
-               raft_proto::device_type out_mem_type,
-               raft_proto::device_type in_mem_type,
+               device_type out_mem_type,
+               device_type in_mem_type,
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
     int current_device_id;
-    if (out_mem_type == raft_proto::device_type::gpu ||
-        in_mem_type == raft_proto::device_type::gpu) {
+    if (out_mem_type == device_type::gpu || in_mem_type == device_type::gpu) {
 #ifdef NVFOREST_ENABLE_GPU
-      raft_proto::cuda_check(cudaGetDevice(&current_device_id));
+      detail::cuda_check(cudaGetDevice(&current_device_id));
 #else
-      throw raft_proto::gpu_unsupported("Tried to use GPU memory in CPU-only build");
+      throw detail::gpu_unsupported("Tried to use GPU memory in CPU-only build");
 #endif
     } else {
       current_device_id = -1;
     }
-    auto out_buffer =
-      raft_proto::buffer{output, num_rows * num_outputs(), out_mem_type, current_device_id};
-    auto in_buffer =
-      raft_proto::buffer{input, num_rows * num_features(), in_mem_type, current_device_id};
+    auto out_buffer = buffer{output, num_rows * num_outputs(), out_mem_type, current_device_id};
+    auto in_buffer  = buffer{input, num_rows * num_features(), in_mem_type, current_device_id};
     predict(handle, out_buffer, in_buffer, predict_type, specified_chunk_size);
   }
 

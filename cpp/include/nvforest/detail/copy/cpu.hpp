@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace raft_proto::detail {
+namespace nvforest {
 
 template <device_type dst_type, device_type src_type, typename T>
 std::enable_if_t<std::conjunction_v<std::bool_constant<dst_type == device_type::cpu>,
@@ -27,11 +27,11 @@ template <device_type dst_type, device_type src_type, typename T>
 std::enable_if_t<
   std::conjunction_v<std::disjunction<std::bool_constant<dst_type != device_type::cpu>,
                                       std::bool_constant<src_type != device_type::cpu>>,
-                     std::bool_constant<!GPU_ENABLED>>,
+                     std::bool_constant<!detail::GPU_ENABLED>>,
   void>
 copy(T* dst, T const* src, uint32_t size, cuda_stream stream)
 {
-  throw gpu_unsupported("Copying from or to device in non-GPU build");
+  throw detail::gpu_unsupported("Copying from or to device in non-GPU build");
 }
 
-}  // namespace raft_proto::detail
+}  // namespace nvforest

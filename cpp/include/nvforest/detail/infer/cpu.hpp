@@ -62,14 +62,14 @@ namespace nvforest::detail::inference {
  * (for individual row inference) to 512 (for very large batch
  * inference). A value of 64 is a generally-useful default.
  */
-template <raft_proto::device_type D,
+template <device_type D,
           bool has_categorical_nodes,
           typename forest_t,
           typename vector_output_t    = std::nullptr_t,
           typename categorical_data_t = std::nullptr_t>
-std::enable_if_t<std::disjunction_v<std::bool_constant<D == raft_proto::device_type::cpu>,
-                                    std::bool_constant<!raft_proto::GPU_ENABLED>>,
-                 void>
+std::enable_if_t<
+  std::disjunction_v<std::bool_constant<D == device_type::cpu>, std::bool_constant<!GPU_ENABLED>>,
+  void>
 infer(forest_t const& forest,
       postprocessor<typename forest_t::io_type> const& postproc,
       typename forest_t::io_type* output,
@@ -81,11 +81,11 @@ infer(forest_t const& forest,
       categorical_data_t categorical_data            = nullptr,
       infer_kind infer_type                          = infer_kind::default_kind,
       std::optional<index_type> specified_chunk_size = std::nullopt,
-      raft_proto::device_id<D> device                = raft_proto::device_id<D>{},
-      raft_proto::cuda_stream                        = raft_proto::cuda_stream{})
+      device_id<D> device                            = device_id<D>{},
+      cuda_stream                                    = cuda_stream{})
 {
-  if constexpr (D == raft_proto::device_type::gpu) {
-    throw raft_proto::gpu_unsupported("Tried to use GPU inference in CPU-only build");
+  if constexpr (D == device_type::gpu) {
+    throw gpu_unsupported("Tried to use GPU inference in CPU-only build");
   } else {
     if (infer_type == infer_kind::leaf_id) {
       infer_kernel_cpu<has_categorical_nodes, true>(
@@ -124,17 +124,17 @@ infer(forest_t const& forest,
  * compiled as few times as possible. A macro is used because ever
  * specialization must be explicitly declared. The final argument to the macro
  * references the 8 specialization variants compiled in standard nvForest. */
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 0)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 1)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 2)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 3)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 4)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 5)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 6)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 7)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 8)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 9)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 10)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::cpu, 11)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 0)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 1)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 2)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 3)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 4)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 5)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 6)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 7)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 8)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 9)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 10)
+NVFOREST_INFER_ALL(extern template, device_type::cpu, 11)
 
 }  // namespace nvforest::detail::inference
