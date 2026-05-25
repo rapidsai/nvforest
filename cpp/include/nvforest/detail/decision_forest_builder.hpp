@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/buffer.hpp>
+#include <nvforest/cuda_stream.hpp>
 #include <nvforest/detail/bitset.hpp>
+#include <nvforest/detail/ceildiv.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/index_type.hpp>
-#include <nvforest/detail/raft_proto/buffer.hpp>
-#include <nvforest/detail/raft_proto/ceildiv.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
+#include <nvforest/device_type.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/postproc_ops.hpp>
 

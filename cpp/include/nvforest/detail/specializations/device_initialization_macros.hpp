@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/specializations/forest_macros.hpp>
+#include <nvforest/device_type.hpp>
 /* Declare device initialization function for the types specified by the given
  * variant index */
 #define NVFOREST_INITIALIZE_DEVICE(template_type, variant_index)                     \

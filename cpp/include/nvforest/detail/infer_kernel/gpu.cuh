@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/detail/ceildiv.hpp>
 #include <nvforest/detail/evaluate_tree.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/infer_kernel/shared_memory_buffer.cuh>
+#include <nvforest/detail/padding.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/ceildiv.hpp>
-#include <nvforest/detail/raft_proto/padding.hpp>
 #include <nvforest/detail/utils.hpp>
 #include <nvforest/infer_kind.hpp>
 

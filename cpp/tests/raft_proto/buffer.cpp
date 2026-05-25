@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <nvforest/detail/raft_proto/buffer.hpp>
-#include <nvforest/detail/raft_proto/cuda_check.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/detail/raft_proto/exceptions.hpp>
+#include <nvforest/buffer.hpp>
+#include <nvforest/cuda_stream.hpp>
+#include <nvforest/detail/cuda_check.hpp>
+#include <nvforest/detail/exceptions.hpp>
+#include <nvforest/device_type.hpp>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/buffer.hpp>
 #include <nvforest/constants.hpp>
+#include <nvforest/cuda_stream.hpp>
+#include <nvforest/detail/ceildiv.hpp>
+#include <nvforest/detail/cuda_check.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
+#include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/infer_kernel/gpu.cuh>
+#include <nvforest/detail/padding.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/buffer.hpp>
-#include <nvforest/detail/raft_proto/ceildiv.hpp>
-#include <nvforest/detail/raft_proto/cuda_check.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
-#include <nvforest/detail/raft_proto/padding.hpp>
 #include <nvforest/detail/specializations/infer_macros.hpp>
+#include <nvforest/device_type.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/infer_kind.hpp>
 

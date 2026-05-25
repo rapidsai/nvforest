@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/detail/cuda_check.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/index_type.hpp>
-#include <nvforest/detail/raft_proto/cuda_check.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
+#include <nvforest/device_type.hpp>
 
 #include <cuda_runtime_api.h>
 

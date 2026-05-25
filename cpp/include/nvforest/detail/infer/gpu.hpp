@@ -2,12 +2,12 @@
  * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
  * SPDX-License-Identifier: Apache-2.0
  */
+#include <nvforest/cuda_stream.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
+#include <nvforest/device_type.hpp>
 #include <nvforest/infer_kind.hpp>
 
 #include <cstddef>

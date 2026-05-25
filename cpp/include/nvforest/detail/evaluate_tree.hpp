@@ -10,7 +10,7 @@
 #include <math.h>
 #endif
 #include <nvforest/detail/bitset.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
+#include <nvforest/detail/gpu_support.hpp>
 namespace nvforest::detail {
 
 /*

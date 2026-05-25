@@ -4,14 +4,14 @@
  */
 #pragma once
 #include <nvforest/constants.hpp>
+#include <nvforest/cuda_stream.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
 #include <nvforest/detail/specialization_types.hpp>
 #include <nvforest/detail/specializations/forest_macros.hpp>
+#include <nvforest/device_type.hpp>
 #include <nvforest/infer_kind.hpp>
 
 #include <cstddef>

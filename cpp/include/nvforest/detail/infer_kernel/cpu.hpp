@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/detail/ceildiv.hpp>
 #include <nvforest/detail/cpu_introspection.hpp>
 #include <nvforest/detail/evaluate_tree.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/ceildiv.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/infer_kind.hpp>
 

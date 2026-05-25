@@ -5,15 +5,15 @@
 #pragma once
 
 #include <nvforest/constants.hpp>
+#include <nvforest/detail/cuda_check.hpp>
+#include <nvforest/detail/device_id.hpp>
+#include <nvforest/detail/device_setter.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
+#include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/infer_kernel/gpu.cuh>
-#include <nvforest/detail/raft_proto/cuda_check.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_setter.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
 #include <nvforest/detail/specializations/device_initialization_macros.hpp>
+#include <nvforest/device_type.hpp>
 
 #include <cuda_runtime_api.h>
 
