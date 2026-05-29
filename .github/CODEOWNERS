@@ -24,3 +24,6 @@ CMakeLists.txt @rapidsai/nvforest-cpp-codeowners
 dependencies.yaml          @rapidsai/packaging-codeowners
 /build.sh                  @rapidsai/packaging-codeowners
 pyproject.toml             @rapidsai/packaging-codeowners
+
+# Ops code owners
+/SECURITY.md             @rapidsai/ops-codeowners
