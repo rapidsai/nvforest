@@ -1,3 +1,31 @@
+# nvforest 26.06.00 (3 Jun 2026)
+
+### 🛠️ Improvements
+* Forward-merge release/26.04 into main by @jameslamb in https://github.com/rapidsai/nvforest/pull/89
+* chore: bump `codespell` version for Python 3.14+ compatibility by @gforsyth in https://github.com/rapidsai/nvforest/pull/91
+* remove unused intersphinx configs by @jameslamb in https://github.com/rapidsai/nvforest/pull/94
+* update pip devcontainers' base image tags by @trxcllnt in https://github.com/rapidsai/nvforest/pull/96
+* Update to clang 20.1.8 by @bdice in https://github.com/rapidsai/nvforest/pull/100
+* Use `token.rapids.nvidia.com` when issuing S3 bucket creds in devcontainers by @trxcllnt in https://github.com/rapidsai/nvforest/pull/105
+* fix(ci): resolve all zizmor findings and add zizmor pre-commit checks by @gforsyth in https://github.com/rapidsai/nvforest/pull/106
+* Build and test with CUDA 13.2.0 by @bdice in https://github.com/rapidsai/nvforest/pull/110
+* Use static cudart by @KyleFromNVIDIA in https://github.com/rapidsai/nvforest/pull/112
+* fix(ci): add explicit `actions: write` permission for `telemetry-summarize`
+ by @gforsyth in https://github.com/rapidsai/nvforest/pull/113
+* Require CMake 4.0 by @KyleFromNVIDIA in https://github.com/rapidsai/nvforest/pull/114
+* Add missing #include for cuda_check by @hcho3 in https://github.com/rapidsai/nvforest/pull/107
+* ci: add CPU-only C++ build coverage by @csadorf in https://github.com/rapidsai/nvforest/pull/119
+* Validate Treelite model inputs during import by @hcho3 in https://github.com/rapidsai/nvforest/pull/104
+* Validate Treelite model shape on import by @csadorf in https://github.com/rapidsai/nvforest/pull/125
+* Add comprehensive benchmark suite comparing nvforest against sklearn, XGBoost, and LightGBM native inference by @hcho3 in https://github.com/rapidsai/nvforest/pull/101
+* skip CuPy 14.1.0 by @jameslamb in https://github.com/rapidsai/nvforest/pull/135
+
+## New Contributors
+* @bdice made their first contribution in https://github.com/rapidsai/nvforest/pull/100
+* @KyleFromNVIDIA made their first contribution in https://github.com/rapidsai/nvforest/pull/112
+
+**Full Changelog**: https://github.com/rapidsai/nvforest/compare/v26.06.00a...release/26.06
+
 # nvforest 26.04.00 (8 Apr 2026)
 
 ### 🚨 Breaking Changes
