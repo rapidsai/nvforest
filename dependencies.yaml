@@ -426,7 +426,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - nvforest==26.6.*,>=0.0.0a0
+          - nvforest==26.6.*
   depends_on_cupy:
     common:
       - output_types: conda
@@ -450,7 +450,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - &libnvforest_unsuffixed libnvforest==26.6.*,>=0.0.0a0
+          - &libnvforest_unsuffixed libnvforest==26.6.*
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -462,18 +462,18 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libnvforest-cu12==26.6.*,>=0.0.0a0
+              - libnvforest-cu12==26.6.*
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libnvforest-cu13==26.6.*,>=0.0.0a0
+              - libnvforest-cu13==26.6.*
           - {matrix: null, packages: [*libnvforest_unsuffixed]}
   depends_on_libraft:
     common:
       - output_types: conda
         packages:
-          - &libraft_unsuffixed libraft==26.6.*,>=0.0.0a0
+          - &libraft_unsuffixed libraft==26.6.*
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -485,23 +485,23 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libraft-cu12==26.6.*,>=0.0.0a0
+              - libraft-cu12==26.6.*
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libraft-cu13==26.6.*,>=0.0.0a0
+              - libraft-cu13==26.6.*
           - {matrix: null, packages: [*libraft_unsuffixed]}
   depends_on_libraft_headers:
     common:
       - output_types: conda
         packages:
-          - libraft-headers==26.6.*,>=0.0.0a0
+          - libraft-headers==26.6.*
   depends_on_librmm:
     common:
       - output_types: conda
         packages:
-          - &librmm_unsuffixed librmm==26.6.*,>=0.0.0a0
+          - &librmm_unsuffixed librmm==26.6.*
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -513,18 +513,18 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu12==26.6.*,>=0.0.0a0
+              - librmm-cu12==26.6.*
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu13==26.6.*,>=0.0.0a0
+              - librmm-cu13==26.6.*
           - {matrix: null, packages: [*librmm_unsuffixed]}
   depends_on_pylibraft:
     common:
       - output_types: conda
         packages:
-          - &pylibraft_unsuffixed pylibraft==26.6.*,>=0.0.0a0
+          - &pylibraft_unsuffixed pylibraft==26.6.*
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -536,12 +536,12 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - pylibraft-cu12==26.6.*,>=0.0.0a0
+              - pylibraft-cu12==26.6.*
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - pylibraft-cu13==26.6.*,>=0.0.0a0
+              - pylibraft-cu13==26.6.*
           - matrix:
             packages:
               - *pylibraft_unsuffixed
@@ -549,7 +549,7 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-          - rapids-logger==0.2.*,>=0.0.0a0
+          - rapids-logger==0.2.*
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file

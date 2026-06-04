@@ -21,8 +21,8 @@ dependencies:
 - doxygen
 - gcc_linux-64=14.*
 - graphviz
-- libraft==26.6.*,>=0.0.0a0
-- librmm==26.6.*,>=0.0.0a0
+- libraft==26.6.*
+- librmm==26.6.*
 - ninja
 - numpy>=1.23,<3.0a0
 - numpydoc
@@ -30,13 +30,13 @@ dependencies:
 - pandas
 - pre-commit
 - pydata-sphinx-theme
-- pylibraft==26.6.*,>=0.0.0a0
+- pylibraft==26.6.*
 - pytest
 - pytest-cov
 - pytest-xdist
 - python>=3.11
 - rapids-build-backend>=0.4.0,<0.5.0.dev0
-- rapids-logger==0.2.*,>=0.0.0a0
+- rapids-logger==0.2.*
 - rapids-xgboost==26.6.*,>=0.0.0a0
 - scikit-build-core>=0.11.0
 - scikit-learn>=1.5
