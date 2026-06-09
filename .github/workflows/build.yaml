@@ -145,7 +145,7 @@ jobs:
       date: ${{ inputs.date }}
       package-name: libnvforest
       package-type: cpp
-      publish-wheel-search-key: libnvforest_wheel_cpp_nvforest
+      publish-wheel-search-key: nvforest_wheel_cpp_libnvforest
   wheel-build-nvforest:
     needs: wheel-build-libnvforest
     permissions:
