@@ -6,9 +6,8 @@ set -euo pipefail
 
 source rapids-init-pip
 
-RAPIDS_PY_CUDA_SUFFIX="$(rapids-wheel-ctk-name-gen "${RAPIDS_CUDA_VERSION}")"
-NVFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-package-name wheel_python nvforest --stable --cuda "$RAPIDS_CUDA_VERSION")")
-LIBNVFOREST_WHEELHOUSE=$(RAPIDS_PY_WHEEL_NAME="libnvforest_${RAPIDS_PY_CUDA_SUFFIX}" rapids-download-wheels-from-github cpp)
+LIBNVFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-artifact-name wheel_cpp libnvforest nvforest --cuda "$RAPIDS_CUDA_VERSION")")
+NVFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-artifact-name wheel_python nvforest nvforest --stable --cuda "$RAPIDS_CUDA_VERSION")")
 RAPIDS_TESTS_DIR=${RAPIDS_TESTS_DIR:-"${PWD}/test-results"}
 mkdir -p "${RAPIDS_TESTS_DIR}"
 
