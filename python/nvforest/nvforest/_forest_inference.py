@@ -349,6 +349,7 @@ class CPUForestInferenceClassifier(
         seed: int = 0,
     ) -> Self:
         return OptimizeMixin._optimize(
+            self,
             data=data,
             batch_size=batch_size,
             unique_batches=unique_batches,
@@ -475,6 +476,7 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         seed: int = 0,
     ) -> Self:
         return OptimizeMixin._optimize(
+            self,
             data=data,
             batch_size=batch_size,
             unique_batches=unique_batches,
@@ -615,6 +617,7 @@ class GPUForestInferenceClassifier(
         seed: int = 0,
     ) -> Self:
         return OptimizeMixin._optimize(
+            self,
             data=data,
             batch_size=batch_size,
             unique_batches=unique_batches,
@@ -743,6 +746,7 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         seed: int = 0,
     ) -> Self:
         return OptimizeMixin._optimize(
+            self,
             data=data,
             batch_size=batch_size,
             unique_batches=unique_batches,
