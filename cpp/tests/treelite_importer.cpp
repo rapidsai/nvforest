@@ -408,17 +408,10 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
   auto nvforest_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
   ASSERT_TRUE(nvforest_model.has_vector_leaves());
 
-#ifdef NVFOREST_ENABLE_GPU
-  auto raft_handle = raft::handle_t{};
-  auto handle      = raft_proto::handle_t{raft_handle};
-#else
-  auto handle = raft_proto::handle_t{};
-#endif
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(2, 0.0);
   auto expected_preds = std::vector<double>{0.5, 0.5};
-  nvforest_model.predict(handle,
-                         preds.data(),
+  nvforest_model.predict(preds.data(),
                          X.data(),
                          1,
                          raft_proto::device_type::cpu,
