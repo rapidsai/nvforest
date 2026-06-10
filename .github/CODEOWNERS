@@ -1,5 +1,5 @@
 # catch-all codeowner for any files not matched by the rules below
-* @rapidsai/packaging-codeowners
+* @rapidsai/nvforest-python-codeowners
 
 # cpp code owners
 cpp/               @rapidsai/nvforest-cpp-codeowners
