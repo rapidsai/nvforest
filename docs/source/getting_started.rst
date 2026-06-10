@@ -144,7 +144,7 @@ Auto-optimization
 -----------------
 
 Forest inference capabilities in nvForest allow users to fine-tune performance with a variety of hyperparameters.
-It is difficult to predict what the optimal values will be for any given model and batch size, so it is often
+It is impossible to predict what the optimal values will be for any given model and batch size, so it is
 necessary to determine them empirically. nvForest significantly simplifies this process with a built-in method for
 auto-optimization at any given batch size:
 
@@ -152,9 +152,9 @@ auto-optimization at any given batch size:
 
     fm_optimized = fm.optimize(batch_size=1000)
 
-Once :py:meth:`~nvforest.GPUForestInferenceRegressor.optimize` is called, subsequent prediction calls will use the
-optimal performance hyperparameters found for the indicated batch size. You can also check what hyperparameters were
-selected by looking at the attributes.
+The :py:meth:`~nvforest.GPUForestInferenceRegressor.optimize` returns a new instance of ``ForestInference``, and
+subsequent prediction calls will use the optimal performance hyperparameters found for the indicated batch size.
+You can also check what hyperparameters were selected by looking at the attributes.
 
 .. testcode:: workflow
 
