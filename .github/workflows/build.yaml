@@ -145,6 +145,7 @@ jobs:
       date: ${{ inputs.date }}
       package-name: libnvforest
       package-type: cpp
+      publish-wheel-search-key: nvforest_wheel_cpp_libnvforest
   wheel-build-nvforest:
     needs: wheel-build-libnvforest
     permissions:
@@ -185,7 +186,7 @@ jobs:
       date: ${{ inputs.date }}
       package-name: nvforest
       package-type: python
-      publish-wheel-search-key: nvforest_wheel_python_abi3
+      publish-wheel-search-key: nvforest_wheel_python_nvforest
   devcontainers:
     name: Build devcontainers
     secrets: inherit  # zizmor: ignore[secrets-inherit]
