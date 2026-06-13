@@ -24,6 +24,8 @@ include(rapids-cuda)
 include(rapids-export)
 include(rapids-find)
 
+option(NVFOREST_ENABLE_GPU "Enable building GPU-accelerated algorithms" ON)
+
 if(NVFOREST_ENABLE_GPU)
   rapids_cuda_init_architectures(NVForest)
 endif()
@@ -54,7 +56,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ######################################################################################################################
 # * User Options  ------------------------------------------------------------
 
-option(NVFOREST_ENABLE_GPU "Enable building GPU-accelerated algorithms" ON)
 option(BUILD_SHARED_LIBS "Build nvForest shared libraries" ON)
 option(BUILD_NVFOREST_TESTS "Build nvForest algorithm tests" ON)
 option(CUDA_ENABLE_KERNEL_INFO "Enable kernel resource usage info" OFF)
