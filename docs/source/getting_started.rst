@@ -140,6 +140,29 @@ or its variants.
     assert leaf_ids.shape == (X.shape[0], fm.num_trees)
     assert pred_per_tree.shape == (X.shape[0], fm.num_trees)
 
+Auto-optimization
+-----------------
+
+Forest inference capabilities in nvForest allow users to fine-tune performance with a variety of hyperparameters.
+It is impossible to predict what the optimal values will be for any given model and batch size, so it is
+necessary to determine them empirically. nvForest significantly simplifies this process with a built-in method for
+auto-optimization at any given batch size:
+
+.. testcode:: workflow
+
+    fm_optimized = fm.optimize(batch_size=1000)
+
+The :py:meth:`~nvforest.GPUForestInferenceRegressor.optimize` returns a new instance of ``ForestInference``, and
+subsequent prediction calls will use the optimal performance hyperparameters found for the indicated batch size.
+You can also check what hyperparameters were selected by looking at the attributes.
+
+.. testcode:: workflow
+
+    # Optimal layout
+    fm_optimized.layout
+    # Optimal chunk size
+    fm_optimized.default_chunk_size
+
 nvForest with C++ (Advanced)
 ============================
 

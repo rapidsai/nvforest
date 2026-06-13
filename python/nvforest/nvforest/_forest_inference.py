@@ -137,7 +137,7 @@ class OptimizeMixin:
         """
         raise NotImplementedError
 
-    def optimize(
+    def _optimize(
         self,
         *,
         data=None,
@@ -148,56 +148,6 @@ class OptimizeMixin:
         max_chunk_size: Optional[int] = None,
         seed: int = 0,
     ) -> Self:
-        """
-        Find the optimal layout and chunk size for this model.
-
-        Returns a new model instance with the optimal layout and chunk size.
-        The optimal values depend on the model, batch size, and available
-        hardware. In order to get the most realistic performance distribution,
-        example data can be provided. If it is not, random data will be
-        generated based on the indicated batch size.
-
-        Parameters
-        ----------
-        data
-            Example data either of shape unique_batches x batch_size x features
-            or batch_size x features or None. If None, random data will be
-            generated instead.
-        batch_size : int
-            If example data is not provided, random data with this many rows
-            per batch will be used.
-        unique_batches : int
-            The number of unique batches to generate if random data are used.
-            Increasing this number decreases the chance that the optimal
-            configuration will be skewed by a single batch with unusual
-            performance characteristics.
-        timeout : float
-            Time in seconds to target for optimization. The optimization loop
-            will be repeatedly run a number of times increasing in the sequence
-            1, 2, 5, 10, 20, 50, ... until the time taken is at least the given
-            value. Note that for very large batch sizes and large models, the
-            total elapsed time may exceed this timeout; it is a soft target for
-            elapsed time. Setting the timeout to zero will run through the
-            indicated number of unique batches exactly once. Defaults to 0.2s.
-        predict_method : str
-            If desired, optimization can occur over one of the prediction
-            method variants (e.g. "predict_per_tree") rather than the
-            default `predict` method. To do so, pass the name of the method
-            here.
-        max_chunk_size : int or None
-            The maximum chunk size to explore during optimization. If not
-            set, a value will be picked based on the current device type.
-            Setting this to a lower value will reduce the optimization search
-            time but may not result in optimal performance.
-        seed : int
-            The random seed used for generating example data if none is
-            provided.
-
-        Returns
-        -------
-        Self
-            A new model instance with optimal layout and default_chunk_size.
-        """
         is_gpu = self.forest.device == "gpu"
 
         if data is None:
@@ -304,7 +254,7 @@ class OptimizeMixin:
 
 
 class CPUForestInferenceClassifier(
-    OptimizeMixin, ForestInferenceClassifier, ClassifierMixin
+    OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
 ):
     def __init__(
         self,
@@ -386,6 +336,28 @@ class CPUForestInferenceClassifier(
         chunk_size: Optional[int] = None,
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
+
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ) -> Self:
+        return OptimizeMixin._optimize(
+            self,
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
 
     @property
     def num_features(self) -> int:
@@ -492,6 +464,28 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
 
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ) -> Self:
+        return OptimizeMixin._optimize(
+            self,
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
+
     @property
     def num_features(self) -> int:
         return self.forest.num_features
@@ -526,7 +520,7 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
 
 
 class GPUForestInferenceClassifier(
-    OptimizeMixin, ForestInferenceClassifier, ClassifierMixin
+    OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
 ):
     def __init__(
         self,
@@ -610,6 +604,28 @@ class GPUForestInferenceClassifier(
         chunk_size: Optional[int] = None,
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
+
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ) -> Self:
+        return OptimizeMixin._optimize(
+            self,
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
 
     @property
     def num_features(self) -> int:
@@ -717,6 +733,28 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         chunk_size: Optional[int] = None,
     ) -> DataType:
         return self.forest.apply(X, chunk_size=chunk_size)
+
+    def optimize(
+        self,
+        *,
+        data=None,
+        batch_size: int = 1024,
+        unique_batches: int = 10,
+        timeout: float = 0.2,
+        predict_method: str = "predict",
+        max_chunk_size: Optional[int] = None,
+        seed: int = 0,
+    ) -> Self:
+        return OptimizeMixin._optimize(
+            self,
+            data=data,
+            batch_size=batch_size,
+            unique_batches=unique_batches,
+            timeout=timeout,
+            predict_method=predict_method,
+            max_chunk_size=max_chunk_size,
+            seed=seed,
+        )
 
     @property
     def num_features(self) -> int:
