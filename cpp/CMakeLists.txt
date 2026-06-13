@@ -24,12 +24,20 @@ include(rapids-cuda)
 include(rapids-export)
 include(rapids-find)
 
-rapids_cuda_init_architectures(NVForest)
+option(NVFOREST_ENABLE_GPU "Enable building GPU-accelerated algorithms" ON)
+
+if(NVFOREST_ENABLE_GPU)
+  rapids_cuda_init_architectures(NVForest)
+endif()
 
 project(
   NVForest
   VERSION "${RAPIDS_VERSION}"
-  LANGUAGES CXX CUDA)
+  LANGUAGES CXX)
+
+if(NVFOREST_ENABLE_GPU)
+  enable_language(CUDA)
+endif()
 
 # Write the version header
 rapids_cmake_write_version_file(include/nvforest/version_config.hpp)
@@ -48,7 +56,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ######################################################################################################################
 # * User Options  ------------------------------------------------------------
 
-option(NVFOREST_ENABLE_GPU "Enable building GPU-accelerated algorithms" ON)
 option(BUILD_SHARED_LIBS "Build nvForest shared libraries" ON)
 option(BUILD_NVFOREST_TESTS "Build nvForest algorithm tests" ON)
 option(CUDA_ENABLE_KERNEL_INFO "Enable kernel resource usage info" OFF)
@@ -148,17 +155,19 @@ if(NOT DISABLE_OPENMP)
 endif()
 
 # CUDA runtime
-rapids_cuda_init_runtime(USE_STATIC ON)
+if(NVFOREST_ENABLE_GPU)
+  rapids_cuda_init_runtime(USE_STATIC ON)
 
-# * find CUDAToolkit package
-# * determine GPU architectures
-# * enable the CMake CUDA language
-# * set other CUDA compilation flags
-rapids_find_package(
-  CUDAToolkit REQUIRED
-  BUILD_EXPORT_SET nvforest-exports
-  INSTALL_EXPORT_SET nvforest-exports)
-include(cmake/modules/ConfigureCUDA.cmake)
+  # * find CUDAToolkit package
+  # * determine GPU architectures
+  # * enable the CMake CUDA language
+  # * set other CUDA compilation flags
+  rapids_find_package(
+    CUDAToolkit REQUIRED
+    BUILD_EXPORT_SET nvforest-exports
+    INSTALL_EXPORT_SET nvforest-exports)
+  include(cmake/modules/ConfigureCUDA.cmake)
+endif()
 
 if(USE_CCACHE)
   set(CMAKE_C_COMPILER_LAUNCHER ccache)
@@ -183,8 +192,10 @@ endif()
 
 # CCCL before RMM, and RMM before RAFT
 include(cmake/thirdparty/get_cccl.cmake)
-include(cmake/thirdparty/get_rmm.cmake)
-include(cmake/thirdparty/get_raft.cmake)
+if(NVFOREST_ENABLE_GPU)
+  include(cmake/thirdparty/get_rmm.cmake)
+  include(cmake/thirdparty/get_raft.cmake)
+endif()
 include(cmake/thirdparty/get_treelite.cmake)
 
 if(BUILD_NVFOREST_TESTS)
@@ -259,10 +270,11 @@ set_target_properties(
              # set target compile options
              CXX_STANDARD 20
              CXX_STANDARD_REQUIRED ON
-             CUDA_STANDARD 20
-             CUDA_STANDARD_REQUIRED ON
              POSITION_INDEPENDENT_CODE ON
              INTERFACE_POSITION_INDEPENDENT_CODE ON)
+if(NVFOREST_ENABLE_GPU)
+  set_target_properties(${NVFOREST_CPP_TARGET} PROPERTIES CUDA_STANDARD 20 CUDA_STANDARD_REQUIRED ON)
+endif()
 
 target_compile_definitions(${NVFOREST_CPP_TARGET} PRIVATE NVFOREST_CPP_API)
 
@@ -291,12 +303,16 @@ elseif(NVFOREST_EXPORT_TREELITE_LINKAGE)
   list(APPEND _nvforest_cpp_public_libs ${TREELITE_LIBS})
 endif()
 
+if(NVFOREST_ENABLE_GPU)
+  list(APPEND _nvforest_cpp_public_libs rmm::rmm raft::raft CUDA::cudart_static)
+endif()
+
 # These are always private:
 list(APPEND _nvforest_cpp_private_libs ${TREELITE_LIBS} ${OpenMP_CXX_LIB_NAMES})
 
 target_link_libraries(
   ${NVFOREST_CPP_TARGET}
-  PUBLIC rapids_logger::rapids_logger rmm::rmm raft::raft CUDA::cudart_static ${_nvforest_cpp_public_libs}
+  PUBLIC rapids_logger::rapids_logger ${_nvforest_cpp_public_libs}
   PRIVATE ${_nvforest_cpp_private_libs})
 
 # Ensure CUDA symbols aren't relocated to the middle of the debug build binaries

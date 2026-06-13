@@ -44,8 +44,6 @@ function(ConfigureTest)
   target_link_libraries(
     ${_NVFOREST_TEST_NAME}
     PRIVATE ${NVFOREST_CPP_TARGET}
-            rmm::rmm
-            raft::raft
             GTest::gtest
             GTest::gtest_main
             GTest::gmock
@@ -53,6 +51,9 @@ function(ConfigureTest)
             Threads::Threads
             ${TREELITE_LIBS}
             $<TARGET_NAME_IF_EXISTS:conda_env>)
+  if(NVFOREST_ENABLE_GPU)
+    target_link_libraries(${_NVFOREST_TEST_NAME} PRIVATE rmm::rmm raft::raft)
+  endif()
 
   target_compile_options(${_NVFOREST_TEST_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${NVFOREST_CXX_FLAGS}>"
                                                         "$<$<COMPILE_LANGUAGE:CUDA>:${NVFOREST_CUDA_FLAGS}>")
@@ -63,9 +64,10 @@ function(ConfigureTest)
     ${_NVFOREST_TEST_NAME}
     PROPERTIES INSTALL_RPATH "\$ORIGIN/../../../lib"
                CXX_STANDARD 20
-               CXX_STANDARD_REQUIRED ON
-               CUDA_STANDARD 20
-               CUDA_STANDARD_REQUIRED ON)
+               CXX_STANDARD_REQUIRED ON)
+  if(NVFOREST_ENABLE_GPU)
+    set_target_properties(${_NVFOREST_TEST_NAME} PROPERTIES CUDA_STANDARD 20 CUDA_STANDARD_REQUIRED ON)
+  endif()
 
   set(_NVFOREST_TEST_COMPONENT_NAME testing)
 
