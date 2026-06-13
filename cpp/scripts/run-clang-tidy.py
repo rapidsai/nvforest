@@ -19,6 +19,10 @@ VERSION_REGEX = re.compile(r"  LLVM version ([0-9.]+)")
 GPU_ARCH_REGEX = re.compile(r"sm_(\d+)")
 SPACES = re.compile(r"\s+")
 SEPARATOR = "-" * 16
+UNSUPPORTED_CLANG_FLAGS = (
+    "-fdeps-format",
+    "-fmodule-mapper",
+)
 
 
 def _read_config_file(config_file):
@@ -141,6 +145,17 @@ def remove_item_plus_one(arr, item):
     return loc
 
 
+def remove_unsupported_clang_flags(command):
+    return [
+        flag
+        for flag in command
+        if not any(
+            flag == unsupported_flag or flag.startswith(unsupported_flag)
+            for unsupported_flag in UNSUPPORTED_CLANG_FLAGS
+        )
+    ]
+
+
 def get_clang_tidy_version():
     result = subprocess.run(
         ["clang-tidy", "--version"], capture_output=True, text=True, check=True
@@ -172,7 +187,7 @@ def get_tidy_args(cmd, exe):
     # Adjust compiler command
     if "c++" in command[0]:
         command[0] = "clang-cpp"
-        command.insert(1, "-std=c++17")
+        command.insert(1, "-std=c++20")
     elif command[0][-2:] == "cc":
         command[0] = "clang"
     else:
@@ -180,6 +195,7 @@ def get_tidy_args(cmd, exe):
     # remove compilation and output targets from the original command
     remove_item_plus_one(command, "-c")
     remove_item_plus_one(command, "-o")
+    command = remove_unsupported_clang_flags(command)
     if is_cuda:
         # replace nvcc's "-gencode ..." with clang's "--cuda-gpu-arch ..."
         archs = get_gpu_archs(command)
