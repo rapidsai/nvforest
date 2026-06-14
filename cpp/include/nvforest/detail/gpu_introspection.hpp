@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/detail/cuda_check.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/index_type.hpp>
-#include <nvforest/detail/raft_proto/cuda_check.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
+#include <nvforest/device_type.hpp>
 
 #include <cuda_runtime_api.h>
 
@@ -14,72 +14,69 @@
 
 namespace nvforest::detail {
 
-inline auto get_max_shared_mem_per_block(
-  raft_proto::device_id<raft_proto::device_type::gpu> device_id)
+inline auto get_max_shared_mem_per_block(device_id<nvforest::device_type::gpu> device_id)
 {
   auto thread_local cache = std::vector<int>{};
   if (cache.size() == 0) {
     auto device_count = int{};
-    raft_proto::cuda_check(cudaGetDeviceCount(&device_count));
+    cuda_check(cudaGetDeviceCount(&device_count));
     cache.resize(device_count);
     for (auto dev = 0; dev < device_count; ++dev) {
-      raft_proto::cuda_check(
+      cuda_check(
         cudaDeviceGetAttribute(&(cache[dev]), cudaDevAttrMaxSharedMemoryPerBlockOptin, dev));
     }
   }
   return index_type(cache.at(device_id.value()));
 }
 
-inline auto get_sm_count(raft_proto::device_id<raft_proto::device_type::gpu> device_id)
+inline auto get_sm_count(device_id<nvforest::device_type::gpu> device_id)
 {
   auto thread_local cache = std::vector<int>{};
   if (cache.size() == 0) {
     auto device_count = int{};
-    raft_proto::cuda_check(cudaGetDeviceCount(&device_count));
+    cuda_check(cudaGetDeviceCount(&device_count));
     cache.resize(device_count);
     for (auto dev = 0; dev < device_count; ++dev) {
-      raft_proto::cuda_check(
-        cudaDeviceGetAttribute(&(cache[dev]), cudaDevAttrMultiProcessorCount, dev));
+      cuda_check(cudaDeviceGetAttribute(&(cache[dev]), cudaDevAttrMultiProcessorCount, dev));
     }
   }
   return index_type(cache.at(device_id.value()));
 }
 
-inline auto get_max_threads_per_sm(raft_proto::device_id<raft_proto::device_type::gpu> device_id)
+inline auto get_max_threads_per_sm(device_id<nvforest::device_type::gpu> device_id)
 {
   auto result = int{};
-  raft_proto::cuda_check(
+  cuda_check(
     cudaDeviceGetAttribute(&result, cudaDevAttrMaxThreadsPerMultiProcessor, device_id.value()));
   return index_type(result);
 }
 
-inline auto get_max_shared_mem_per_sm(raft_proto::device_id<raft_proto::device_type::gpu> device_id)
+inline auto get_max_shared_mem_per_sm(device_id<nvforest::device_type::gpu> device_id)
 {
   auto thread_local cache = std::vector<int>{};
   if (cache.size() == 0) {
     auto device_count = int{};
-    raft_proto::cuda_check(cudaGetDeviceCount(&device_count));
+    cuda_check(cudaGetDeviceCount(&device_count));
     cache.resize(device_count);
     for (auto dev = 0; dev < device_count; ++dev) {
-      raft_proto::cuda_check(
+      cuda_check(
         cudaDeviceGetAttribute(&(cache[dev]), cudaDevAttrMaxSharedMemoryPerMultiprocessor, dev));
     }
   }
   return index_type(cache.at(device_id.value()));
 }
 
-inline auto get_mem_clock_rate(raft_proto::device_id<raft_proto::device_type::gpu> device_id)
+inline auto get_mem_clock_rate(device_id<nvforest::device_type::gpu> device_id)
 {
   auto result = int{};
-  raft_proto::cuda_check(
-    cudaDeviceGetAttribute(&result, cudaDevAttrMemoryClockRate, device_id.value()));
+  cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrMemoryClockRate, device_id.value()));
   return index_type(result);
 }
 
-inline auto get_core_clock_rate(raft_proto::device_id<raft_proto::device_type::gpu> device_id)
+inline auto get_core_clock_rate(device_id<nvforest::device_type::gpu> device_id)
 {
   auto result = int{};
-  raft_proto::cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrClockRate, device_id.value()));
+  cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrClockRate, device_id.value()));
   return index_type(result);
 }
 

@@ -34,7 +34,7 @@ def _load_wheel_installation(soname: str):
 
 
 def load_library():
-    """Dynamically load libnvforest++.so and its dependencies"""
+    """Dynamically load libnvforest.so and its dependencies"""
     try:
         # These libraries must all be loaded before libnvforest
         import libraft
@@ -55,7 +55,7 @@ def load_library():
         != "false"
     )
 
-    soname = "libnvforest++.so"
+    soname = "libnvforest.so"
     libnvforest_lib = None
     if prefer_system_installation:
         # Prefer a system library if one is present to

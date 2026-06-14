@@ -4,14 +4,14 @@
  */
 #pragma once
 #include <nvforest/constants.hpp>
+#include <nvforest/cuda_stream.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
 #include <nvforest/detail/specialization_types.hpp>
 #include <nvforest/detail/specializations/forest_macros.hpp>
+#include <nvforest/device_type.hpp>
 #include <nvforest/infer_kind.hpp>
 
 #include <cstddef>
@@ -31,8 +31,8 @@
    std::nullptr_t,                                                     \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   raft_proto::device_id<dev>,                                         \
-   raft_proto::cuda_stream stream)
+   device_id<dev>,                                                     \
+   cuda_stream stream)
 
 /* Macro which expands to the valid arguments to an inference call for a forest
  * model with vector leaves but without non-local categorical data.*/
@@ -48,8 +48,8 @@
    std::nullptr_t,                                                     \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   raft_proto::device_id<dev>,                                         \
-   raft_proto::cuda_stream stream)
+   device_id<dev>,                                                     \
+   cuda_stream stream)
 
 /* Macro which expands to the valid arguments to an inference call for a forest
  * model without vector leaves but with non-local categorical data.*/
@@ -65,8 +65,8 @@
    NVFOREST_SPEC(variant_index)::index_type*,                          \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   raft_proto::device_id<dev>,                                         \
-   raft_proto::cuda_stream stream)
+   device_id<dev>,                                                     \
+   cuda_stream stream)
 
 /* Macro which expands to the valid arguments to an inference call for a forest
  * model with vector leaves and with non-local categorical data.*/
@@ -82,8 +82,8 @@
    NVFOREST_SPEC(variant_index)::index_type*,                          \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   raft_proto::device_id<dev>,                                         \
-   raft_proto::cuda_stream stream)
+   device_id<dev>,                                                     \
+   cuda_stream stream)
 
 /* Macro which expands to the declaration of an inference template for a forest
  * of the type indicated by the variant index */

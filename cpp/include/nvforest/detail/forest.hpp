@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/node.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
 
 #include <stddef.h>
 

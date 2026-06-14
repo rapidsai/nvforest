@@ -4,8 +4,8 @@
  */
 #pragma once
 
+#include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/index_type.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
 #include <nvforest/infer_kind.hpp>
 #include <nvforest/postproc_ops.hpp>
 

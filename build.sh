@@ -291,9 +291,9 @@ if (! hasArg --configure-only) && (completeBuild || hasArg libnvforest); then
           fi
         fi
         MSG="${MSG}<br/>parallel setting: $PARALLEL_LEVEL"
-        if [[ -f "${LIBNVFOREST_BUILD_DIR}/libnvforest++.so" ]]; then
-            LIBNVFOREST_FS=$(find "${LIBNVFOREST_BUILD_DIR}" -name libnvforest++.so -printf '%s'| awk '{printf "%.2f MB", $1/1024/1024}')
-            MSG="${MSG}<br/>libnvforest++.so size: $LIBNVFOREST_FS"
+        if [[ -f "${LIBNVFOREST_BUILD_DIR}/libnvforest.so" ]]; then
+            LIBNVFOREST_FS=$(find "${LIBNVFOREST_BUILD_DIR}" -name libnvforest.so -printf '%s'| awk '{printf "%.2f MB", $1/1024/1024}')
+            MSG="${MSG}<br/>libnvforest.so size: $LIBNVFOREST_FS"
         fi
         BMR_DIR=${RAPIDS_ARTIFACTS_DIR:-"${LIBNVFOREST_BUILD_DIR}"}
         echo "The HTML report can be found at [${BMR_DIR}/ninja_log.html]. In CI, this report"

@@ -4,9 +4,9 @@
  */
 #pragma once
 
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
+#include <nvforest/detail/device_id.hpp>
+#include <nvforest/detail/gpu_support.hpp>
+#include <nvforest/device_type.hpp>
 
 #include <type_traits>
 
@@ -17,11 +17,11 @@ namespace nvforest::detail::device_initialization {
  * This specialization will also be used for non-GPU-enabled builds
  * (as a GPU no-op).
  */
-template <typename forest_t, raft_proto::device_type D>
-std::enable_if_t<std::disjunction_v<std::bool_constant<!raft_proto::GPU_ENABLED>,
-                                    std::bool_constant<D == raft_proto::device_type::cpu>>,
-                 void>
-initialize_device(raft_proto::device_id<D> device)
+template <typename forest_t, device_type D>
+std::enable_if_t<
+  std::disjunction_v<std::bool_constant<!GPU_ENABLED>, std::bool_constant<D == device_type::cpu>>,
+  void>
+initialize_device(device_id<D> device)
 {
 }
 

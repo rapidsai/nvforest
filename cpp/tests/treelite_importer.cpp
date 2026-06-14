@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/detail/raft_proto/handle.hpp>
+#include <nvforest/device_type.hpp>
+#include <nvforest/handle.hpp>
 #include <nvforest/postproc_ops.hpp>
 #include <nvforest/tree_layout.hpp>
 #include <nvforest/treelite_importer.hpp>
@@ -255,7 +255,7 @@ TEST(TreeliteImporter, depth_first)
   ASSERT_FALSE(nvforest_model.has_vector_leaves());
   ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
-  ASSERT_EQ(nvforest_model.memory_type(), raft_proto::device_type::cpu);
+  ASSERT_EQ(nvforest_model.memory_type(), nvforest::device_type::cpu);
   ASSERT_EQ(nvforest_model.device_index(), -1);
   ASSERT_FALSE(nvforest_model.is_double_precision());
 }
@@ -269,7 +269,7 @@ TEST(TreeliteImporter, breadth_first)
   ASSERT_FALSE(nvforest_model.has_vector_leaves());
   ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
-  ASSERT_EQ(nvforest_model.memory_type(), raft_proto::device_type::cpu);
+  ASSERT_EQ(nvforest_model.memory_type(), nvforest::device_type::cpu);
   ASSERT_EQ(nvforest_model.device_index(), -1);
   ASSERT_FALSE(nvforest_model.is_double_precision());
 }
@@ -284,7 +284,7 @@ TEST(TreeliteImporter, layered_children_together)
   ASSERT_FALSE(nvforest_model.has_vector_leaves());
   ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
-  ASSERT_EQ(nvforest_model.memory_type(), raft_proto::device_type::cpu);
+  ASSERT_EQ(nvforest_model.memory_type(), nvforest::device_type::cpu);
   ASSERT_EQ(nvforest_model.device_index(), -1);
   ASSERT_FALSE(nvforest_model.is_double_precision());
 }
@@ -384,9 +384,9 @@ TEST(TreeliteImporter, DegenerateTree)
 
 #ifdef NVFOREST_ENABLE_GPU
   auto raft_handle = raft::handle_t{};
-  auto handle      = raft_proto::handle_t{raft_handle};
+  auto handle      = nvforest::handle_t{raft_handle};
 #else
-  auto handle = raft_proto::handle_t{};
+  auto handle = nvforest::handle_t{};
 #endif
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(1, 0.0);
@@ -395,8 +395,8 @@ TEST(TreeliteImporter, DegenerateTree)
                          preds.data(),
                          X.data(),
                          1,
-                         raft_proto::device_type::cpu,
-                         raft_proto::device_type::cpu,
+                         nvforest::device_type::cpu,
+                         nvforest::device_type::cpu,
                          nvforest::infer_kind::default_kind,
                          1);
   ASSERT_EQ(preds, expected_preds);
@@ -410,9 +410,9 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
 
 #ifdef NVFOREST_ENABLE_GPU
   auto raft_handle = raft::handle_t{};
-  auto handle      = raft_proto::handle_t{raft_handle};
+  auto handle      = nvforest::handle_t{raft_handle};
 #else
-  auto handle = raft_proto::handle_t{};
+  auto handle = nvforest::handle_t{};
 #endif
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(2, 0.0);
@@ -421,8 +421,8 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
                          preds.data(),
                          X.data(),
                          1,
-                         raft_proto::device_type::cpu,
-                         raft_proto::device_type::cpu,
+                         nvforest::device_type::cpu,
+                         nvforest::device_type::cpu,
                          nvforest::infer_kind::default_kind,
                          1);
   ASSERT_EQ(preds, expected_preds);

@@ -4,11 +4,13 @@
  */
 #pragma once
 #include <nvforest/constants.hpp>
+#include <nvforest/cuda_stream.hpp>
 #include <nvforest/decision_forest.hpp>
 #include <nvforest/detail/decision_forest_builder.hpp>
 #include <nvforest/detail/degenerate_trees.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/integration/treelite.hpp>
+#include <nvforest/device_type.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/forest_model.hpp>
 #include <nvforest/postproc_ops.hpp>
@@ -245,10 +247,10 @@ struct treelite_importer {
                                   index_type num_feature,
                                   index_type max_num_categories,
                                   std::vector<index_type> const& offsets,
-                                  index_type align_bytes           = index_type{},
-                                  raft_proto::device_type mem_type = raft_proto::device_type::cpu,
-                                  int device                       = 0,
-                                  raft_proto::cuda_stream stream   = raft_proto::cuda_stream{})
+                                  index_type align_bytes         = index_type{},
+                                  nvforest::device_type mem_type = nvforest::device_type::cpu,
+                                  int device                     = 0,
+                                  nvforest::cuda_stream stream   = nvforest::cuda_stream{})
   {
     auto result = decision_forest_variant{};
     if constexpr (variant_index != std::variant_size_v<decision_forest_variant>) {
@@ -362,9 +364,9 @@ struct treelite_importer {
   forest_model import(treelite::Model const& tl_model,
                       index_type align_bytes                   = index_type{},
                       std::optional<bool> use_double_precision = std::nullopt,
-                      raft_proto::device_type dev_type         = raft_proto::device_type::cpu,
+                      nvforest::device_type dev_type           = nvforest::device_type::cpu,
                       int device                               = 0,
-                      raft_proto::cuda_stream stream           = raft_proto::cuda_stream{})
+                      nvforest::cuda_stream stream             = nvforest::cuda_stream{})
   {
     validate_model_shape(tl_model);
 
@@ -460,14 +462,13 @@ struct treelite_importer {
  * @param stream The CUDA stream to use for loading this model (can be
  * omitted for CPU).
  */
-inline auto import_from_treelite_model(
-  treelite::Model const& tl_model,
-  tree_layout layout                       = preferred_tree_layout,
-  index_type align_bytes                   = index_type{},
-  std::optional<bool> use_double_precision = std::nullopt,
-  raft_proto::device_type dev_type         = raft_proto::device_type::cpu,
-  int device                               = 0,
-  raft_proto::cuda_stream stream           = raft_proto::cuda_stream{})
+inline auto import_from_treelite_model(treelite::Model const& tl_model,
+                                       tree_layout layout     = preferred_tree_layout,
+                                       index_type align_bytes = index_type{},
+                                       std::optional<bool> use_double_precision = std::nullopt,
+                                       nvforest::device_type dev_type = nvforest::device_type::cpu,
+                                       int device                     = 0,
+                                       nvforest::cuda_stream stream   = nvforest::cuda_stream{})
 {
   auto result = forest_model{};
   switch (layout) {
@@ -511,14 +512,13 @@ inline auto import_from_treelite_model(
  * @param stream The CUDA stream to use for loading this model (can be
  * omitted for CPU).
  */
-inline auto import_from_treelite_handle(
-  TreeliteModelHandle tl_handle,
-  tree_layout layout                       = preferred_tree_layout,
-  index_type align_bytes                   = index_type{},
-  std::optional<bool> use_double_precision = std::nullopt,
-  raft_proto::device_type dev_type         = raft_proto::device_type::cpu,
-  int device                               = 0,
-  raft_proto::cuda_stream stream           = raft_proto::cuda_stream{})
+inline auto import_from_treelite_handle(TreeliteModelHandle tl_handle,
+                                        tree_layout layout     = preferred_tree_layout,
+                                        index_type align_bytes = index_type{},
+                                        std::optional<bool> use_double_precision = std::nullopt,
+                                        nvforest::device_type dev_type = nvforest::device_type::cpu,
+                                        int device                     = 0,
+                                        nvforest::cuda_stream stream   = nvforest::cuda_stream{})
 {
   return import_from_treelite_model(*static_cast<treelite::Model*>(tl_handle),
                                     layout,

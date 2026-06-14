@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/buffer.hpp>
 #include <nvforest/constants.hpp>
+#include <nvforest/cuda_stream.hpp>
+#include <nvforest/detail/ceildiv.hpp>
+#include <nvforest/detail/cuda_check.hpp>
+#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
+#include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/infer_kernel/gpu.cuh>
+#include <nvforest/detail/padding.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/buffer.hpp>
-#include <nvforest/detail/raft_proto/ceildiv.hpp>
-#include <nvforest/detail/raft_proto/cuda_check.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
-#include <nvforest/detail/raft_proto/padding.hpp>
 #include <nvforest/detail/specializations/infer_macros.hpp>
+#include <nvforest/device_type.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/infer_kind.hpp>
 
@@ -36,7 +36,7 @@ inline auto compute_output_size(index_type row_output_size,
 {
   auto result = row_output_size * rows_per_block_iteration;
   if (infer_type == infer_kind::default_kind) {
-    result *= raft_proto::ceildiv(threads_per_block, rows_per_block_iteration);
+    result *= ceildiv(threads_per_block, rows_per_block_iteration);
   }
   return result;
 }
@@ -77,12 +77,12 @@ inline auto compute_output_size(index_type row_output_size,
  * value depends on hardware, model, and batch size. Valid values are any power
  * of 2 from 1 to 32.
  */
-template <raft_proto::device_type D,
+template <device_type D,
           bool has_categorical_nodes,
           typename forest_t,
           typename vector_output_t    = std::nullptr_t,
           typename categorical_data_t = std::nullptr_t>
-std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
+std::enable_if_t<D == device_type::gpu, void> infer(
   forest_t const& forest,
   postprocessor<typename forest_t::io_type> const& postproc,
   typename forest_t::io_type* output,
@@ -94,8 +94,8 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
   categorical_data_t categorical_data            = nullptr,
   infer_kind infer_type                          = infer_kind::default_kind,
   std::optional<index_type> specified_chunk_size = std::nullopt,
-  raft_proto::device_id<D> device                = raft_proto::device_id<D>{},
-  raft_proto::cuda_stream stream                 = raft_proto::cuda_stream{})
+  device_id<D> device                            = device_id<D>{},
+  cuda_stream stream                             = cuda_stream{})
 {
   using output_t = typename forest_t::template raw_output_type<vector_output_t>;
 
@@ -114,15 +114,15 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
   // block.
   auto threads_per_block =
     min(MAX_THREADS_PER_BLOCK,
-        raft_proto::downpadded_size(
-          (max_shared_mem_per_block - row_size_bytes) / row_output_size_bytes, WARP_SIZE));
+        downpadded_size((max_shared_mem_per_block - row_size_bytes) / row_output_size_bytes,
+                        WARP_SIZE));
 
   // If we cannot do at least a warp per block when storing input rows in
   // shared mem, recalculate our threads per block without input storage
   if (threads_per_block < WARP_SIZE) {
     threads_per_block =
       min(MAX_THREADS_PER_BLOCK,
-          raft_proto::downpadded_size(max_shared_mem_per_block / row_output_size_bytes, WARP_SIZE));
+          downpadded_size(max_shared_mem_per_block / row_output_size_bytes, WARP_SIZE));
     if (threads_per_block >= WARP_SIZE) {
       row_size_bytes = index_type{};  // Do not store input rows in shared mem
     }
@@ -131,9 +131,8 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
   // If we cannot do at least a warp per block when storing output in
   // shared mem, recalculate our threads per block with ONLY input storage
   if (threads_per_block < WARP_SIZE) {
-    threads_per_block =
-      min(MAX_THREADS_PER_BLOCK,
-          raft_proto::downpadded_size(max_shared_mem_per_block / row_size_bytes, WARP_SIZE));
+    threads_per_block = min(MAX_THREADS_PER_BLOCK,
+                            downpadded_size(max_shared_mem_per_block / row_size_bytes, WARP_SIZE));
   }
 
   // If we still cannot use at least a warp per block, give up on using
@@ -149,7 +148,7 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
   auto output_workspace_size =
     compute_output_size(row_output_size, threads_per_block, rows_per_block_iteration, infer_type);
   auto output_workspace_size_bytes = output_item_bytes * output_workspace_size;
-  auto global_workspace            = raft_proto::buffer<output_t>{};
+  auto global_workspace            = buffer<output_t>{};
 
   if (output_workspace_size_bytes > max_shared_mem_per_block) {
     output_workspace_size_bytes = 0;
@@ -160,7 +159,7 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
         max_overall_shared_mem);
 
   auto resident_blocks_per_sm =
-    min(raft_proto::ceildiv(max_shared_mem_per_sm, shared_mem_per_block), max_resident_blocks);
+    min(ceildiv(max_shared_mem_per_sm, shared_mem_per_block), max_resident_blocks);
 
   // If caller has not specified the number of rows per block iteration, apply
   // the following heuristic to identify an approximately optimal value
@@ -188,10 +187,10 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
   shared_mem_per_block = std::min(
     max_overall_shared_mem, max_shared_mem_per_sm / (max_shared_mem_per_sm / shared_mem_per_block));
 
-  auto num_blocks = std::min(raft_proto::ceildiv(row_count, rows_per_block_iteration), MAX_BLOCKS);
+  auto num_blocks = std::min(ceildiv(row_count, rows_per_block_iteration), MAX_BLOCKS);
   if (row_output_size == 0) {
-    global_workspace = raft_proto::buffer<output_t>{
-      output_workspace_size * num_blocks, raft_proto::device_type::gpu, device.value(), stream};
+    global_workspace = buffer<output_t>{
+      output_workspace_size * num_blocks, device_type::gpu, device.value(), stream};
   }
 
   /**
@@ -209,8 +208,8 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
     auto num_grove  = [infer_type, threads_per_block, task_count, chunk_size]() {
       auto result = std::uint64_t{1};
       if (infer_type == infer_kind::default_kind) {
-        result = raft_proto::ceildiv(min(static_cast<std::uint64_t>(threads_per_block), task_count),
-                                     chunk_size);
+        result =
+          ceildiv(min(static_cast<std::uint64_t>(threads_per_block), task_count), chunk_size);
       }
       return result;
     }();
@@ -318,7 +317,7 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
                                                                         infer_type,
                                                                         global_workspace.data());
   }
-  raft_proto::cuda_check(cudaGetLastError());
+  cuda_check(cudaGetLastError());
 }
 
 /* This macro is invoked here to declare all standard specializations of this
@@ -326,13 +325,13 @@ std::enable_if_t<D == raft_proto::device_type::gpu, void> infer(
  * compiled as few times as possible. A macro is used because ever
  * specialization must be explicitly declared. The final argument to the macro
  * references the 8 specialization variants compiled in nvForest. */
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 0)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 1)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 2)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 3)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 4)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 5)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 6)
-NVFOREST_INFER_ALL(extern template, raft_proto::device_type::gpu, 7)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 0)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 1)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 2)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 3)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 4)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 5)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 6)
+NVFOREST_INFER_ALL(extern template, device_type::gpu, 7)
 
 }  // namespace nvforest::detail::inference

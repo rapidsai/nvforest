@@ -5,15 +5,15 @@
 #pragma once
 
 #include <nvforest/constants.hpp>
+#include <nvforest/detail/cuda_check.hpp>
+#include <nvforest/detail/device_id.hpp>
+#include <nvforest/detail/device_setter.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
+#include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/infer_kernel/gpu.cuh>
-#include <nvforest/detail/raft_proto/cuda_check.hpp>
-#include <nvforest/detail/raft_proto/device_id.hpp>
-#include <nvforest/detail/raft_proto/device_setter.hpp>
-#include <nvforest/detail/raft_proto/device_type.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
 #include <nvforest/detail/specializations/device_initialization_macros.hpp>
+#include <nvforest/device_type.hpp>
 
 #include <cuda_runtime_api.h>
 
@@ -27,197 +27,178 @@ namespace nvforest::detail::device_initialization {
  * the inference kernels have access to the maximum available dynamic shared
  * memory.
  */
-template <typename forest_t, raft_proto::device_type D>
-std::enable_if_t<std::conjunction_v<std::bool_constant<raft_proto::GPU_ENABLED>,
-                                    std::bool_constant<D == raft_proto::device_type::gpu>>,
-                 void>
-initialize_device(raft_proto::device_id<D> device)
+template <typename forest_t, device_type D>
+std::enable_if_t<
+  std::conjunction_v<std::bool_constant<GPU_ENABLED>, std::bool_constant<D == device_type::gpu>>,
+  void>
+initialize_device(device_id<D> device)
 {
-  auto device_context           = raft_proto::device_setter(device);
+  auto device_context           = device_setter(device);
   auto max_shared_mem_per_block = get_max_shared_mem_per_block(device);
   // Run solely for side-effect of caching SM count
   get_sm_count(device);
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<false, 1, forest_t, std::nullptr_t, std::nullptr_t>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<false, 2, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<false, 4, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<false, 8, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<false, 16, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<false, 32, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<false, 1, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<false, 2, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<false, 4, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<false, 8, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<false, 16, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<false, 32, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<true, 1, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<true, 2, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<true, 4, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<true, 8, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<true, 16, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(infer_kernel<true, 32, forest_t>,
-                                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                              max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true, 1, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true, 2, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true, 4, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true, 8, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true, 16, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true, 32, forest_t, typename forest_t::io_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 1, forest_t, std::nullptr_t, std::nullptr_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 2, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 4, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 8, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 16, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 32, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 1, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 2, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 4, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 8, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 16, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<false, 32, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 1, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 2, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 4, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 8, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 16, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 32, forest_t>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 1, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 2, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 4, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 8, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 16, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true, 32, forest_t, typename forest_t::io_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 1, forest_t, std::nullptr_t, typename forest_t::node_type::index_type*>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 2, forest_t, std::nullptr_t, typename forest_t::node_type::index_type*>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 4, forest_t, std::nullptr_t, typename forest_t::node_type::index_type*>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 8, forest_t, std::nullptr_t, typename forest_t::node_type::index_type*>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 16, forest_t, std::nullptr_t, typename forest_t::node_type::index_type*>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 32, forest_t, std::nullptr_t, typename forest_t::node_type::index_type*>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 1, forest_t, typename forest_t::io_type*, std::nullptr_t>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 2, forest_t, typename forest_t::io_type*, std::nullptr_t>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 4, forest_t, typename forest_t::io_type*, std::nullptr_t>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 8, forest_t, typename forest_t::io_type*, std::nullptr_t>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 16, forest_t, typename forest_t::io_type*, std::nullptr_t>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(cudaFuncSetAttribute(
+  cuda_check(cudaFuncSetAttribute(
     infer_kernel<true, 32, forest_t, typename forest_t::io_type*, std::nullptr_t>,
     cudaFuncAttributeMaxDynamicSharedMemorySize,
     max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true,
-                                      1,
-                                      forest_t,
-                                      typename forest_t::io_type*,
-                                      typename forest_t::node_type::index_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true,
-                                      2,
-                                      forest_t,
-                                      typename forest_t::io_type*,
-                                      typename forest_t::node_type::index_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true,
-                                      4,
-                                      forest_t,
-                                      typename forest_t::io_type*,
-                                      typename forest_t::node_type::index_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true,
-                                      8,
-                                      forest_t,
-                                      typename forest_t::io_type*,
-                                      typename forest_t::node_type::index_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true,
-                                      16,
-                                      forest_t,
-                                      typename forest_t::io_type*,
-                                      typename forest_t::node_type::index_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
-  raft_proto::cuda_check(
-    cudaFuncSetAttribute(infer_kernel<true,
-                                      32,
-                                      forest_t,
-                                      typename forest_t::io_type*,
-                                      typename forest_t::node_type::index_type*>,
-                         cudaFuncAttributeMaxDynamicSharedMemorySize,
-                         max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true,
+                                               1,
+                                               forest_t,
+                                               typename forest_t::io_type*,
+                                               typename forest_t::node_type::index_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true,
+                                               2,
+                                               forest_t,
+                                               typename forest_t::io_type*,
+                                               typename forest_t::node_type::index_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true,
+                                               4,
+                                               forest_t,
+                                               typename forest_t::io_type*,
+                                               typename forest_t::node_type::index_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true,
+                                               8,
+                                               forest_t,
+                                               typename forest_t::io_type*,
+                                               typename forest_t::node_type::index_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true,
+                                               16,
+                                               forest_t,
+                                               typename forest_t::io_type*,
+                                               typename forest_t::node_type::index_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
+  cuda_check(cudaFuncSetAttribute(infer_kernel<true,
+                                               32,
+                                               forest_t,
+                                               typename forest_t::io_type*,
+                                               typename forest_t::node_type::index_type*>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  max_shared_mem_per_block));
 }
 
 NVFOREST_INITIALIZE_DEVICE(extern template, 0)

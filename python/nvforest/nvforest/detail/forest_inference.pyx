@@ -14,18 +14,14 @@ from nvforest.detail.treelite import safe_treelite_call
 
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
+from libcpp.optional cimport nullopt, optional
 from pylibraft.common.handle cimport handle_t as raft_handle_t
 
+from nvforest.detail.cuda_stream cimport cuda_stream as nvforest_stream_t
+from nvforest.detail.device_type cimport device_type as nvforest_device_t
+from nvforest.detail.handle cimport handle_t as nvforest_handle_t
 from nvforest.detail.infer_kind cimport infer_kind
 from nvforest.detail.postprocessing cimport element_op, row_op
-from nvforest.detail.raft_proto.cuda_stream cimport (
-    cuda_stream as raft_proto_stream_t,
-)
-from nvforest.detail.raft_proto.device_type cimport (
-    device_type as raft_proto_device_t,
-)
-from nvforest.detail.raft_proto.handle cimport handle_t as raft_proto_handle_t
-from nvforest.detail.raft_proto.optional cimport nullopt, optional
 from nvforest.detail.tree_layout cimport tree_layout as nvforest_tree_layout
 from nvforest.detail.treelite cimport (
     TreeliteDeserializeModelFromBytes,
@@ -37,12 +33,12 @@ from nvforest.detail.treelite cimport (
 cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
     cdef cppclass forest_model:
         void predict[io_t](
-            const raft_proto_handle_t&,
+            const nvforest_handle_t&,
             io_t*,
             io_t*,
             size_t,
-            raft_proto_device_t,
-            raft_proto_device_t,
+            nvforest_device_t,
+            nvforest_device_t,
             infer_kind,
             optional[uint32_t]
         ) except +
@@ -61,15 +57,15 @@ cdef extern from "nvforest/treelite_importer.hpp" namespace "nvforest" nogil:
         nvforest_tree_layout,
         uint32_t,
         optional[bool],
-        raft_proto_device_t,
+        nvforest_device_t,
         int,
-        raft_proto_stream_t
+        nvforest_stream_t
     ) except +
 
 
 cdef class ForestInference_impl():
     cdef forest_model model
-    cdef raft_proto_handle_t raft_proto_handle
+    cdef nvforest_handle_t nvforest_handle
     cdef object raft_handle
     cdef object device
 
@@ -84,10 +80,10 @@ cdef class ForestInference_impl():
         device: str = "cpu",
         device_id: Optional[int] = None,
     ):
-        # Store reference to RAFT handle to control lifetime, since raft_proto
-        # handle keeps a pointer to it
+        # Store reference to RAFT handle to control lifetime, since
+        # nvforest_handle keeps a pointer to it
         self.raft_handle = raft_handle
-        self.raft_proto_handle = raft_proto_handle_t(
+        self.nvforest_handle = nvforest_handle_t(
             <raft_handle_t*><size_t>self.raft_handle.getHandle()
         )
 
@@ -106,8 +102,8 @@ cdef class ForestInference_impl():
             "Failed to load Treelite model from bytes:"
         )
 
-        cdef raft_proto_device_t dev_type
-        dev_type = raft_proto_device_t.gpu if device == "gpu" else raft_proto_device_t.cpu
+        cdef nvforest_device_t dev_type
+        dev_type = nvforest_device_t.gpu if device == "gpu" else nvforest_device_t.cpu
         cdef nvforest_tree_layout tree_layout
         if layout.lower() == "depth_first":
             tree_layout = nvforest_tree_layout.depth_first
@@ -134,7 +130,7 @@ cdef class ForestInference_impl():
             use_double_precision_c,
             dev_type,
             device_id,
-            self.raft_proto_handle.get_next_usable_stream()
+            self.nvforest_handle.get_next_usable_stream()
         )
 
         safe_treelite_call(
@@ -188,9 +184,9 @@ cdef class ForestInference_impl():
         chunk_size: Optional[int] = None,
     ) -> DataType:
         cdef uintptr_t in_ptr
-        cdef raft_proto_device_t in_dev
+        cdef nvforest_device_t in_dev
         cdef uintptr_t out_ptr
-        cdef raft_proto_device_t out_dev
+        cdef nvforest_device_t out_dev
         cdef infer_kind infer_type_enum
         cdef optional[uint32_t] chunk_specification
 
@@ -220,9 +216,9 @@ cdef class ForestInference_impl():
                 order="C",
             )
             in_ptr = X.__array_interface__["data"][0]
-            in_dev = raft_proto_device_t.cpu
+            in_dev = nvforest_device_t.cpu
             out_ptr = preds.__array_interface__["data"][0]
-            out_dev = raft_proto_device_t.cpu
+            out_dev = nvforest_device_t.cpu
         else:
             assert self.device == "gpu"
             import cupy as cp
@@ -233,9 +229,9 @@ cdef class ForestInference_impl():
                 order="C",
             )
             in_ptr = X.__cuda_array_interface__["data"][0]
-            in_dev = raft_proto_device_t.gpu
+            in_dev = nvforest_device_t.gpu
             out_ptr = preds.__cuda_array_interface__["data"][0]
-            out_dev = raft_proto_device_t.gpu
+            out_dev = nvforest_device_t.gpu
 
         if chunk_size is None:
             chunk_specification = nullopt
@@ -244,7 +240,7 @@ cdef class ForestInference_impl():
 
         if model_dtype == np.float32:
             self.model.predict[float](
-                self.raft_proto_handle,
+                self.nvforest_handle,
                 <float *> out_ptr,
                 <float *> in_ptr,
                 n_rows,
@@ -255,7 +251,7 @@ cdef class ForestInference_impl():
             )
         else:
             self.model.predict[double](
-                self.raft_proto_handle,
+                self.nvforest_handle,
                 <double *> out_ptr,
                 <double *> in_ptr,
                 n_rows,
@@ -266,7 +262,7 @@ cdef class ForestInference_impl():
             )
 
         if self.device == "gpu":
-            self.raft_proto_handle.synchronize()
+            self.nvforest_handle.synchronize()
         return preds
 
 

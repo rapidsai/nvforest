@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/detail/ceildiv.hpp>
 #include <nvforest/detail/cpu_introspection.hpp>
 #include <nvforest/detail/evaluate_tree.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/ceildiv.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/infer_kind.hpp>
 
@@ -94,8 +94,8 @@ void infer_kernel_cpu(forest_t const& forest,
   using output_t = typename forest_t::template raw_output_type<vector_output_t>;
 
   auto const num_tree  = forest.tree_count();
-  auto const num_grove = raft_proto::ceildiv(num_tree, grove_size);
-  auto const num_chunk = raft_proto::ceildiv(row_count, chunk_size);
+  auto const num_grove = ceildiv(num_tree, grove_size);
+  auto const num_chunk = ceildiv(row_count, chunk_size);
 
   /**
    * Throw an error for large inputs that would cause integer overflow.

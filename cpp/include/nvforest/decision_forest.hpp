@@ -3,15 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <nvforest/buffer.hpp>
 #include <nvforest/constants.hpp>
+#include <nvforest/cuda_stream.hpp>
+#include <nvforest/detail/ceildiv.hpp>
 #include <nvforest/detail/device_initialization.hpp>
+#include <nvforest/detail/exceptions.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/infer.hpp>
 #include <nvforest/detail/postprocessor.hpp>
-#include <nvforest/detail/raft_proto/buffer.hpp>
-#include <nvforest/detail/raft_proto/cuda_stream.hpp>
-#include <nvforest/detail/raft_proto/exceptions.hpp>
 #include <nvforest/detail/specialization_types.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/infer_kind.hpp>
@@ -145,21 +146,21 @@ struct decision_forest {
    * operations, including sigmoid, exponential, and
    * logarithm_one_plus_exp
    */
-  decision_forest(raft_proto::buffer<node_type>&& nodes,
-                  raft_proto::buffer<index_type>&& root_node_indexes,
-                  raft_proto::buffer<index_type>&& node_id_mapping,
-                  raft_proto::buffer<io_type>&& bias,
-                  index_type num_features,
-                  index_type num_outputs                                     = index_type{2},
-                  bool has_categorical_nodes                                 = false,
-                  std::optional<raft_proto::buffer<io_type>>&& vector_output = std::nullopt,
-                  std::optional<raft_proto::buffer<typename node_type::index_type>>&&
-                    categorical_storage     = std::nullopt,
-                  index_type leaf_size      = index_type{1},
-                  row_op row_postproc       = row_op::disable,
-                  element_op elem_postproc  = element_op::disable,
-                  io_type average_factor    = io_type{1},
-                  io_type postproc_constant = io_type{1})
+  decision_forest(
+    buffer<node_type>&& nodes,
+    buffer<index_type>&& root_node_indexes,
+    buffer<index_type>&& node_id_mapping,
+    buffer<io_type>&& bias,
+    index_type num_features,
+    index_type num_outputs                                                      = index_type{2},
+    bool has_categorical_nodes                                                  = false,
+    std::optional<buffer<io_type>>&& vector_output                              = std::nullopt,
+    std::optional<buffer<typename node_type::index_type>>&& categorical_storage = std::nullopt,
+    index_type leaf_size                                                        = index_type{1},
+    row_op row_postproc                                                         = row_op::disable,
+    element_op elem_postproc  = element_op::disable,
+    io_type average_factor    = io_type{1},
+    io_type postproc_constant = io_type{1})
     : nodes_{nodes},
       root_node_indexes_{root_node_indexes},
       node_id_mapping_{node_id_mapping},
@@ -176,11 +177,11 @@ struct decision_forest {
       postproc_constant_{postproc_constant}
   {
     if (nodes.memory_type() != root_node_indexes.memory_type()) {
-      throw raft_proto::mem_type_mismatch(
+      throw detail::mem_type_mismatch(
         "Nodes and indexes of forest must both be stored on either host or device");
     }
     if (nodes.device_index() != root_node_indexes.device_index()) {
-      throw raft_proto::mem_type_mismatch(
+      throw detail::mem_type_mismatch(
         "Nodes and indexes of forest must both be stored on same device");
     }
     detail::initialize_device<forest_type>(nodes.device());
@@ -245,18 +246,18 @@ struct decision_forest {
    * 1 to 32 is a valid value, and in general larger batches benefit from
    * larger values.
    */
-  void predict(raft_proto::buffer<typename forest_type::io_type>& output,
-               raft_proto::buffer<typename forest_type::io_type> const& input,
-               raft_proto::cuda_stream stream                          = raft_proto::cuda_stream{},
+  void predict(buffer<typename forest_type::io_type>& output,
+               buffer<typename forest_type::io_type> const& input,
+               nvforest::cuda_stream stream                            = nvforest::cuda_stream{},
                infer_kind predict_type                                 = infer_kind::default_kind,
                std::optional<index_type> specified_rows_per_block_iter = std::nullopt)
   {
     if (output.memory_type() != memory_type() || input.memory_type() != memory_type()) {
-      throw raft_proto::wrong_device_type{
+      throw detail::wrong_device_type{
         "Tried to use host I/O data with model on device or vice versa"};
     }
     if (output.device_index() != device_index() || input.device_index() != device_index()) {
-      throw raft_proto::wrong_device{"I/O data on different device than model"};
+      throw detail::wrong_device{"I/O data on different device than model"};
     }
     auto* vector_output_data =
       (vector_output_.has_value() ? vector_output_->data() : static_cast<io_type*>(nullptr));
@@ -265,54 +266,54 @@ struct decision_forest {
                                         : static_cast<categorical_storage_type*>(nullptr));
     switch (nodes_.device().index()) {
       case 0:
-        nvforest::detail::infer(obj(),
-                                get_postprocessor(predict_type),
-                                output.data(),
-                                input.data(),
-                                index_type(input.size() / num_features_),
-                                num_features_,
-                                num_outputs(predict_type),
-                                has_categorical_nodes_,
-                                vector_output_data,
-                                categorical_storage_data,
-                                predict_type,
-                                specified_rows_per_block_iter,
-                                std::get<0>(nodes_.device()),
-                                stream);
+        detail::infer(obj(),
+                      get_postprocessor(predict_type),
+                      output.data(),
+                      input.data(),
+                      index_type(input.size() / num_features_),
+                      num_features_,
+                      num_outputs(predict_type),
+                      has_categorical_nodes_,
+                      vector_output_data,
+                      categorical_storage_data,
+                      predict_type,
+                      specified_rows_per_block_iter,
+                      std::get<0>(nodes_.device()),
+                      stream);
         break;
       case 1:
-        nvforest::detail::infer(obj(),
-                                get_postprocessor(predict_type),
-                                output.data(),
-                                input.data(),
-                                index_type(input.size() / num_features_),
-                                num_features_,
-                                num_outputs(predict_type),
-                                has_categorical_nodes_,
-                                vector_output_data,
-                                categorical_storage_data,
-                                predict_type,
-                                specified_rows_per_block_iter,
-                                std::get<1>(nodes_.device()),
-                                stream);
+        detail::infer(obj(),
+                      get_postprocessor(predict_type),
+                      output.data(),
+                      input.data(),
+                      index_type(input.size() / num_features_),
+                      num_features_,
+                      num_outputs(predict_type),
+                      has_categorical_nodes_,
+                      vector_output_data,
+                      categorical_storage_data,
+                      predict_type,
+                      specified_rows_per_block_iter,
+                      std::get<1>(nodes_.device()),
+                      stream);
         break;
     }
   }
 
  private:
   /** The nodes for all trees in the forest */
-  raft_proto::buffer<node_type> nodes_;
+  buffer<node_type> nodes_;
   /** The index of the root node for each tree in the forest */
-  raft_proto::buffer<index_type> root_node_indexes_;
+  buffer<index_type> root_node_indexes_;
   /** Mapping to apply to node IDs. Only relevant when predict_type == infer_kind::leaf_id */
-  raft_proto::buffer<index_type> node_id_mapping_;
+  buffer<index_type> node_id_mapping_;
   /** Bias term to apply to the output */
-  raft_proto::buffer<io_type> bias_;
+  buffer<io_type> bias_;
   /** Buffer of outputs for all leaves in vector-leaf models */
-  std::optional<raft_proto::buffer<io_type>> vector_output_;
+  std::optional<buffer<io_type>> vector_output_;
   /** Buffer of elements used as backing data for bitsets which specify
    * categories for all categorical nodes in the model. */
-  std::optional<raft_proto::buffer<categorical_storage_type>> categorical_storage_;
+  std::optional<buffer<categorical_storage_type>> categorical_storage_;
 
   // Metadata
   index_type num_features_;
@@ -458,7 +459,7 @@ inline auto get_forest_variant_index(bool use_double_thresholds,
   // TODO(wphicks): We are overestimating categorical storage required here
   auto double_indexes_required =
     (max_num_categories > max_local_categories &&
-     ((raft_proto::ceildiv(max_num_categories, max_local_categories) + 1 * num_categorical_nodes) >
+     ((detail::ceildiv(max_num_categories, max_local_categories) + 1 * num_categorical_nodes) >
       std::numeric_limits<small_index_t>::max())) ||
     num_vector_leaves > std::numeric_limits<small_index_t>::max();
 
