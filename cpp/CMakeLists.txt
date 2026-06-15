@@ -24,20 +24,10 @@ include(rapids-cuda)
 include(rapids-export)
 include(rapids-find)
 
-option(NVFOREST_ENABLE_GPU "Enable building GPU-accelerated algorithms" ON)
-
-if(NVFOREST_ENABLE_GPU)
-  rapids_cuda_init_architectures(NVForest)
-endif()
-
 project(
   NVForest
   VERSION "${RAPIDS_VERSION}"
   LANGUAGES CXX)
-
-if(NVFOREST_ENABLE_GPU)
-  enable_language(CUDA)
-endif()
 
 # Write the version header
 rapids_cmake_write_version_file(include/nvforest/version_config.hpp)
@@ -56,6 +46,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ######################################################################################################################
 # * User Options  ------------------------------------------------------------
 
+option(NVFOREST_ENABLE_GPU "Enable building GPU-accelerated algorithms" ON)
 option(BUILD_SHARED_LIBS "Build nvForest shared libraries" ON)
 option(BUILD_NVFOREST_TESTS "Build nvForest algorithm tests" ON)
 option(CUDA_ENABLE_KERNEL_INFO "Enable kernel resource usage info" OFF)
@@ -77,6 +68,7 @@ option(NVFOREST_EXCLUDE_RAFT_FROM_ALL "Exclude RAFT targets from nvForest's 'all
 option(NVFOREST_EXCLUDE_TREELITE_FROM_ALL "Exclude Treelite targets from nvForest's 'all' target" OFF)
 option(NVFOREST_RAFT_CLONE_ON_PIN "Explicitly clone RAFT branch when pinned to non-feature branch" ON)
 
+message(VERBOSE "NVFOREST_CPP: Enabling GPU: ${NVFOREST_ENABLE_GPU}")
 message(VERBOSE "NVFOREST_CPP: Building nvForest algorithm tests: ${BUILD_NVFOREST_TESTS}")
 message(VERBOSE "NVFOREST_CPP: Enabling detection of conda environment for dependencies: ${DETECT_CONDA_ENV}")
 message(VERBOSE "NVFOREST_CPP: Disabling OpenMP: ${DISABLE_OPENMP}")
@@ -87,6 +79,14 @@ message(VERBOSE "NVFOREST_CPP: Enabling nvtx markers: ${NVTX}")
 message(VERBOSE "NVFOREST_CPP: Cache build artifacts with ccache: ${USE_CCACHE}")
 message(VERBOSE "NVFOREST_CPP: Build and statically link RAFT library: ${NVFOREST_USE_RAFT_STATIC}")
 message(VERBOSE "NVFOREST_CPP: Build and statically link Treelite library: ${NVFOREST_USE_TREELITE_STATIC}")
+
+if(NVFOREST_ENABLE_GPU)
+  rapids_cuda_init_architectures(NVForest)
+  enable_language(CUDA)
+  # Invoke rapids_cuda_set_architectures() manually This step is needed because we are lazily initializing CUDA archs
+  # after the project() call
+  include(${CMAKE_PROJECT_NVForest_INCLUDE})
+endif()
 
 # Set RMM logging level
 set(RMM_LOGGING_LEVEL
