@@ -172,7 +172,9 @@ endif()
 if(USE_CCACHE)
   set(CMAKE_C_COMPILER_LAUNCHER ccache)
   set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-  set(CMAKE_CUDA_COMPILER_LAUNCHER ccache)
+  if(NVFOREST_ENABLE_GPU)
+    set(CMAKE_CUDA_COMPILER_LAUNCHER ccache)
+  endif()
 endif()
 
 # ######################################################################################################################

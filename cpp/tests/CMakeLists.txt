@@ -83,7 +83,9 @@ endfunction()
 # ######################################################################################################################
 # * Build ml_test executable -------------------------------------------------
 ConfigureTest(NAME HOST_BUFFER_TEST raft_proto/buffer.cpp)
-ConfigureTest(NAME DEVICE_BUFFER_TEST raft_proto/buffer.cu)
+if(NVFOREST_ENABLE_GPU)
+  ConfigureTest(NAME DEVICE_BUFFER_TEST raft_proto/buffer.cu)
+endif()
 ConfigureTest(NAME FOREST_TRAVERSAL_TEST forest/traversal_forest.cpp)
 ConfigureTest(NAME TREELITE_TRAVERSAL_TEST forest/treelite_traversal.cpp)
 ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cpp treelite_importer_invalid_inputs.cpp
