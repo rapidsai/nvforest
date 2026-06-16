@@ -85,7 +85,11 @@ if(NVFOREST_ENABLE_GPU)
   enable_language(CUDA)
   # Invoke rapids_cuda_set_architectures() manually This step is needed because we are lazily initializing CUDA archs
   # after the project() call
-  include(${CMAKE_PROJECT_NVForest_INCLUDE})
+  foreach(icl IN LISTS CMAKE_PROJECT_NVForest_INCLUDE)
+    if(icl MATCHES "rapids-cmake-src")
+      include(${icl})
+    endif()
+  endforeach()
 endif()
 
 # Set RMM logging level
