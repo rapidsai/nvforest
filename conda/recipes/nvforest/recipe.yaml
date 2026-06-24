@@ -92,9 +92,9 @@ requirements:
       else: cuda-python >=13.0.1,<14.0a0
   run:
     - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
-    - cupy >=13.6.0,!=14.0.0,!=14.1.0
+    - cupy >=14.0.1,!=14.1.0
     - libnvforest =${{ version }}
-    - numpy >=1.23,<3.0a0
+    - numpy >=2.0,<3.0a0
     - scikit-learn >=1.4
     - pylibraft =${{ minor_version }}
     - python

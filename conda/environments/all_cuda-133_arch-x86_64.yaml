@@ -15,7 +15,7 @@ dependencies:
 - cuda-profiler-api
 - cuda-python>=13.0.1,<14.0a0
 - cuda-version=13.3
-- cupy>=13.6.0,!=14.0.0,!=14.1.0
+- cupy>=14.0.1,!=14.1.0
 - cxx-compiler
 - cython>=3.0.0
 - doxygen
@@ -24,7 +24,7 @@ dependencies:
 - libraft==26.8.*,>=0.0.0a0
 - librmm==26.8.*,>=0.0.0a0
 - ninja
-- numpy>=1.23,<3.0a0
+- numpy>=2.0,<3.0a0
 - numpydoc
 - packaging
 - pandas
