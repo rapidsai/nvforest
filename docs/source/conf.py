@@ -122,12 +122,6 @@ html_theme_options = {
             "icon": "fa-brands fa-github",
             "type": "fontawesome",
         },
-        {
-            "name": "X",
-            "url": "https://x.com/rapidsai",
-            "icon": "fa-brands fa-x-twitter",
-            "type": "fontawesome",
-        },
     ],
     "show_toc_level": 1,
     "navbar_align": "right",
@@ -171,7 +165,7 @@ latex_documents = [
     (
         master_doc,
         "nvforest.tex",
-        "nvforest Documentation",
+        f"{project} Documentation",
         "NVIDIA Corporation",
         "manual",
     ),
@@ -181,7 +175,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "nvforest", "nvforest Documentation", [author], 1)]
+man_pages = [(master_doc, "nvforest", f"{project} Documentation", [author], 1)]
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -192,7 +186,7 @@ texinfo_documents = [
     (
         master_doc,
         "nvforest",
-        "nvforest Documentation",
+        f"{project} Documentation",
         author,
         "nvforest",
         "One line description of project.",
