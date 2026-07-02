@@ -1,7 +1,7 @@
-Welcome to nvForest's documentation!
-====================================
+NVIDIA nvForest Documentation
+=============================
 
-nvForest is a highly-optimized and lightweight library that enables fast inference for decision tree models on NVIDIA GPUs and CPUs.
+NVIDIA nvForest is a highly-optimized and lightweight library that enables fast inference for decision tree models on NVIDIA GPUs and CPUs.
 It supports many kinds of decision tree models, including XGBoost, LightGBM, scikit-learn, and cuML random forests.
 
 * :doc:`getting_started`
