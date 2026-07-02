@@ -70,9 +70,9 @@ endfunction()
 
 find_and_configure_treelite(
   VERSION
-  4.6.1
+  4.7.0
   PINNED_TAG
-  e14222bfdf02cba3ece0f3692f3574711cab0fc2
+  74b25ecedb964ccac37d034860cc5c1224e73e91
   EXCLUDE_FROM_ALL
   ${NVFOREST_EXCLUDE_TREELITE_FROM_ALL}
   BUILD_STATIC_LIBS
