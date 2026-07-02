@@ -347,7 +347,8 @@ dependencies:
           - graphviz
           - numpydoc
           - &packaging packaging
-          - pydata-sphinx-theme
+          - pip:
+              - nvidia-sphinx-theme
           - sphinx
           - sphinx-copybutton
           - sphinx-markdown-tables
