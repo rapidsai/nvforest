@@ -6,6 +6,7 @@ set -euo pipefail
 
 source rapids-init-pip
 
+source ./ci/use_wheels_from_prs.sh
 LIBNVFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-artifact-name wheel_cpp libnvforest nvforest --cuda "$RAPIDS_CUDA_VERSION")")
 NVFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-artifact-name wheel_python nvforest nvforest --stable --cuda "$RAPIDS_CUDA_VERSION")")
 RAPIDS_TESTS_DIR=${RAPIDS_TESTS_DIR:-"${PWD}/test-results"}
