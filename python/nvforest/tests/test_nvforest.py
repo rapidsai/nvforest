@@ -665,6 +665,31 @@ def test_predict_per_tree_with_vector_leaf(device, n_classes, tmp_path):
     np.testing.assert_almost_equal(pred_per_tree, pred_per_tree_tl, decimal=3)
 
 
+@pytest.mark.unit
+def test_load_sklearn_random_forest_via_treelite_on_gpu():
+    X, y = make_classification(
+        n_samples=10_000,
+        n_features=50,
+        n_informative=20,
+        n_classes=7,
+        random_state=0,
+    )
+    skl_model = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=5,
+        max_features=1.0,
+        n_jobs=1,
+        random_state=0,
+    ).fit(X, y)
+
+    tl_model = treelite.sklearn.import_model(skl_model)
+    fm = nvforest.load_from_treelite_model(tl_model, device="gpu")
+
+    expected = skl_model.predict_proba(X[:100])
+    actual = _get_numpy_array(fm.predict_proba(X[:100]))
+    np.testing.assert_allclose(actual, expected, atol=proba_atol[True])
+
+
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
 @pytest.mark.parametrize("n_classes", [2, 5, 25])
 def test_apply(device, n_classes, tmp_path):
