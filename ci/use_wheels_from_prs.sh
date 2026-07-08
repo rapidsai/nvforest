@@ -14,5 +14,5 @@ PYLIBRAFT_WHEELHOUSE=$(rapids-get-pr-artifact raft 3052 python wheel --pkg_name 
 # write a pip constraints file saying e.g. "whenever you encounter a requirement for 'librmm-cu12', use this wheel"
 cat > "${PIP_CONSTRAINT}" <<EOF
 libraft-${RAPIDS_PY_CUDA_SUFFIX} @ file://$(echo "${LIBRAFT_WHEELHOUSE}"/libraft_*.whl)
-raft-${RAPIDS_PY_CUDA_SUFFIX} @ file://$(echo "${PYLIBRAFT_WHEELHOUSE}"/pylibraft_*.whl)
+pylibraft-${RAPIDS_PY_CUDA_SUFFIX} @ file://$(echo "${PYLIBRAFT_WHEELHOUSE}"/pylibraft_*.whl)
 EOF
