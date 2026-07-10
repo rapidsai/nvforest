@@ -212,15 +212,17 @@ endif()
 # ######################################################################################################################
 # * build libnvforest++ shared library -------------------------------------------
 
-file(
-  WRITE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld"
-  [=[
-SECTIONS
-{
-.nvFatBinSegment : { *(.nvFatBinSegment) }
-.nv_fatbin : { *(.nv_fatbin) }
-}
-]=])
+if(NVFOREST_ENABLE_GPU)
+  file(
+    WRITE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld"
+    [=[
+  SECTIONS
+  {
+  .nvFatBinSegment : { *(.nvFatBinSegment) }
+  .nv_fatbin : { *(.nv_fatbin) }
+  }
+  ]=])
+endif()
 
 # Copy the interface include directories from INCLUDED_TARGET to TARGET. This is necessary when INCLUDED_TARGET was
 # compiled statically but includes public APIs that may still require consumers to have the same interface headers
@@ -322,7 +324,9 @@ target_link_libraries(
   PRIVATE ${_nvforest_cpp_private_libs})
 
 # Ensure CUDA symbols aren't relocated to the middle of the debug build binaries
-target_link_options(${NVFOREST_CPP_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld")
+if(NVFOREST_ENABLE_GPU)
+  target_link_options(${NVFOREST_CPP_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld")
+endif()
 
 # ######################################################################################################################
 # * build test executables ---------------------------------------------------
