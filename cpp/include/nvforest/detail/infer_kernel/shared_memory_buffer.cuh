@@ -81,7 +81,8 @@ struct shared_memory_buffer {
 
   /* If possible, fill the next element_count elements with given value. If
    * there is not enough room, the fill is not performed. Return a pointer to
-   * the start of the desired data if the fill was possible or else nullptr. */
+   * the start of the desired data if the fill was possible, or else the
+   * provided fallback buffer (nullptr by default). */
   template <typename T>
   __device__ auto* fill(index_type element_count, T value = T{}, T* fallback_buffer = nullptr)
   {
