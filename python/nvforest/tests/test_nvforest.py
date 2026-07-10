@@ -462,6 +462,99 @@ def test_chunk_size(chunk_size, small_classifier_and_preds):
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
+@pytest.mark.parametrize("use_default", (False, True))
+@pytest.mark.parametrize("chunk_size", [1, 2, 4, 8, 16, 32])
+def test_valid_chunk_size(
+    device, use_default, chunk_size, small_classifier_and_preds
+):
+    model_path, model_type, X, xgb_preds = small_classifier_and_preds
+    fm = nvforest.load_model(
+        model_path,
+        model_type=model_type,
+        device=device,
+        default_chunk_size=chunk_size if use_default else None,
+    )
+
+    kwargs = {} if use_default else {"chunk_size": chunk_size}
+    nvforest_preds = _get_numpy_array(
+        fm.predict_proba(X[:1], **kwargs)
+    ).squeeze()
+    np.testing.assert_almost_equal(nvforest_preds, xgb_preds[0])
+
+
+@pytest.mark.parametrize("use_default", (False, True))
+@pytest.mark.parametrize("chunk_size", [3, 6, 17, 33])
+def test_valid_non_power_of_two_cpu_chunk_size(
+    use_default, chunk_size, small_classifier_and_preds
+):
+    model_path, model_type, X, xgb_preds = small_classifier_and_preds
+    fm = nvforest.load_model(
+        model_path,
+        model_type=model_type,
+        device="cpu",
+        default_chunk_size=chunk_size if use_default else None,
+    )
+
+    kwargs = {} if use_default else {"chunk_size": chunk_size}
+    nvforest_preds = _get_numpy_array(
+        fm.predict_proba(X[:1], **kwargs)
+    ).squeeze()
+    np.testing.assert_almost_equal(nvforest_preds, xgb_preds[0])
+
+
+@pytest.mark.parametrize(
+    "device,chunk_size",
+    [
+        ("cpu", 0),
+        ("cpu", -1),
+        ("gpu", 0),
+        ("gpu", -1),
+        ("gpu", 3),
+        ("gpu", 6),
+        ("gpu", 17),
+        ("gpu", 33),
+    ],
+)
+def test_invalid_chunk_size(device, chunk_size, small_classifier_and_preds):
+    model_path, model_type, X, _ = small_classifier_and_preds
+    fm = nvforest.load_model(
+        model_path,
+        model_type=model_type,
+        device=device,
+    )
+
+    with pytest.raises(ValueError, match="chunk_size"):
+        fm.predict(X, chunk_size=chunk_size)
+
+
+@pytest.mark.parametrize(
+    "device,chunk_size",
+    [
+        ("cpu", 0),
+        ("cpu", -1),
+        ("gpu", 0),
+        ("gpu", -1),
+        ("gpu", 3),
+        ("gpu", 6),
+        ("gpu", 17),
+        ("gpu", 33),
+    ],
+)
+def test_invalid_default_chunk_size(
+    device, chunk_size, small_classifier_and_preds
+):
+    model_path, model_type, _, _ = small_classifier_and_preds
+
+    with pytest.raises(ValueError, match="chunk_size"):
+        nvforest.load_model(
+            model_path,
+            model_type=model_type,
+            device=device,
+            default_chunk_size=chunk_size,
+        )
+
+
+@pytest.mark.parametrize("device", ("cpu", "gpu"))
 def test_output_args(device, small_classifier_and_preds):
     model_path, model_type, X, xgb_preds = small_classifier_and_preds
     fm = nvforest.load_model(model_path, model_type=model_type, device=device)

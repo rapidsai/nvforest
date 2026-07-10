@@ -9,6 +9,7 @@
 #include <nvforest/detail/raft_proto/cuda_check.hpp>
 #include <nvforest/detail/raft_proto/gpu_support.hpp>
 #include <nvforest/detail/raft_proto/handle.hpp>
+#include <nvforest/detail/validate_chunk_size.hpp>
 #include <nvforest/infer_kind.hpp>
 
 #ifdef NVFOREST_ENABLE_GPU
@@ -188,6 +189,8 @@ struct forest_model {
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
+    detail::validate_chunk_size(specified_chunk_size, memory_type());
+
     std::visit(
       [this, predict_type, &handle, &output, &input, &specified_chunk_size](
         auto&& concrete_forest) {

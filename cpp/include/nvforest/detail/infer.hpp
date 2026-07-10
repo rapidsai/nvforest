@@ -9,6 +9,7 @@
 #include <nvforest/detail/raft_proto/cuda_stream.hpp>
 #include <nvforest/detail/raft_proto/device_id.hpp>
 #include <nvforest/detail/raft_proto/device_type.hpp>
+#include <nvforest/detail/validate_chunk_size.hpp>
 #include <nvforest/exceptions.hpp>
 #include <nvforest/infer_kind.hpp>
 
@@ -67,6 +68,8 @@ void infer(forest_t const& forest,
            raft_proto::device_id<D> device                            = raft_proto::device_id<D>{},
            raft_proto::cuda_stream stream                             = raft_proto::cuda_stream{})
 {
+  validate_chunk_size(specified_chunk_size, D);
+
   if (vector_output == nullptr) {
     if (categorical_data == nullptr) {
       if (!has_categorical_nodes) {

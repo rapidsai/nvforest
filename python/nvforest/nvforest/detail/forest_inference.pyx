@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+from operator import index as index_operator
 from typing import Optional, Union
 
 import numpy as np
@@ -32,6 +33,24 @@ from nvforest.detail.treelite cimport (
     TreeliteFreeModel,
     TreeliteModelHandle,
 )
+
+
+def _validate_chunk_size(chunk_size, device):
+    if chunk_size is None:
+        return None
+
+    try:
+        chunk_size = index_operator(chunk_size)
+    except TypeError:
+        raise TypeError("chunk_size must be an integer or None") from None
+
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be greater than zero")
+    if device == "gpu" and chunk_size not in (1, 2, 4, 8, 16, 32):
+        raise ValueError(
+            "GPU chunk_size must be a power of two between 1 and 32"
+        )
+    return chunk_size
 
 
 cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
@@ -194,6 +213,7 @@ cdef class ForestInference_impl():
         cdef infer_kind infer_type_enum
         cdef optional[uint32_t] chunk_specification
 
+        chunk_size = _validate_chunk_size(chunk_size, self.device)
         n_rows = X.shape[0]
         model_dtype = self.get_dtype()
 
@@ -285,6 +305,7 @@ class ForestInferenceImpl:
     ):
         # Assumption: The caller needs to pass in correct (device, device_id) pair
         # This function will not contain any logic for auto-detecting device.
+        default_chunk_size = _validate_chunk_size(default_chunk_size, device)
         self.handle = Handle() if handle is None else handle
         self._layout = layout
         self.precision = precision
@@ -373,7 +394,12 @@ class ForestInferenceImpl:
         self._validate_input_dims(X)
         # Returns probabilities if the model is a classifier
         return self.impl.predict(
-            X, chunk_size=(chunk_size or self.default_chunk_size)
+            X,
+            chunk_size=(
+                chunk_size
+                if chunk_size is not None
+                else self.default_chunk_size
+            ),
         )
 
     def predict_per_tree(
@@ -383,7 +409,9 @@ class ForestInferenceImpl:
         chunk_size: Optional[int] = None,
     ) -> DataType:
         self._validate_input_dims(X)
-        chunk_size = (chunk_size or self.default_chunk_size)
+        chunk_size = (
+            chunk_size if chunk_size is not None else self.default_chunk_size
+        )
         return self.impl.predict(
             X, predict_type="per_tree", chunk_size=chunk_size
         )
@@ -395,7 +423,9 @@ class ForestInferenceImpl:
         chunk_size: Optional[int] = None,
     ) -> DataType:
         self._validate_input_dims(X)
-        chunk_size = (chunk_size or self.default_chunk_size)
+        chunk_size = (
+            chunk_size if chunk_size is not None else self.default_chunk_size
+        )
         return self.impl.predict(
             X, predict_type="leaf_id", chunk_size=chunk_size
         )
