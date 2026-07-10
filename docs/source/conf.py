@@ -73,7 +73,7 @@ source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 master_doc = "index"
 
 # General information about the project.
-project = "nvforest"
+project = "NVIDIA nvForest"
 copyright = f"2026-{datetime.datetime.today().year}, NVIDIA Corporation"
 author = "NVIDIA Corporation"
 
@@ -111,8 +111,7 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 
-html_theme = "pydata_sphinx_theme"
-html_logo = "_static/RAPIDS-logo-purple.png"
+html_theme = "nvidia_sphinx_theme"
 
 html_theme_options = {
     "external_links": [],
@@ -121,12 +120,6 @@ html_theme_options = {
             "name": "GitHub",
             "url": "https://github.com/rapidsai/nvforest",
             "icon": "fa-brands fa-github",
-            "type": "fontawesome",
-        },
-        {
-            "name": "X",
-            "url": "https://x.com/rapidsai",
-            "icon": "fa-brands fa-x-twitter",
             "type": "fontawesome",
         },
     ],
@@ -172,7 +165,7 @@ latex_documents = [
     (
         master_doc,
         "nvforest.tex",
-        "nvforest Documentation",
+        f"{project} Documentation",
         "NVIDIA Corporation",
         "manual",
     ),
@@ -182,7 +175,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "nvforest", "nvforest Documentation", [author], 1)]
+man_pages = [(master_doc, "nvforest", f"{project} Documentation", [author], 1)]
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -193,7 +186,7 @@ texinfo_documents = [
     (
         master_doc,
         "nvforest",
-        "nvforest Documentation",
+        f"{project} Documentation",
         author,
         "nvforest",
         "One line description of project.",
@@ -216,10 +209,6 @@ numpydoc_class_members_toctree = False
 
 def setup(app):
     app.add_css_file("custom.css")
-    app.add_css_file("https://docs.rapids.ai/assets/css/custom.css")
-    app.add_js_file(
-        "https://docs.rapids.ai/assets/js/custom.js", loading_method="defer"
-    )
 
 
 # The following is used by sphinx.ext.linkcode to provide links to github

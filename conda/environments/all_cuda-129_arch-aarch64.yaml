@@ -10,12 +10,12 @@ dependencies:
 - ccache
 - click
 - cmake>=4.0
+- cuda-bindings>=12.9.2,<13.0
 - cuda-cudart-dev
 - cuda-nvcc
 - cuda-profiler-api
-- cuda-python>=12.9.2,<13.0a0
 - cuda-version=12.9
-- cupy>=13.6.0,!=14.0.0,!=14.1.0
+- cupy>=14.0.1,!=14.1.0
 - cxx-compiler
 - cython>=3.0.0
 - doxygen
@@ -24,12 +24,11 @@ dependencies:
 - libraft==26.8.*,>=0.0.0a0
 - librmm==26.8.*,>=0.0.0a0
 - ninja
-- numpy>=1.23,<3.0a0
+- numpy>=2.0,<3.0a0
 - numpydoc
 - packaging
 - pandas
 - pre-commit
-- pydata-sphinx-theme
 - pylibraft==26.8.*,>=0.0.0a0
 - pytest
 - pytest-cov
@@ -44,5 +43,7 @@ dependencies:
 - sphinx-copybutton
 - sphinx-markdown-tables
 - sysroot_linux-aarch64==2.28
-- treelite>=4.6.1,<5.0
+- treelite>=4.7.0,<5.0
+- pip:
+  - nvidia-sphinx-theme
 name: all_cuda-129_arch-aarch64
