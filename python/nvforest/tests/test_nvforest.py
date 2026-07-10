@@ -483,7 +483,7 @@ def test_valid_chunk_size(
 
 
 @pytest.mark.parametrize("use_default", (False, True))
-@pytest.mark.parametrize("chunk_size", [3, 6, 17, 33])
+@pytest.mark.parametrize("chunk_size", [3, 6, 17, 33, 2**32 - 1])
 def test_valid_non_power_of_two_cpu_chunk_size(
     use_default, chunk_size, small_classifier_and_preds
 ):
@@ -507,6 +507,7 @@ def test_valid_non_power_of_two_cpu_chunk_size(
     [
         ("cpu", 0),
         ("cpu", -1),
+        ("cpu", 2**32),
         ("gpu", 0),
         ("gpu", -1),
         ("gpu", 3),
@@ -532,6 +533,7 @@ def test_invalid_chunk_size(device, chunk_size, small_classifier_and_preds):
     [
         ("cpu", 0),
         ("cpu", -1),
+        ("cpu", 2**32),
         ("gpu", 0),
         ("gpu", -1),
         ("gpu", 3),
@@ -552,6 +554,19 @@ def test_invalid_default_chunk_size(
             device=device,
             default_chunk_size=chunk_size,
         )
+
+
+@pytest.mark.parametrize("chunk_size", [1.5, "4"])
+def test_non_integer_chunk_size(chunk_size, small_classifier_and_preds):
+    model_path, model_type, X, _ = small_classifier_and_preds
+    fm = nvforest.load_model(
+        model_path,
+        model_type=model_type,
+        device="cpu",
+    )
+
+    with pytest.raises(TypeError, match="chunk_size"):
+        fm.predict(X, chunk_size=chunk_size)
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))

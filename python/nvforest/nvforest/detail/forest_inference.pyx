@@ -46,6 +46,10 @@ def _validate_chunk_size(chunk_size, device):
 
     if chunk_size <= 0:
         raise ValueError("chunk_size must be greater than zero")
+    if chunk_size > 0xFFFFFFFF:
+        raise ValueError(
+            "chunk_size must fit within a 32-bit unsigned integer"
+        )
     if device == "gpu" and chunk_size not in (1, 2, 4, 8, 16, 32):
         raise ValueError(
             "GPU chunk_size must be a power of two between 1 and 32"
