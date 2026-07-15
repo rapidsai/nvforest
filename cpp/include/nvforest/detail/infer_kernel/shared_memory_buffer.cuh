@@ -19,7 +19,11 @@ namespace nvforest {
  */
 struct shared_memory_buffer {
   __device__ shared_memory_buffer(std::byte* buffer = nullptr, index_type size = index_type{})
-    : data{buffer}, total_size{size}, remaining_data{buffer}, remaining_size{size}
+    : data{buffer},
+      total_size{size},
+      remaining_data{buffer},
+      remaining_size{size},
+      requires_sync{false}
   {
   }
 
@@ -34,25 +38,23 @@ struct shared_memory_buffer {
                         index_type col_count,
                         index_type row_pad = index_type{})
   {
-    auto* dest        = reinterpret_cast<std::remove_const_t<T>*>(remaining_data);
-    auto source_count = row_count * col_count;
-    auto dest_count   = row_count * (col_count + row_pad);
+    auto const row_width          = std::size_t{col_count} + std::size_t{row_pad};
+    auto const available_elements = std::size_t{remaining_size} / sizeof(T);
+    if (row_count != 0 && row_width > available_elements / row_count) { return source; }
 
-    auto copy_data = (dest_count * sizeof(T) <= remaining_size);
-
-    source_count *= copy_data;
-    for (auto i = threadIdx.x; i < source_count; i += blockDim.x) {
+    auto* dest              = reinterpret_cast<std::remove_const_t<T>*>(remaining_data);
+    auto const source_count = std::size_t{row_count} * std::size_t{col_count};
+    auto const dest_count   = std::size_t{row_count} * row_width;
+    for (auto i = std::size_t{threadIdx.x}; i < source_count; i += blockDim.x) {
       dest[i + row_pad * (i / col_count)] = source[i];
     }
 
-    auto* result  = copy_data ? static_cast<T*>(dest) : source;
-    requires_sync = requires_sync || copy_data;
-
-    auto offset = dest_count * index_type(sizeof(T));
+    auto const offset = dest_count * sizeof(T);
     remaining_data += offset;
-    remaining_size -= offset;
+    remaining_size -= index_type(offset);
+    requires_sync = requires_sync || source_count != 0;
 
-    return result;
+    return static_cast<T*>(dest);
   }
 
   /* If possible, copy the given number of elements from source to the end of this buffer
@@ -62,47 +64,43 @@ struct shared_memory_buffer {
   template <typename T>
   __device__ auto* copy(T* source, index_type element_count)
   {
+    if (std::size_t{element_count} > std::size_t{remaining_size} / sizeof(T)) { return source; }
+
     auto* dest = reinterpret_cast<std::remove_const_t<T>*>(remaining_data);
-
-    auto copy_data = (element_count * index_type(sizeof(T)) <= remaining_size);
-
-    element_count *= copy_data;
-    for (auto i = threadIdx.x; i < element_count; i += blockDim.x) {
+    for (auto i = std::size_t{threadIdx.x}; i < element_count; i += blockDim.x) {
       dest[i] = source[i];
     }
-    auto* result  = copy_data ? static_cast<T*>(dest) : source;
-    requires_sync = requires_sync || copy_data;
 
-    auto offset = element_count * index_type(sizeof(T));
+    auto const offset = std::size_t{element_count} * sizeof(T);
     remaining_data += offset;
-    remaining_size -= offset;
+    remaining_size -= index_type(offset);
+    requires_sync = requires_sync || element_count != 0;
 
-    return result;
+    return static_cast<T*>(dest);
   }
 
   /* If possible, fill the next element_count elements with given value. If
    * there is not enough room, the fill is not performed. Return a pointer to
-   * the start of the desired data if the fill was possible or else nullptr. */
+   * the start of the desired data if the fill was possible, or else the
+   * provided fallback buffer (nullptr by default). */
   template <typename T>
   __device__ auto* fill(index_type element_count, T value = T{}, T* fallback_buffer = nullptr)
   {
+    if (std::size_t{element_count} > std::size_t{remaining_size} / sizeof(T)) {
+      return fallback_buffer;
+    }
+
     auto* dest = reinterpret_cast<std::remove_const_t<T>*>(remaining_data);
-
-    auto copy_data = (element_count * index_type(sizeof(T)) <= remaining_size);
-
-    element_count *= copy_data;
-    for (auto i = threadIdx.x; i < element_count; i += blockDim.x) {
+    for (auto i = std::size_t{threadIdx.x}; i < element_count; i += blockDim.x) {
       dest[i] = value;
     }
 
-    auto* result  = copy_data ? static_cast<T*>(dest) : fallback_buffer;
-    requires_sync = requires_sync || copy_data;
-
-    auto offset = element_count * index_type(sizeof(T));
+    auto const offset = std::size_t{element_count} * sizeof(T);
     remaining_data += offset;
-    remaining_size -= offset;
+    remaining_size -= index_type(offset);
+    requires_sync = requires_sync || element_count != 0;
 
-    return result;
+    return static_cast<T*>(dest);
   }
 
   /* Clear all stored data and return a pointer to the beginning of available
@@ -111,6 +109,7 @@ struct shared_memory_buffer {
   {
     remaining_size = total_size;
     remaining_data = data;
+    requires_sync  = false;
     return remaining_data;
   }
 
