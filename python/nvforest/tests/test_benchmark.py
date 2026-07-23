@@ -1,9 +1,10 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
 import os
+import sys
 import tempfile
 
 import numpy as np
@@ -314,6 +315,9 @@ class TestCLI:
         assert result.exit_code == 0
         assert "sklearn" in result.output
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 12), reason="XGBoost requires Python 3.12+"
+    )
     @pytest.mark.unit
     def test_cli_dry_run_quick_test(self):
         """Test CLI dry run with quick test."""
