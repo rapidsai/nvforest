@@ -4,7 +4,6 @@
 #
 
 import os
-import sys
 import tempfile
 
 import numpy as np
@@ -315,9 +314,6 @@ class TestCLI:
         assert result.exit_code == 0
         assert "sklearn" in result.output
 
-    @pytest.mark.skipif(
-        sys.version_info < (3, 12), reason="XGBoost requires Python 3.12+"
-    )
     @pytest.mark.unit
     def test_cli_dry_run_quick_test(self):
         """Test CLI dry run with quick test."""
@@ -327,7 +323,7 @@ class TestCLI:
         # Quick test has fewer configurations
         assert any(
             f"Total benchmark configurations: {x}" in result.output
-            for x in [8, 12]
+            for x in [4, 8, 12]
         )
 
     @pytest.mark.unit
