@@ -444,12 +444,12 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - xgboost-cu12>=3.3.0
+              - xgboost-cu12>=3.3.0; python_version >= '3.12'
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - xgboost-cu13>=3.3.0
+              - xgboost-cu13>=3.3.0; python_version >= '3.12'
           # this unsuffixed dependency is useful in environments where xgboost is built from source
           # (like RAPIDS DLFW builds)
           - matrix:
