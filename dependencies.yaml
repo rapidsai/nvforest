@@ -454,7 +454,7 @@ dependencies:
           # (like RAPIDS DLFW builds)
           - matrix:
             packages:
-              - xgboost>=3.3.0
+              - xgboost>=3.3.0; python_version >= '3.12'
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, pyproject]
