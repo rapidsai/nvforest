@@ -23,7 +23,7 @@ rapids-pip-retry install \
     --prefer-binary \
     --constraint "${PIP_CONSTRAINT}" \
     "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl
-python -c "import libnvforest; libnvforest.load_library()"
+python -c "import libnvforest; assert libnvforest.load_library() is not None"
 deactivate
 
 # Install just minimal dependencies first
