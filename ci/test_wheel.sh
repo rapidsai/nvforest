@@ -15,6 +15,17 @@ mkdir -p "${RAPIDS_TESTS_DIR}"
 # dependencies that can be installed later on when installing the wheel
 rapids-generate-pip-constraints test_python "${PIP_CONSTRAINT}"
 
+python -m venv libnvforest-env
+. libnvforest-env/bin/activate
+
+rapids-pip-retry install \
+    -v \
+    --prefer-binary \
+    --constraint "${PIP_CONSTRAINT}" \
+    "${LIBNVFOREST_WHEELHOUSE}"/libnvforest*.whl
+python -c "import libnvforest; libnvforest.load_library()"
+deactivate
+
 # Install just minimal dependencies first
 rapids-pip-retry install \
   --prefer-binary \
