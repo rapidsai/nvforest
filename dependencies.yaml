@@ -429,12 +429,12 @@ dependencies:
     specific:
       - output_types: [conda]
         matrices:
-        - matrix:
-            py: "3.11"
-          packages: []
-        - matrix:
-          packages:
-            - rapids-xgboost==26.10.*,>=0.0.0a0
+          - matrix:
+              py: "3.11"
+            packages: []
+          - matrix:
+            packages:
+              - rapids-xgboost==26.10.*,>=0.0.0a0
       - output_types: [requirements, pyproject]
         matrices:
           - matrix:

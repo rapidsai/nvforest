@@ -74,14 +74,15 @@ jobs:
     with:
       files_yaml: |
         build_docs:
+          - '!.coderabbit.yaml'
           - '!.devcontainer/**'
           - '!.pre-commit-config.yaml'
+          - '!.yamllint.yaml'
           - '!CONTRIBUTING.md'
           - '!README.md'
           - '!SECURITY.md'
           - '!ci/release/update-version.sh'
           - '!**/*/agents.md'
-          - '!.coderabbit.yaml'
         test_cpp:
           - '**'
           - '!.coderabbit.yaml'
@@ -92,6 +93,7 @@ jobs:
           - '!.github/ops-bot.yaml'
           - '!.github/workflows/labeler.yml'
           - '!.pre-commit-config.yaml'
+          - '!.yamllint.yaml'
           - '!README.md'
           - '!SECURITY.md'
           - '!ci/build_python.sh'
@@ -115,6 +117,7 @@ jobs:
           - '!.github/ops-bot.yaml'
           - '!.github/workflows/labeler.yml'
           - '!.pre-commit-config.yaml'
+          - '!.yamllint.yaml'
           - '!README.md'
           - '!SECURITY.md'
           - '!ci/build_wheel*.sh'
@@ -136,6 +139,7 @@ jobs:
           - '!.github/ops-bot.yaml'
           - '!.github/workflows/labeler.yml'
           - '!.pre-commit-config.yaml'
+          - '!.yamllint.yaml'
           - '!README.md'
           - '!SECURITY.md'
           - '!ci/build_cpp.sh'
