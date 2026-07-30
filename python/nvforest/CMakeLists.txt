@@ -1,6 +1,6 @@
 # =============================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 # cmake-format: on
 # =============================================================================
@@ -24,7 +24,7 @@ project(
 # * User Options  --------------------------------------------------------------
 option(USE_LIBNVFOREST_WHEEL "Use libnvforest wheel to provide some dependencies" OFF)
 
-set(NVFOREST_CPP_TARGET "nvforest++")
+set(NVFOREST_CPP_TARGET "nvforest")
 set(NVFOREST_CPP_SRC "../../cpp")
 
 # ######################################################################################################################

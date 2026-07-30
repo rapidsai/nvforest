@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 set -euo pipefail
@@ -20,7 +20,7 @@ LIBNVFOREST_WHEELHOUSE=$(rapids-download-from-github "$(rapids-artifact-name whe
 echo "libnvforest-${RAPIDS_PY_CUDA_SUFFIX} @ file://$(echo "${LIBNVFOREST_WHEELHOUSE}"/libnvforest_*.whl)" >> "${PIP_CONSTRAINT}"
 
 EXCLUDE_ARGS=(
-  --exclude "libnvforest++.so"
+  --exclude "libnvforest.so"
   --exclude "libraft.so"
   --exclude "libcublas.so.*"
   --exclude "libcublasLt.so.*"

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 # Dependency list for https://github.com/rapidsai/dependency-file-generator
@@ -30,6 +30,9 @@ files:
     output: none
     includes:
       # "devcontainers" includes everything in "all", excluding test_python_xgboost
+      # The libxgboost package depends on librmm but we do not want to have a
+      # package depending on librmm in devcontainers since it should be built
+      # from source.
       - common_build
       - cuda
       - cuda_version
@@ -382,7 +385,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - libnvforest-tests==26.8.*,>=0.0.0a0
+          - libnvforest-tests==26.10.*,>=0.0.0a0
   test_cpp:
     common:
       - output_types: conda
@@ -423,17 +426,35 @@ dependencies:
           - pytest-xdist
           - *scikit_learn
   test_python_xgboost:
-    common:
+    specific:
       - output_types: [conda]
-        packages:
-          # We must separate xgboost into its own list so that it is not
-          # included in the "devcontainers" key. The libxgboost package depends
-          # on librmm but we do not want to have a package depending on librmm
-          # in devcontainers since it should be built from source.
-          - rapids-xgboost==26.8.*,>=0.0.0a0
+        matrices:
+          - matrix:
+              py: "3.11"
+            packages: []
+          - matrix:
+            packages:
+              - rapids-xgboost==26.10.*,>=0.0.0a0
       - output_types: [requirements, pyproject]
-        packages:
-          - xgboost>=2.1.0
+        matrices:
+          - matrix:
+              py: "3.11"
+            packages: []
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - xgboost-cu12>=3.3.0; python_version >= '3.12'
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - xgboost-cu13>=3.3.0; python_version >= '3.12'
+          # this unsuffixed dependency is useful in environments where xgboost is built from source
+          # (like RAPIDS DLFW builds)
+          - matrix:
+            packages:
+              - xgboost>=3.3.0; python_version >= '3.12'
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, pyproject]
@@ -450,7 +471,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - nvforest==26.8.*,>=0.0.0a0
+          - nvforest==26.10.*,>=0.0.0a0
   depends_on_cupy:
     common:
       - output_types: conda
@@ -494,7 +515,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - &libnvforest_unsuffixed libnvforest==26.8.*,>=0.0.0a0
+          - &libnvforest_unsuffixed libnvforest==26.10.*,>=0.0.0a0
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -506,18 +527,18 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libnvforest-cu12==26.8.*,>=0.0.0a0
+              - libnvforest-cu12==26.10.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libnvforest-cu13==26.8.*,>=0.0.0a0
+              - libnvforest-cu13==26.10.*,>=0.0.0a0
           - {matrix: null, packages: [*libnvforest_unsuffixed]}
   depends_on_libraft:
     common:
       - output_types: conda
         packages:
-          - &libraft_unsuffixed libraft==26.8.*,>=0.0.0a0
+          - &libraft_unsuffixed libraft==26.10.*,>=0.0.0a0
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -529,23 +550,23 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libraft-cu12==26.8.*,>=0.0.0a0
+              - libraft-cu12==26.10.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libraft-cu13==26.8.*,>=0.0.0a0
+              - libraft-cu13==26.10.*,>=0.0.0a0
           - {matrix: null, packages: [*libraft_unsuffixed]}
   depends_on_libraft_headers:
     common:
       - output_types: conda
         packages:
-          - libraft-headers==26.8.*,>=0.0.0a0
+          - libraft-headers==26.10.*,>=0.0.0a0
   depends_on_librmm:
     common:
       - output_types: conda
         packages:
-          - &librmm_unsuffixed librmm==26.8.*,>=0.0.0a0
+          - &librmm_unsuffixed librmm==26.10.*,>=0.0.0a0
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -557,18 +578,18 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu12==26.8.*,>=0.0.0a0
+              - librmm-cu12==26.10.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu13==26.8.*,>=0.0.0a0
+              - librmm-cu13==26.10.*,>=0.0.0a0
           - {matrix: null, packages: [*librmm_unsuffixed]}
   depends_on_pylibraft:
     common:
       - output_types: conda
         packages:
-          - &pylibraft_unsuffixed pylibraft==26.8.*,>=0.0.0a0
+          - &pylibraft_unsuffixed pylibraft==26.10.*,>=0.0.0a0
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -580,12 +601,12 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - pylibraft-cu12==26.8.*,>=0.0.0a0
+              - pylibraft-cu12==26.10.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - pylibraft-cu13==26.8.*,>=0.0.0a0
+              - pylibraft-cu13==26.10.*,>=0.0.0a0
           - matrix:
             packages:
               - *pylibraft_unsuffixed

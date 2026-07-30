@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -323,7 +323,7 @@ class TestCLI:
         # Quick test has fewer configurations
         assert any(
             f"Total benchmark configurations: {x}" in result.output
-            for x in [8, 12]
+            for x in [4, 8, 12]
         )
 
     @pytest.mark.unit

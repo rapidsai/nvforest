@@ -142,7 +142,7 @@ Once dependencies are present, follow the steps below:
 
   git clone https://github.com/rapidsai/nvforest.git
 
-2. Build and install ``libnvforest++`` (C++/CUDA library containing the nvForest algorithms), starting from the repository root folder:
+2. Build and install ``libnvforest`` (C++/CUDA library containing the nvForest algorithms), starting from the repository root folder:
 
 .. code-block:: bash
 
@@ -157,7 +157,7 @@ Once dependencies are present, follow the steps below:
 
     export CUDA_BIN_PATH=$CUDA_HOME  # Default: /usr/local/cuda
 
-If using a Conda environment (recommended), configure CMake to install ``libnvforest++`` into the Conda environment:
+If using a Conda environment (recommended), configure CMake to install ``libnvforest`` into the Conda environment:
 
 .. code-block:: bash
 
@@ -194,7 +194,7 @@ You may also wish to make use of ``ccache`` to reduce build times when switching
 
 There are many options to configure the build process, see the :ref:`custom-build-options` section.
 
-3. Build ``libnvforest++`` and ``libnvforest``:
+3. Build ``libnvforest``:
 
 .. code-block:: bash
 
@@ -239,8 +239,8 @@ If you want a list of the available tests:
 Custom Build Options
 ====================
 
-libnvforest++
--------------
+libnvforest
+-----------
 
 nvForest's cmake has the following configurable flags available:
 
@@ -259,7 +259,7 @@ nvForest's cmake has the following configurable flags available:
    * - BUILD_SHARED_LIBS
      - [ON, OFF]
      - ON
-     - Whether to build libnvforest++ as a shared library
+     - Whether to build libnvforest as a shared library
    * - BUILD_NVFOREST_TESTS
      - [ON, OFF]
      - ON
@@ -287,7 +287,7 @@ nvForest's cmake has the following configurable flags available:
    * - NVTX
      - [ON, OFF]
      - OFF
-     - Enable/disable nvtx markers in libnvforest++.
+     - Enable/disable nvtx markers in libnvforest.
    * - USE_CCACHE
      - [ON, OFF]
      - OFF
@@ -303,7 +303,7 @@ nvForest's cmake has the following configurable flags available:
    * - NVFOREST_EXPORT_TREELITE_LINKAGE
      - [ON, OFF]
      - OFF
-     - Whether to publicly link Treelite to libnvforest++
+     - Whether to publicly link Treelite to libnvforest
    * - CUDA_WARNINGS_AS_ERRORS
      - [ON, OFF]
      - ON

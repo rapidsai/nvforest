@@ -1,6 +1,6 @@
 # =============================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 # cmake-format: on
 # =============================================================================
@@ -30,7 +30,7 @@ unset(nvforest_FOUND)
 # --- nvForest --- #
 set(BUILD_NVFOREST_TESTS OFF)
 
-set(NVFOREST_CPP_TARGET "nvforest++")
+set(NVFOREST_CPP_TARGET "nvforest")
 set(NVFOREST_CPP_SRC "../../cpp")
 
 # --- raft --- #

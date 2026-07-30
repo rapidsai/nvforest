@@ -1,6 +1,6 @@
 # =============================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2018-2026, NVIDIA CORPORATION. SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 # cmake-format: on
 #
@@ -24,12 +24,10 @@ include(rapids-cuda)
 include(rapids-export)
 include(rapids-find)
 
-rapids_cuda_init_architectures(NVForest)
-
 project(
   NVForest
   VERSION "${RAPIDS_VERSION}"
-  LANGUAGES CXX CUDA)
+  LANGUAGES CXX)
 
 # Write the version header
 rapids_cmake_write_version_file(include/nvforest/version_config.hpp)
@@ -60,7 +58,7 @@ option(NVTX "Enable nvtx markers" OFF)
 option(USE_CCACHE "Cache build artifacts with ccache" OFF)
 option(NVFOREST_USE_RAFT_STATIC "Build and statically link the RAFT library" OFF)
 option(NVFOREST_USE_TREELITE_STATIC "Build and statically link the treelite library" OFF)
-option(NVFOREST_EXPORT_TREELITE_LINKAGE "Whether to publicly or privately link treelite to libnvforest++" OFF)
+option(NVFOREST_EXPORT_TREELITE_LINKAGE "Whether to publicly or privately link treelite to libnvforest" OFF)
 option(CUDA_WARNINGS_AS_ERRORS "Enable -Werror=all-warnings for all CUDA compilation" ON)
 
 # The options below allow incorporating libnvforest into another build process without installing all its components.
@@ -70,6 +68,7 @@ option(NVFOREST_EXCLUDE_RAFT_FROM_ALL "Exclude RAFT targets from nvForest's 'all
 option(NVFOREST_EXCLUDE_TREELITE_FROM_ALL "Exclude Treelite targets from nvForest's 'all' target" OFF)
 option(NVFOREST_RAFT_CLONE_ON_PIN "Explicitly clone RAFT branch when pinned to non-feature branch" ON)
 
+message(VERBOSE "NVFOREST_CPP: Enabling GPU: ${NVFOREST_ENABLE_GPU}")
 message(VERBOSE "NVFOREST_CPP: Building nvForest algorithm tests: ${BUILD_NVFOREST_TESTS}")
 message(VERBOSE "NVFOREST_CPP: Enabling detection of conda environment for dependencies: ${DETECT_CONDA_ENV}")
 message(VERBOSE "NVFOREST_CPP: Disabling OpenMP: ${DISABLE_OPENMP}")
@@ -80,6 +79,18 @@ message(VERBOSE "NVFOREST_CPP: Enabling nvtx markers: ${NVTX}")
 message(VERBOSE "NVFOREST_CPP: Cache build artifacts with ccache: ${USE_CCACHE}")
 message(VERBOSE "NVFOREST_CPP: Build and statically link RAFT library: ${NVFOREST_USE_RAFT_STATIC}")
 message(VERBOSE "NVFOREST_CPP: Build and statically link Treelite library: ${NVFOREST_USE_TREELITE_STATIC}")
+
+if(NVFOREST_ENABLE_GPU)
+  rapids_cuda_init_architectures(NVForest)
+  enable_language(CUDA)
+  # Invoke rapids_cuda_set_architectures() manually This step is needed because we are lazily initializing CUDA archs
+  # after the project() call
+  foreach(icl IN LISTS CMAKE_PROJECT_NVForest_INCLUDE)
+    if(icl MATCHES "rapids-cmake-src")
+      include(${icl})
+    endif()
+  endforeach()
+endif()
 
 # Set RMM logging level
 set(RMM_LOGGING_LEVEL
@@ -123,7 +134,7 @@ endif()
 # ######################################################################################################################
 # * Target names -------------------------------------------------------------
 
-set(NVFOREST_CPP_TARGET "nvforest++")
+set(NVFOREST_CPP_TARGET "nvforest")
 
 # ######################################################################################################################
 # * Conda environment detection ----------------------------------------------
@@ -148,22 +159,26 @@ if(NOT DISABLE_OPENMP)
 endif()
 
 # CUDA runtime
-rapids_cuda_init_runtime(USE_STATIC ON)
+if(NVFOREST_ENABLE_GPU)
+  rapids_cuda_init_runtime(USE_STATIC ON)
 
-# * find CUDAToolkit package
-# * determine GPU architectures
-# * enable the CMake CUDA language
-# * set other CUDA compilation flags
-rapids_find_package(
-  CUDAToolkit REQUIRED
-  BUILD_EXPORT_SET nvforest-exports
-  INSTALL_EXPORT_SET nvforest-exports)
-include(cmake/modules/ConfigureCUDA.cmake)
+  # * find CUDAToolkit package
+  # * determine GPU architectures
+  # * enable the CMake CUDA language
+  # * set other CUDA compilation flags
+  rapids_find_package(
+    CUDAToolkit REQUIRED
+    BUILD_EXPORT_SET nvforest-exports
+    INSTALL_EXPORT_SET nvforest-exports)
+  include(cmake/modules/ConfigureCUDA.cmake)
+endif()
 
 if(USE_CCACHE)
   set(CMAKE_C_COMPILER_LAUNCHER ccache)
   set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-  set(CMAKE_CUDA_COMPILER_LAUNCHER ccache)
+  if(NVFOREST_ENABLE_GPU)
+    set(CMAKE_CUDA_COMPILER_LAUNCHER ccache)
+  endif()
 endif()
 
 # ######################################################################################################################
@@ -183,8 +198,10 @@ endif()
 
 # CCCL before RMM, and RMM before RAFT
 include(cmake/thirdparty/get_cccl.cmake)
-include(cmake/thirdparty/get_rmm.cmake)
-include(cmake/thirdparty/get_raft.cmake)
+if(NVFOREST_ENABLE_GPU)
+  include(cmake/thirdparty/get_rmm.cmake)
+  include(cmake/thirdparty/get_raft.cmake)
+endif()
 include(cmake/thirdparty/get_treelite.cmake)
 
 if(BUILD_NVFOREST_TESTS)
@@ -193,17 +210,19 @@ if(BUILD_NVFOREST_TESTS)
 endif()
 
 # ######################################################################################################################
-# * build libnvforest++ shared library -------------------------------------------
+# * build libnvforest shared library -------------------------------------------
 
-file(
-  WRITE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld"
-  [=[
-SECTIONS
-{
-.nvFatBinSegment : { *(.nvFatBinSegment) }
-.nv_fatbin : { *(.nv_fatbin) }
-}
-]=])
+if(NVFOREST_ENABLE_GPU)
+  file(
+    WRITE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld"
+    [=[
+  SECTIONS
+  {
+  .nvFatBinSegment : { *(.nvFatBinSegment) }
+  .nv_fatbin : { *(.nv_fatbin) }
+  }
+  ]=])
+endif()
 
 # Copy the interface include directories from INCLUDED_TARGET to TARGET. This is necessary when INCLUDED_TARGET was
 # compiled statically but includes public APIs that may still require consumers to have the same interface headers
@@ -259,10 +278,11 @@ set_target_properties(
              # set target compile options
              CXX_STANDARD 20
              CXX_STANDARD_REQUIRED ON
-             CUDA_STANDARD 20
-             CUDA_STANDARD_REQUIRED ON
              POSITION_INDEPENDENT_CODE ON
              INTERFACE_POSITION_INDEPENDENT_CODE ON)
+if(NVFOREST_ENABLE_GPU)
+  set_target_properties(${NVFOREST_CPP_TARGET} PROPERTIES CUDA_STANDARD 20 CUDA_STANDARD_REQUIRED ON)
+endif()
 
 target_compile_definitions(${NVFOREST_CPP_TARGET} PRIVATE NVFOREST_CPP_API)
 
@@ -291,16 +311,22 @@ elseif(NVFOREST_EXPORT_TREELITE_LINKAGE)
   list(APPEND _nvforest_cpp_public_libs ${TREELITE_LIBS})
 endif()
 
+if(NVFOREST_ENABLE_GPU)
+  list(APPEND _nvforest_cpp_public_libs rmm::rmm raft::raft CUDA::cudart_static)
+endif()
+
 # These are always private:
 list(APPEND _nvforest_cpp_private_libs ${TREELITE_LIBS} ${OpenMP_CXX_LIB_NAMES})
 
 target_link_libraries(
   ${NVFOREST_CPP_TARGET}
-  PUBLIC rapids_logger::rapids_logger rmm::rmm raft::raft CUDA::cudart_static ${_nvforest_cpp_public_libs}
+  PUBLIC rapids_logger::rapids_logger ${_nvforest_cpp_public_libs}
   PRIVATE ${_nvforest_cpp_private_libs})
 
 # Ensure CUDA symbols aren't relocated to the middle of the debug build binaries
-target_link_options(${NVFOREST_CPP_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld")
+if(NVFOREST_ENABLE_GPU)
+  target_link_options(${NVFOREST_CPP_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/fatbin.ld")
+endif()
 
 # ######################################################################################################################
 # * build test executables ---------------------------------------------------

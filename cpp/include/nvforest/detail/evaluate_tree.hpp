@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
@@ -10,7 +10,7 @@
 #include <math.h>
 #endif
 #include <nvforest/detail/bitset.hpp>
-#include <nvforest/detail/raft_proto/gpu_support.hpp>
+#include <nvforest/detail/gpu_support.hpp>
 namespace nvforest::detail {
 
 /*
