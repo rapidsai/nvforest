@@ -113,7 +113,6 @@ DEPENDENCIES=(
   libraft-headers
   librmm
   pylibraft
-  rapids-xgboost
   rmm
 )
 for DEP in "${DEPENDENCIES[@]}"; do
