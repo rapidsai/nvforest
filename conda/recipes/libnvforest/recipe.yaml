@@ -74,7 +74,7 @@ cache:
       - cuda-version =${{ cuda_version }}
       - libraft-headers =${{ minor_version }}
       - librmm =${{ minor_version }}
-      - rapids-logger =0.2
+      - rapids-logger =0.3
       - treelite ${{ treelite_version }}
       - cuda-cudart-dev
 
@@ -99,14 +99,14 @@ outputs:
         - ${{ stdlib("c") }}
       host:
         - cuda-version =${{ cuda_version }}
-        - rapids-logger =0.2
+        - rapids-logger =0.3
         - librmm =${{ minor_version }}
         - treelite ${{ treelite_version }}
         - cuda-cudart-dev
       run:
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
         - librmm =${{ minor_version }}
-        - rapids-logger =0.2
+        - rapids-logger =0.3
         - treelite ${{ treelite_version }}
       ignore_run_exports:
         by_name:
@@ -133,7 +133,7 @@ outputs:
         - ${{ stdlib("c") }}
       host:
         - cuda-version =${{ cuda_version }}
-        - rapids-logger =0.2
+        - rapids-logger =0.3
         - ${{ pin_subpackage("libnvforest", exact=True) }}
         - cuda-cudart-dev
       run:
