@@ -1,3 +1,39 @@
+# nvforest 26.08.00 (5 Aug 2026)
+
+### 🚨 Breaking Changes
+* Merge `raft_proto` into `nvforest` namespace by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/132
+### 🐛 Bug Fixes
+* fix(clang-format): preserve SPDX comments by @bdice in https://github.com/rapidsai/nvforest/pull/166
+* Revert shared memory buffer allocation and synchronization changes by @csadorf in https://github.com/rapidsai/nvforest/pull/181
+### 📖 Documentation
+* [Doc] Add .optimize() method to API doc by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/140
+* Add installation guide and migration guide by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/150
+* Update docs to use NVIDIA Sphinx theme by @bdice in https://github.com/rapidsai/nvforest/pull/151
+### 🛠️ Improvements
+* Improve devcontainer startup times by @trxcllnt in https://github.com/rapidsai/nvforest/pull/123
+* Add SECURITY.md by @jameslamb in https://github.com/rapidsai/nvforest/pull/134
+* merge release/26.06 into main by @jameslamb in https://github.com/rapidsai/nvforest/pull/137
+* refactor: switch to `rapids-artifact-name` for consistent artifact naming by @gforsyth in https://github.com/rapidsai/nvforest/pull/142
+* Build and test with CUDA 13.3.0 by @bdice in https://github.com/rapidsai/nvforest/pull/141
+* Build nvforest with C++20 by @csadorf in https://github.com/rapidsai/nvforest/pull/128
+* Use main shared-workflows branch by @bdice in https://github.com/rapidsai/nvforest/pull/147
+* Update CuPy and NumPy dependency specs by @bdice in https://github.com/rapidsai/nvforest/pull/148
+* Update Treelite to 4.7.0 by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/149
+* switch from 'cuda-python' to specific components (e.g. 'cuda-bindings') by @jameslamb in https://github.com/rapidsai/nvforest/pull/153
+* Add regression test for Treelite GPU model import by @csadorf in https://github.com/rapidsai/nvforest/pull/159
+* Fix shared memory buffer allocation and synchronization by @fallintoplace in https://github.com/rapidsai/nvforest/pull/164
+* Update RAPIDS.cmake to log source of rapids-cmake by @arhag23 in https://github.com/rapidsai/nvforest/pull/155
+* Fix CPU-only build by skipping CUDA, rmm, raft deps by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/146
+* Empty commit to trigger a build by @bdice in https://github.com/rapidsai/nvforest/pull/171
+* empty commit to trigger a build by @jameslamb in https://github.com/rapidsai/nvforest/pull/173
+* Exclude XGBoost on 3.11 test runs by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/175
+
+## New Contributors
+* @fallintoplace made their first contribution in https://github.com/rapidsai/nvforest/pull/164
+* @arhag23 made their first contribution in https://github.com/rapidsai/nvforest/pull/155
+
+**Full Changelog**: https://github.com/rapidsai/nvforest/compare/v26.08.00a...release/26.08
+
 # nvforest 26.06.00 (3 Jun 2026)
 
 ### 🛠️ Improvements

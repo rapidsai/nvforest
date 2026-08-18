@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 ## Usage
@@ -113,7 +113,6 @@ DEPENDENCIES=(
   libraft-headers
   librmm
   pylibraft
-  rapids-xgboost
   rmm
 )
 for DEP in "${DEPENDENCIES[@]}"; do

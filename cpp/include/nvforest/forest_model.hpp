@@ -21,6 +21,7 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 namespace nvforest {
@@ -34,7 +35,7 @@ namespace nvforest {
 struct forest_model {
   /** Wrap a decision_forest in a full forest_model object */
   forest_model(decision_forest_variant&& forest = decision_forest_variant{})
-    : decision_forest_{forest}
+    : decision_forest_{std::move(forest)}
   {
   }
 

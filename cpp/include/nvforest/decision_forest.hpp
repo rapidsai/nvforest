@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <limits>
 #include <optional>
+#include <utility>
 #include <variant>
 
 namespace nvforest {
@@ -161,12 +162,12 @@ struct decision_forest {
     element_op elem_postproc  = element_op::disable,
     io_type average_factor    = io_type{1},
     io_type postproc_constant = io_type{1})
-    : nodes_{nodes},
-      root_node_indexes_{root_node_indexes},
-      node_id_mapping_{node_id_mapping},
-      bias_{bias},
-      vector_output_{vector_output},
-      categorical_storage_{categorical_storage},
+    : nodes_{std::move(nodes)},
+      root_node_indexes_{std::move(root_node_indexes)},
+      node_id_mapping_{std::move(node_id_mapping)},
+      bias_{std::move(bias)},
+      vector_output_{std::move(vector_output)},
+      categorical_storage_{std::move(categorical_storage)},
       num_features_{num_features},
       num_outputs_{num_outputs},
       leaf_size_{leaf_size},
@@ -176,15 +177,15 @@ struct decision_forest {
       average_factor_{average_factor},
       postproc_constant_{postproc_constant}
   {
-    if (nodes.memory_type() != root_node_indexes.memory_type()) {
+    if (nodes_.memory_type() != root_node_indexes_.memory_type()) {
       throw detail::mem_type_mismatch(
         "Nodes and indexes of forest must both be stored on either host or device");
     }
-    if (nodes.device_index() != root_node_indexes.device_index()) {
+    if (nodes_.device_index() != root_node_indexes_.device_index()) {
       throw detail::mem_type_mismatch(
         "Nodes and indexes of forest must both be stored on same device");
     }
-    detail::initialize_device<forest_type>(nodes.device());
+    detail::initialize_device<forest_type>(nodes_.device());
   }
 
   /** The number of features per row expected by the model */

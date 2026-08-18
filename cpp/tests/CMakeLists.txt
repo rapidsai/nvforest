@@ -87,7 +87,6 @@ if(NVFOREST_ENABLE_GPU)
   ConfigureTest(NAME DEVICE_BUFFER_TEST buffer/buffer.cu)
 endif()
 ConfigureTest(NAME FOREST_TRAVERSAL_TEST forest/traversal_forest.cpp)
-ConfigureTest(NAME SHARED_MEMORY_BUFFER_TEST infer_kernel/shared_memory_buffer.cu)
 ConfigureTest(NAME TREELITE_TRAVERSAL_TEST forest/treelite_traversal.cpp)
 ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cpp treelite_importer_invalid_inputs.cpp
                                           decision_forest_builder_invalid_inputs.cpp)

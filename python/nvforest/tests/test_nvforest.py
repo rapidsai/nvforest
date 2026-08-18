@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2019-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2019-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -384,6 +384,26 @@ def test_fil_skl_regression(
     fil_preds = np.reshape(fil_preds, np.shape(skl_preds))
 
     np.testing.assert_almost_equal(fil_preds, skl_preds)
+
+
+@pytest.mark.unit
+def test_sklearn_regressor_gpu_single_precision_shallow_tree():
+    X = np.arange(4, dtype=np.float32).reshape(-1, 1)
+    skl_model = RandomForestRegressor(
+        n_estimators=1,
+        max_depth=1,
+        random_state=0,
+    ).fit(X, X[:, 0])
+
+    fm = nvforest.load_from_sklearn(
+        skl_model,
+        device="gpu",
+        precision="single",
+    )
+
+    nvforest_preds = _get_numpy_array(fm.predict(X))
+    expected_preds = np.array([0.0, 0.0, 2.5, 2.5], dtype=np.float32)
+    np.testing.assert_allclose(nvforest_preds.ravel(), expected_preds)
 
 
 @pytest.fixture(scope="session", params=["ubjson", "json"])
