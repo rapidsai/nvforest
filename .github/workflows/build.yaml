@@ -114,7 +114,7 @@ jobs:
     with:
       docs-projects: nvforest
       dry-run: false
-      version-map: '{"26.04": "legacy", "26.06": "stable"}'
+      version-map: ${{ vars.VERSION_MAP }}
   upload-conda:
     needs: [cpp-build, python-build]
     permissions:

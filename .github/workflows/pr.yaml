@@ -329,7 +329,7 @@ jobs:
     with:
       docs-projects: nvforest
       dry-run: true
-      version-map: '{"26.04": "legacy", "26.06": "stable"}'
+      version-map: ${{ vars.VERSION_MAP }}
   wheel-build-libnvforest:
     needs: [build-details, checks]
     permissions:
