@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -17,7 +17,7 @@ from nvforest._forest_inference import (
     infer_device,
     infer_is_classifier,
 )
-from nvforest._handle import Handle
+from nvforest._typing import StreamLike
 
 
 def get_forest_inference_class(device, is_classifier) -> type:
@@ -39,7 +39,7 @@ def make_forest_inference_object(
     treelite_model: treelite.Model,
     device: str,
     device_id: Optional[int],
-    handle: Optional[Handle],
+    stream: Optional[StreamLike],
     layout: str,
     default_chunk_size: Optional[int],
     align_bytes: Optional[int],
@@ -50,7 +50,7 @@ def make_forest_inference_object(
 
     kwargs = dict(
         treelite_model=treelite_model,
-        handle=handle,
+        stream=stream,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
@@ -72,7 +72,7 @@ def load_model(
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    handle: Optional[Handle] = None,
+    stream: Optional[StreamLike] = None,
 ) -> ForestInference:
     """Load a model into nvForest from a serialized model file.
 
@@ -113,10 +113,10 @@ def load_model(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    handle : nvforest.Handle or None
-        For GPU execution, the nvForest handle containing the stream or stream
-        pool to use during loading and inference. If not given, a new
-        handle will be constructed.
+    stream : StreamLike or None, default=None
+        For GPU execution, the CUDA stream to use during model loading and
+        inference. If not given, a new stream will be created. For CPU
+        execution, this value is ignored.
     """
     model_path = pathlib.Path(model_file)
     if not model_path.exists():
@@ -157,7 +157,7 @@ def load_model(
         treelite_model=tl_model,
         device=device,
         device_id=device_id,
-        handle=handle,
+        stream=stream,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
@@ -174,7 +174,7 @@ def load_from_sklearn(
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    handle: Optional[Handle] = None,
+    stream: Optional[StreamLike] = None,
 ) -> ForestInference:
     """Load a Scikit-Learn forest model to nvForest
 
@@ -208,10 +208,10 @@ def load_from_sklearn(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    handle : nvforest.Handle or None
-        For GPU execution, the nvForest handle containing the stream or stream
-        pool to use during loading and inference. If not given, a new
-        handle will be constructed.
+    stream : StreamLike or None, default=None
+        For GPU execution, the CUDA stream to use during model loading and
+        inference. If not given, a new stream will be created. For CPU
+        execution, this value is ignored.
     """
     tl_model = treelite.sklearn.import_model(skl_model)
 
@@ -219,7 +219,7 @@ def load_from_sklearn(
         treelite_model=tl_model,
         device=device,
         device_id=device_id,
-        handle=handle,
+        stream=stream,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,
@@ -236,7 +236,7 @@ def load_from_treelite_model(
     align_bytes: Optional[int] = None,
     precision: Optional[str] = None,
     device_id: Optional[int] = None,
-    handle: Optional[Handle] = None,
+    stream: Optional[StreamLike] = None,
 ) -> ForestInference:
     """Load a Treelite forest model to nvForest
 
@@ -270,16 +270,16 @@ def load_from_treelite_model(
     device_id : int or None, default=None
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
-    handle : nvforest.Handle or None
-        For GPU execution, the nvForest handle containing the stream or stream
-        pool to use during loading and inference. If not given, a new
-        handle will be constructed.
+    stream : StreamLike or None, default=None
+        For GPU execution, the CUDA stream to use during model loading and
+        inference. If not given, a new stream will be created. For CPU
+        execution, this value is ignored.
     """
     return make_forest_inference_object(
         treelite_model=tl_model,
         device=device,
         device_id=device_id,
-        handle=handle,
+        stream=stream,
         layout=layout,
         default_chunk_size=default_chunk_size,
         align_bytes=align_bytes,

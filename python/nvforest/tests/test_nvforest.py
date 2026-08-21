@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import treelite
+from cuda.core import Device, Stream
 
 # Import XGBoost before scikit-learn to work around a libgomp bug
 # See https://github.com/dmlc/xgboost/issues/7110
@@ -797,22 +798,13 @@ def test_missing_categorical(category_list):
     input = np.array([[np.nan]])
     gtil_preds = treelite.gtil.predict(model, input)
     fm = nvforest.load_from_treelite_model(model)
-    fil_preds = _get_numpy_array(fm.predict(input))
-    np.testing.assert_equal(fil_preds.flatten(), gtil_preds.flatten())
+    nvforest_preds = _get_numpy_array(fm.predict(input))
+    np.testing.assert_equal(nvforest_preds.flatten(), gtil_preds.flatten())
 
 
 @pytest.mark.parametrize("device_id", [None, 0, 1, 2])
 @pytest.mark.parametrize("model_kind", ["sklearn", "xgboost"])
 def test_device_selection(device_id, model_kind, tmp_path):
-    import sklearn
-    from packaging.version import Version
-
-    # TODO(hcho3): Remove this once Rapids adopts XGBoost 3.1.3
-    if model_kind == "xgboost" and Version(sklearn.__version__) >= Version(
-        "1.8.0.dev0"
-    ):
-        pytest.skip("xgboost is incompatible with sklearn >= 1.8.0.dev0")
-
     current_device = cp.cuda.runtime.getDevice()
 
     if device_id is not None and device_id >= cp.cuda.runtime.getDeviceCount():
@@ -887,6 +879,36 @@ def test_device_selection(device_id, model_kind, tmp_path):
 
     # 6. The section above didn't corrupt current device context
     assert cp.cuda.runtime.getDevice() == current_device
+
+
+def test_cuda_core_stream():
+    previous_device = Device()
+    try:
+        device = Device(0)
+        device.set_current()
+        stream = device.create_stream()
+
+        X, y = _simulate_data(
+            100, 8, n_informative=2, random_state=0, classification=True
+        )
+        skl_model = RandomForestClassifier(
+            max_depth=3, random_state=0, n_estimators=5
+        ).fit(X, y)
+        default_fm = nvforest.load_from_sklearn(
+            skl_model, device="gpu", device_id=0
+        )
+        fm = nvforest.load_from_sklearn(
+            skl_model, device="gpu", device_id=0, stream=stream
+        )
+
+        assert isinstance(default_fm.forest.stream, Stream)
+        assert isinstance(stream, Stream)
+        assert fm.forest.stream is stream
+        np.testing.assert_array_equal(
+            cp.asnumpy(fm.predict(X)), skl_model.predict(X)
+        )
+    finally:
+        previous_device.set_current()
 
 
 def test_wide_data():

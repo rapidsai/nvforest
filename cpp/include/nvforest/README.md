@@ -99,24 +99,17 @@ cudaMalloc((void**)&output, num_rows * num_outputs * sizeof(float));
 
 // Assuming that input is a float* pointing to data already located on-device
 
-auto handle = nvforest::handle_t{};
-
 nvforest_model.predict(
-  handle,
   output,
   input,
   num_rows,
   nvforest::device_type::gpu,  // out_mem_type
   nvforest::device_type::gpu,  // in_mem_type
+  stream,
+  nvforest::infer_kind::default_kind,
   4  // chunk_size
 );
 ```
-
-**handle**: To provide a unified interface on CPU and GPU, we introduce
-`nvforest::handle_t` as a wrapper for `raft::handle_t`. This is currently just a
-placeholder in CPU-only builds, and using it does not require any CUDA
-functionality. For GPU-enabled builds, you can construct a
-`nvforest::handle_t` directly from the `raft::handle_t` you wish to use.
 
 **output**: Pointer to pre-allocated buffer where results should be
 written. If the model has been loaded at single precision, this should be a
@@ -132,6 +125,13 @@ loaded at double precision, this should be a `double*`.
 **out_mem_type**: Indicates whether output buffer is on device or host.
 
 **in_mem_type**: Indicates whether input buffer is on device or host.
+
+**stream**: The CUDA stream on which inference and any required data copies
+will run. It must be associated with the same GPU device as the model. Reusing
+the stream passed during model import preserves the ordering between model
+initialization and inference. Synchronize the stream before consuming the
+output on the host or releasing resources used by the operation. Keep the stream
+alive until the model is destroyed and all queued work has completed.
 
 **chunk_size**: This value has a somewhat different meaning for CPU and GPU,
 but it generally indicates the number of rows which are evaluated in a single
@@ -149,4 +149,4 @@ will be selected based on heuristics.
 ## Learning More
 While the above usage summary should be enough to get started using nvForest in
 another C++ application, you can learn more about the details of this
-implementation by reading TODO(wphicks).
+implementation in [Implementation.md](Implementation.md).

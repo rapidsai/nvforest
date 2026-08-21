@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 set -euo pipefail
@@ -29,7 +29,6 @@ rapids-pip-retry install \
 export PIP_NO_BUILD_ISOLATION=0
 
 EXCLUDE_ARGS=(
-  --exclude "libraft.so"
   --exclude "libcublas.so.*"
   --exclude "libcublasLt.so.*"
   --exclude "libcufft.so.*"
@@ -38,7 +37,6 @@ EXCLUDE_ARGS=(
   --exclude "libcusparse.so.*"
   --exclude "libnvJitLink.so.*"
   --exclude "librapids_logger.so"
-  --exclude "librmm.so"
 )
 
 export SKBUILD_CMAKE_ARGS="-DDISABLE_DEPRECATION_WARNINGS=ON"

@@ -37,6 +37,8 @@ Enums and constants
 Type aliases
 ============
 
+.. doxygentypedef:: nvforest::cuda_stream
+
 .. doxygentypedef:: nvforest::decision_forest_variant
 
 .. doxygentypedef:: nvforest::detail::preset_decision_forest
