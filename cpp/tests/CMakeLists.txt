@@ -51,10 +51,6 @@ function(ConfigureTest)
             Threads::Threads
             ${TREELITE_LIBS}
             $<TARGET_NAME_IF_EXISTS:conda_env>)
-  if(NVFOREST_ENABLE_GPU)
-    target_link_libraries(${_NVFOREST_TEST_NAME} PRIVATE rmm::rmm raft::raft)
-  endif()
-
   target_compile_options(${_NVFOREST_TEST_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${NVFOREST_CXX_FLAGS}>"
                                                         "$<$<COMPILE_LANGUAGE:CUDA>:${NVFOREST_CUDA_FLAGS}>")
 
@@ -85,6 +81,7 @@ endfunction()
 ConfigureTest(NAME HOST_BUFFER_TEST buffer/buffer.cpp)
 if(NVFOREST_ENABLE_GPU)
   ConfigureTest(NAME DEVICE_BUFFER_TEST buffer/buffer.cu)
+  ConfigureTest(NAME INVALID_STREAM_TEST invalid_stream.cu)
 endif()
 ConfigureTest(NAME FOREST_TRAVERSAL_TEST forest/traversal_forest.cpp)
 ConfigureTest(NAME TREELITE_TRAVERSAL_TEST forest/treelite_traversal.cpp)

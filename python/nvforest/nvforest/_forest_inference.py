@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -7,6 +7,9 @@ import itertools
 from enum import Enum
 from time import perf_counter
 from typing import Optional
+
+from nvforest._handle import Handle
+from nvforest.detail.raft_stream import _handle_deprecated_handle_arg
 
 try:
     from typing import Self
@@ -18,8 +21,7 @@ import treelite
 from cuda.bindings import runtime
 
 from nvforest._base import ForestInferenceClassifier, ForestInferenceRegressor
-from nvforest._handle import Handle
-from nvforest._typing import DataType
+from nvforest._typing import DataType, StreamLike
 from nvforest.detail.forest_inference import ForestInferenceImpl
 
 
@@ -123,7 +125,7 @@ class OptimizeMixin:
         cls,
         *,
         treelite_model_bytes: bytes,
-        handle: Optional[Handle],
+        stream: Optional[StreamLike],
         layout: str,
         default_chunk_size: Optional[int],
         align_bytes: Optional[int],
@@ -200,7 +202,7 @@ class OptimizeMixin:
             else:
                 test_instances[layout] = type(self)._create_with_layout(
                     treelite_model_bytes=self.forest.treelite_model_bytes,
-                    handle=self.forest.handle,
+                    stream=self.forest.stream,
                     layout=layout,
                     default_chunk_size=None,
                     align_bytes=self.forest.align_bytes,
@@ -243,7 +245,7 @@ class OptimizeMixin:
         # Return a new instance with optimal settings
         return type(self)._create_with_layout(
             treelite_model_bytes=self.forest.treelite_model_bytes,
-            handle=self.forest.handle,
+            stream=self.forest.stream,
             layout=optimal_layout,
             default_chunk_size=optimal_chunk_size,
             align_bytes=self.forest.align_bytes,
@@ -260,19 +262,21 @@ class CPUForestInferenceClassifier(
         self,
         *,
         treelite_model: treelite.Model,
-        handle: Optional[Handle] = None,
+        stream: Optional[StreamLike] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
+        handle: Optional[Handle] = None,
     ):
         if not infer_is_classifier(treelite_model):
             raise ValueError("treelite_model must be a classifier.")
+        stream = _handle_deprecated_handle_arg(handle=handle, stream=stream)
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
             device_id=-1,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
@@ -284,7 +288,7 @@ class CPUForestInferenceClassifier(
         cls,
         *,
         treelite_model_bytes: bytes,
-        handle: Optional[Handle],
+        stream: Optional[StreamLike],
         layout: str,
         default_chunk_size: Optional[int],
         align_bytes: Optional[int],
@@ -296,7 +300,7 @@ class CPUForestInferenceClassifier(
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
         return cls(
             treelite_model=tl_model,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
@@ -397,19 +401,21 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         self,
         *,
         treelite_model: treelite.Model,
-        handle: Optional[Handle] = None,
+        stream: Optional[StreamLike] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
+        handle: Optional[Handle] = None,
     ):
         if infer_is_classifier(treelite_model):
             raise ValueError("treelite_model must be a regressor.")
+        stream = _handle_deprecated_handle_arg(handle=handle, stream=stream)
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
             device_id=-1,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
@@ -421,7 +427,7 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         cls,
         *,
         treelite_model_bytes: bytes,
-        handle: Optional[Handle],
+        stream: Optional[StreamLike],
         layout: str,
         default_chunk_size: Optional[int],
         align_bytes: Optional[int],
@@ -433,7 +439,7 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
         return cls(
             treelite_model=tl_model,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
@@ -526,20 +532,22 @@ class GPUForestInferenceClassifier(
         self,
         *,
         treelite_model: treelite.Model,
-        handle: Optional[Handle] = None,
+        stream: Optional[StreamLike] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
+        handle: Optional[Handle] = None,
         device_id: int,
     ):
         if not infer_is_classifier(treelite_model):
             raise ValueError("treelite_model must be a classifier.")
+        stream = _handle_deprecated_handle_arg(handle=handle, stream=stream)
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
             device_id=device_id,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
@@ -551,7 +559,7 @@ class GPUForestInferenceClassifier(
         cls,
         *,
         treelite_model_bytes: bytes,
-        handle: Optional[Handle],
+        stream: Optional[StreamLike],
         layout: str,
         default_chunk_size: Optional[int],
         align_bytes: Optional[int],
@@ -563,7 +571,7 @@ class GPUForestInferenceClassifier(
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
         return cls(
             treelite_model=tl_model,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
@@ -665,20 +673,22 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         self,
         *,
         treelite_model: treelite.Model,
-        handle: Optional[Handle] = None,
+        stream: Optional[StreamLike] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
+        handle: Optional[Handle] = None,
         device_id: int,
     ):
         if infer_is_classifier(treelite_model):
             raise ValueError("treelite_model must be a regressor.")
+        stream = _handle_deprecated_handle_arg(handle=handle, stream=stream)
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
             device_id=device_id,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
@@ -690,7 +700,7 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         cls,
         *,
         treelite_model_bytes: bytes,
-        handle: Optional[Handle],
+        stream: Optional[StreamLike],
         layout: str,
         default_chunk_size: Optional[int],
         align_bytes: Optional[int],
@@ -702,7 +712,7 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
         return cls(
             treelite_model=tl_model,
-            handle=handle,
+            stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
