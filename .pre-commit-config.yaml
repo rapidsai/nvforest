@@ -21,7 +21,7 @@ repos:
         files: python/.*
         args: ["--settings-path", "python/nvforest/pyproject.toml"]
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.16.6
+    rev: v0.21.1
     hooks:
       - id: cython-lint
   - repo: https://github.com/pre-commit/mirrors-clang-format
