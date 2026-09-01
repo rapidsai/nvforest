@@ -18,7 +18,7 @@ struct handle_t {
   handle_t(raft::handle_t const& raft_handle) : raft_handle_{&raft_handle} {}
   auto get_next_usable_stream() const
   {
-    return cuda_stream{raft_handle_->get_next_usable_stream().value()};
+    return cuda_stream{raft_handle_->get_next_usable_stream().get()};
   }
   auto get_stream_pool_size() const { return raft_handle_->get_stream_pool_size(); }
   auto get_usable_stream_count() const { return std::max(get_stream_pool_size(), std::size_t{1}); }
