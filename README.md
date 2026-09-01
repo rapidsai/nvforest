@@ -71,7 +71,7 @@ We welcome contributions. For guidelines and how to get started, see the [RAPIDS
 
 ## Contact
 
-Find out more on the [RAPIDS site](https://rapids.ai/community.html).
+Find out more: [CUDA-X for Data Science](https://developer.nvidia.com/topics/ai/data-science/cuda-x-for-data-science)
 
 ## Open GPU Data Science
 
