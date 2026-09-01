@@ -10,6 +10,7 @@
 
 #include <rmm/device_buffer.hpp>
 
+#include <cuda/stream_ref>
 #include <cuda_runtime_api.h>
 
 #include <type_traits>
@@ -26,7 +27,7 @@ struct owning_buffer<device_type::gpu, T> {
                 cudaStream_t stream) noexcept(false)
     : data_{[&device_id, &size, &stream]() {
         auto device_context = device_setter{device_id};
-        return rmm::device_buffer{size * sizeof(value_type), rmm::cuda_stream_view{stream}};
+        return rmm::device_buffer{size * sizeof(value_type), cuda::stream_ref{stream}};
       }()}
   {
   }
