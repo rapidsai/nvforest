@@ -128,6 +128,33 @@ You can inspect the type of the model by printing its type:
     Each model object is associated with a single device. Use the ``device_id`` property to look up
     which device the model object is located on.
 
+CUDA stream selection
+---------------------
+
+By default, nvForest creates a new
+`CUDA stream <https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/asynchronous-execution.html#cuda-streams>`_
+for a GPU model. To use a custom stream, pass in a :external+cuda-python:py:class:`cuda.core.Stream` (or
+any stream-like object [#]_) via the ``stream`` parameter. A supplied stream must be associated with the same device as ``device_id``.
+
+.. code-block:: python
+
+    from cuda.core import Device
+
+    device = Device(0)
+    device.set_current()
+    stream = device.create_stream()
+
+    fm = nvforest.load_from_sklearn(
+        skl_model, device="gpu", device_id=0, stream=stream
+    )
+    predictions = fm.predict(X)
+
+nvForest retains a reference to a caller-supplied stream. Python prediction methods synchronize
+the model's stream before returning, so their results are ready for immediate use.
+
+.. [#] A stream-like object is an object that exposes a method named `__cuda_stream__`.
+       See `Stream Protocol <https://nvidia.github.io/cuda-python/cuda-core/latest/interoperability.html#cuda-stream-protocol>`_ for more details.
+
 Running inference
 -----------------
 
@@ -222,29 +249,46 @@ Once the tree model is available as a Treelite object, pass it to the
     #include <nvforest/device_type.hpp>
     #include <nvforest/treelite_importer.hpp>
     #include <nvforest/detail/index_type.hpp>
+    #include <cuda_runtime_api.h>
     #include <optional>
+
+    cudaStream_t stream{};
+    cudaStreamCreate(&stream);
 
     auto fm = nvforest::import_from_treelite_model(
         *treelite_model,
         nvforest::preferred_tree_layout,
         nvforest::index_type{},
         std::nullopt,
-        nvforest::device_type::gpu);
+        nvforest::device_type::gpu,
+        0,
+        stream);
 
 Now that the tree model is fully imported into nvForest, let's run inference:
 
 .. code-block:: cpp
 
-    #include <raft/core/handle.hpp>
-    #include <nvforest/handle.hpp>
-
-    raft::handle_t raft_handle{};
-    nvforest::handle_t handle{raft_handle};
-
     // Assumption:
     // * Both output and input are in the GPU memory.
     // * The input buffer should be of dimension (num_rows, num_features)
     // * The output buffer should be of dimension (num_rows, fm.num_outputs())
-    fm.predict(handle, output, input, num_rows,
+    fm.predict(output, input, num_rows,
                nvforest::device_type::gpu, nvforest::device_type::gpu,
+               stream,
                nvforest::infer_kind::default_kind);
+
+    // Wait before reading or freeing output.
+    cudaStreamSynchronize(stream);
+
+    // Use output
+    // ...
+
+    // Clean up
+    fm.reset();
+    cudaStreamDestroy(stream);
+    // ... also free input, output buffers
+
+Use a stream associated with the same device as the model. Reusing the stream for import and
+inference preserves the ordering between model initialization and prediction without an
+additional synchronization. Keep the stream alive until the model is destroyed and all queued
+work has completed.

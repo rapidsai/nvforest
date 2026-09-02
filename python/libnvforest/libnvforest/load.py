@@ -37,13 +37,9 @@ def load_library():
     """Dynamically load libnvforest.so and its dependencies"""
     try:
         # These libraries must all be loaded before libnvforest
-        import libraft
-        import librmm
         import rapids_logger
 
         rapids_logger.load_library()
-        librmm.load_library()
-        libraft.load_library()
     except ModuleNotFoundError:
         # These runtime dependencies might be satisfied by conda packages (which do not
         # have any Python modules) instead of wheels. In that situation, assume that

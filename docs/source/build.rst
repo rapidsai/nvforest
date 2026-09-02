@@ -21,15 +21,10 @@ In addition, nvForest requires Cython 3.0 or later.
    It is possible to build nvForest without GPU support; in this case, the CUDA toolkit is not required.
    To build nvForest without GPU, set the CMake option ``NVFOREST_ENABLE_GPU=OFF``.
 
-**RAPIDS libraries.**
-The nvForest code base is updated in tandem with the rest of RAPIDS. So to build the latest nvForest, you
-should use the latest version of RAPIDS as well. (For example, nvForest 26.04 will require 26.04 version of
-all RAPIDS packages.)
-
-**Python dependencies.**
-Please see https://docs.rapids.ai/install/ for RAPIDS-wide version support.
-
-We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-0000/>`_ for minimal supported versions.
+**Relation to RAPIDS**
+The nvForest code base is updated in tandem with the rest of RAPIDS. For example, nvForest 26.08 will be released
+together with 26.08 version of other RAPIDS packages. However, it is possible to build and install nvForest
+without installing RAPIDS.
 
 **For development only.**
 
@@ -292,10 +287,6 @@ nvForest's cmake has the following configurable flags available:
      - [ON, OFF]
      - OFF
      - Whether to cache build artifacts with ccache.
-   * - NVFOREST_USE_RAFT_STATIC
-     - [ON, OFF]
-     - OFF
-     - Whether to statically link the RAFT library.
    * - NVFOREST_USE_TREELITE_STATIC
      - [ON, OFF]
      - OFF

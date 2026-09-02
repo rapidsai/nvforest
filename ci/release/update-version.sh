@@ -109,11 +109,6 @@ DEPENDENCIES=(
   nvforest
   libnvforest
   libnvforest-tests
-  libraft
-  libraft-headers
-  librmm
-  pylibraft
-  rmm
 )
 for DEP in "${DEPENDENCIES[@]}"; do
   for FILE in dependencies.yaml conda/environments/*.yaml; do

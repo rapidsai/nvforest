@@ -4,36 +4,48 @@
  */
 #pragma once
 #include <nvforest/detail/device_id.hpp>
-#include <nvforest/detail/device_setter.hpp>
 #include <nvforest/detail/owning_buffer/base.hpp>
 #include <nvforest/device_type.hpp>
 
-#include <rmm/device_buffer.hpp>
-
 #include <cuda_runtime_api.h>
 
+#include <cstddef>
+#include <memory>
 #include <type_traits>
 
 namespace nvforest::detail {
+
+struct owning_device_buffer_type_erased_impl;
+
+struct owning_device_buffer_type_erased {
+  owning_device_buffer_type_erased();
+  owning_device_buffer_type_erased(device_id<device_type::gpu> device_id,
+                                   std::size_t size,
+                                   cudaStream_t stream);
+  owning_device_buffer_type_erased(owning_device_buffer_type_erased&& other) noexcept;
+  owning_device_buffer_type_erased& operator=(owning_device_buffer_type_erased&& other) noexcept;
+  ~owning_device_buffer_type_erased();
+  std::byte* get();
+
+ private:
+  std::unique_ptr<owning_device_buffer_type_erased_impl> impl_;
+};
+
 template <typename T>
 struct owning_buffer<device_type::gpu, T> {
   // TODO(wphicks): Assess need for buffers of const T
   using value_type = std::remove_const_t<T>;
-  owning_buffer() : data_{} {}
-
+  owning_buffer()  = default;
   owning_buffer(device_id<device_type::gpu> device_id,
                 std::size_t size,
                 cudaStream_t stream) noexcept(false)
-    : data_{[&device_id, &size, &stream]() {
-        auto device_context = device_setter{device_id};
-        return rmm::device_buffer{size * sizeof(value_type), rmm::cuda_stream_view{stream}};
-      }()}
+    : data_{device_id, size * sizeof(value_type), stream}
   {
   }
 
-  auto* get() const { return reinterpret_cast<T*>(data_.data()); }
+  auto* get() const { return reinterpret_cast<T*>(data_.get()); }
 
  private:
-  mutable rmm::device_buffer data_;
+  mutable owning_device_buffer_type_erased data_;
 };
 }  // namespace nvforest::detail
