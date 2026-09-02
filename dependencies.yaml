@@ -434,7 +434,7 @@ dependencies:
             packages: []
           - matrix:
             packages:
-              - xgboost>=3.3.0
+              - xgboost>=3.4.0
       - output_types: [requirements, pyproject]
         matrices:
           - matrix:
@@ -444,17 +444,17 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - xgboost-cu12>=3.3.0; python_version >= '3.12'
+              - xgboost-cu12>=3.4.0; python_version >= '3.12'
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - xgboost-cu13>=3.3.0; python_version >= '3.12'
+              - xgboost-cu13>=3.4.0; python_version >= '3.12'
           # this unsuffixed dependency is useful in environments where xgboost is built from source
           # (like RAPIDS DLFW builds)
           - matrix:
             packages:
-              - xgboost>=3.3.0; python_version >= '3.12'
+              - xgboost>=3.4.0; python_version >= '3.12'
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, pyproject]
