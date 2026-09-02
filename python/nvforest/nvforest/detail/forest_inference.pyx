@@ -7,19 +7,17 @@ from typing import Optional, Union
 
 import numpy as np
 import treelite
+from cuda.core import Device, Stream
 
-from nvforest._handle import Handle
-from nvforest._typing import DataType
+from nvforest._typing import DataType, StreamLike
 from nvforest.detail.treelite import safe_treelite_call
 
 from libc.stdint cimport uint32_t, uintptr_t
 from libcpp cimport bool
 from libcpp.optional cimport nullopt, optional
-from pylibraft.common.handle cimport handle_t as raft_handle_t
 
 from nvforest.detail.cuda_stream cimport cuda_stream as nvforest_stream_t
 from nvforest.detail.device_type cimport device_type as nvforest_device_t
-from nvforest.detail.handle cimport handle_t as nvforest_handle_t
 from nvforest.detail.infer_kind cimport infer_kind
 from nvforest.detail.postprocessing cimport element_op, row_op
 from nvforest.detail.tree_layout cimport tree_layout as nvforest_tree_layout
@@ -33,7 +31,7 @@ from nvforest.detail.treelite cimport (
 cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
     cdef cppclass forest_model:
         void predict[io_t](
-            const nvforest_handle_t&,
+            nvforest_stream_t,
             io_t*,
             io_t*,
             size_t,
@@ -65,13 +63,13 @@ cdef extern from "nvforest/treelite_importer.hpp" namespace "nvforest" nogil:
 
 cdef class ForestInference_impl():
     cdef forest_model model
-    cdef nvforest_handle_t nvforest_handle
-    cdef object raft_handle
+    cdef nvforest_stream_t stream_handle
+    cdef object stream
     cdef object device
 
     def __cinit__(
         self,
-        raft_handle: object,
+        stream: object,
         tl_model_bytes: Union[bytes, bytearray],
         *,
         layout: str = "depth_first",
@@ -80,12 +78,21 @@ cdef class ForestInference_impl():
         device: str = "cpu",
         device_id: Optional[int] = None,
     ):
-        # Store reference to RAFT handle to control lifetime, since
-        # nvforest_handle keeps a pointer to it
-        self.raft_handle = raft_handle
-        self.nvforest_handle = nvforest_handle_t(
-            <raft_handle_t*><size_t>self.raft_handle.getHandle()
-        )
+        # Assumption: The caller needs to pass in correct (device, device_id) pair
+        # This function will not contain any logic for auto-detecting device.
+        # Assumption: The caller should convert a user-provided stream-like object
+        # into cuda.core.Stream before constructing ForestInference_impl()
+        cdef uintptr_t stream_ptr = 0
+        if stream is not None:
+            # Use assertion here, since the failure here indicates a bug, not
+            # a user error.
+            assert isinstance(stream, Stream), (
+                "stream must be converted to cuda.core.Stream before "
+                "building ForestInference_impl()"
+            )
+            stream_ptr = <uintptr_t>int(stream.handle)
+        self.stream = stream
+        self.stream_handle = <nvforest_stream_t>stream_ptr
 
         cdef optional[bool] use_double_precision_c
         cdef bool use_double_precision_bool
@@ -130,7 +137,7 @@ cdef class ForestInference_impl():
             use_double_precision_c,
             dev_type,
             device_id,
-            self.nvforest_handle.get_next_usable_stream()
+            self.stream_handle
         )
 
         safe_treelite_call(
@@ -240,7 +247,7 @@ cdef class ForestInference_impl():
 
         if model_dtype == np.float32:
             self.model.predict[float](
-                self.nvforest_handle,
+                self.stream_handle,
                 <float *> out_ptr,
                 <float *> in_ptr,
                 n_rows,
@@ -251,7 +258,7 @@ cdef class ForestInference_impl():
             )
         else:
             self.model.predict[double](
-                self.nvforest_handle,
+                self.stream_handle,
                 <double *> out_ptr,
                 <double *> in_ptr,
                 n_rows,
@@ -262,7 +269,7 @@ cdef class ForestInference_impl():
             )
 
         if self.device == "gpu":
-            self.nvforest_handle.synchronize()
+            self.stream.sync()
         return preds
 
 
@@ -273,7 +280,7 @@ class ForestInferenceImpl:
         treelite_model: treelite.Model,
         device: str,
         device_id: int,
-        handle: Optional[Handle] = None,
+        stream: Optional[StreamLike] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
@@ -281,7 +288,27 @@ class ForestInferenceImpl:
     ):
         # Assumption: The caller needs to pass in correct (device, device_id) pair
         # This function will not contain any logic for auto-detecting device.
-        self.handle = Handle() if handle is None else handle
+        if stream is not None and not isinstance(stream, StreamLike):
+            raise TypeError("stream must be a stream-like object or None")
+        if device == "gpu":
+            previous_device = Device()
+            try:
+                cuda_device = Device(device_id)
+                cuda_device.set_current()
+                if stream is None:
+                    stream = cuda_device.create_stream()
+                else:
+                    stream = cuda_device.create_stream(stream)
+            finally:
+                previous_device.set_current()
+        else:
+            assert device == "cpu"
+        if device == "gpu" and stream.device.device_id != device_id:
+            raise ValueError(
+                f"stream is associated with device {stream.device.device_id}, "
+                f"but device_id is {device_id}"
+            )
+        self.stream = stream
         self._layout = layout
         self.precision = precision
         self.default_chunk_size = default_chunk_size
@@ -309,7 +336,7 @@ class ForestInferenceImpl:
         self._treelite_model_bytes = treelite_model.serialize_bytes()
 
         self.impl = ForestInference_impl(
-            self.handle,
+            self.stream,
             self._treelite_model_bytes,
             layout=self._layout,
             align_bytes=self.align_bytes,
