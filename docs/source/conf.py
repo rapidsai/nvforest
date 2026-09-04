@@ -125,6 +125,7 @@ html_theme_options = {
         },
     ],
     "show_toc_level": 1,
+    "navigation_depth": 1,
     "navbar_align": "right",
     "navigation_with_keys": True,
     "switcher": {
