@@ -18,6 +18,7 @@
 
 #include <treelite/c_api.h>
 #include <treelite/enum/task_type.h>
+#include <treelite/enum/tree_node_type.h>
 #include <treelite/enum/typeinfo.h>
 #include <treelite/tree.h>
 
