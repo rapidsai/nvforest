@@ -107,7 +107,7 @@ def load_model(
         None, use the native precision of the model. Note that
         single-precision execution is substantially faster than
         double-precision execution, so double-precision is recommended
-        only for models trained and double precision and when exact
+        only for models trained in double precision and when exact
         conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
@@ -202,7 +202,7 @@ def load_from_sklearn(
         None, use the native precision of the model. Note that
         single-precision execution is substantially faster than
         double-precision execution, so double-precision is recommended
-        only for models trained and double precision and when exact
+        only for models trained in double precision and when exact
         conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
@@ -264,7 +264,7 @@ def load_from_treelite_model(
         None, use the native precision of the model. Note that
         single-precision execution is substantially faster than
         double-precision execution, so double-precision is recommended
-        only for models trained and double precision and when exact
+        only for models trained in double precision and when exact
         conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
