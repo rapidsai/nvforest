@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <nvforest/cuda_stream.hpp>
 #include <nvforest/device_type.hpp>
-#include <nvforest/handle.hpp>
 #include <nvforest/postproc_ops.hpp>
 #include <nvforest/tree_layout.hpp>
 #include <nvforest/treelite_importer.hpp>
@@ -382,16 +382,10 @@ TEST(TreeliteImporter, DegenerateTree)
   auto nvforest_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
   ASSERT_FALSE(nvforest_model.has_vector_leaves());
 
-#ifdef NVFOREST_ENABLE_GPU
-  auto raft_handle = raft::handle_t{};
-  auto handle      = nvforest::handle_t{raft_handle};
-#else
-  auto handle = nvforest::handle_t{};
-#endif
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(1, 0.0);
   auto expected_preds = std::vector<double>{1.0};
-  nvforest_model.predict(handle,
+  nvforest_model.predict(nvforest::cuda_stream{},
                          preds.data(),
                          X.data(),
                          1,
@@ -408,16 +402,10 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
   auto nvforest_model = import_from_treelite_model(*tl_model, tree_layout::breadth_first);
   ASSERT_TRUE(nvforest_model.has_vector_leaves());
 
-#ifdef NVFOREST_ENABLE_GPU
-  auto raft_handle = raft::handle_t{};
-  auto handle      = nvforest::handle_t{raft_handle};
-#else
-  auto handle = nvforest::handle_t{};
-#endif
   auto X              = std::vector<double>{0.0};
   auto preds          = std::vector<double>(2, 0.0);
   auto expected_preds = std::vector<double>{0.5, 0.5};
-  nvforest_model.predict(handle,
+  nvforest_model.predict(nvforest::cuda_stream{},
                          preds.data(),
                          X.data(),
                          1,

@@ -199,7 +199,6 @@ endif()
 # CCCL before RMM, and RMM before RAFT
 include(cmake/thirdparty/get_cccl.cmake)
 if(NVFOREST_ENABLE_GPU)
-  include(cmake/thirdparty/get_rmm.cmake)
   include(cmake/thirdparty/get_raft.cmake)
 endif()
 include(cmake/thirdparty/get_treelite.cmake)
@@ -252,7 +251,8 @@ if(NVFOREST_ENABLE_GPU)
             src/infer8.cu
             src/infer9.cu
             src/infer10.cu
-            src/infer11.cu)
+            src/infer11.cu
+            src/detail/device_buffer.cu)
 endif()
 target_sources(
   ${NVFOREST_CPP_TARGET}
@@ -312,7 +312,7 @@ elseif(NVFOREST_EXPORT_TREELITE_LINKAGE)
 endif()
 
 if(NVFOREST_ENABLE_GPU)
-  list(APPEND _nvforest_cpp_public_libs rmm::rmm raft::raft CUDA::cudart_static)
+  list(APPEND _nvforest_cpp_public_libs raft::raft CUDA::cudart_static CCCL::CCCL)
 endif()
 
 # These are always private:
