@@ -1,6 +1,6 @@
 # nvForest - Highly Optimized Decision Tree Inference
 
-nvForest is a highly-optimized and lightweight [RAPIDS](https://rapids.ai/) library that enables fast inference for decision tree models on NVIDIA GPUs and CPUs. It does not train models; it runs inference on models trained elsewhere (e.g., XGBoost, LightGBM, scikit-learn, or cuML).
+nvForest is a highly-optimized and lightweight library that enables fast inference for decision tree models on NVIDIA GPUs and CPUs. It does not train models; it runs inference on models trained elsewhere (e.g., XGBoost, LightGBM, scikit-learn, or cuML).
 
 nvForest uses [Treelite](https://treelite.readthedocs.io/) as the common format for importing tree models. You can load a model from a file or from an in-memory scikit-learn or Treelite object, then run predictions with a scikit-learn-like API. Setting `device="auto"` lets you deploy the same script on machines with or without GPUs.
 
@@ -59,20 +59,32 @@ You can tune performance with `layout` (e.g., `depth_first`, `breadth_first`) an
 
 ## Installation
 
-See [the RAPIDS Release Selector](https://docs.rapids.ai/install#selector) for the command line to install either nightly or official release nvForest packages via conda, pip, or Docker.
+You can install nvForest using Pip or Conda.
+
+```console
+# Using Pip: need a suffix corresponding to your CUDA version, e.g. for CUDA 13:
+$ pip install nvforest-cu13
+```
+
+```console
+# Using Conda: need to specify the rapidsai channel
+$ conda install -c rapidsai -c conda-forge nvforest
+```
+
+### System Requirements
+
+Please see the [Installation Guide](https://docs.rapids.ai/install/#system-requirements)
+for NVIDIA CUDA-X libraries for data science for information about supported operating systems,
+GPU drivers, and CUDA versions.
 
 ## Build/Install from Source
 
 See the build [guide](BUILD.md).
 
-## Contributing
-
-We welcome contributions. For guidelines and how to get started, see the [RAPIDS contributing guide](https://docs.rapids.ai/contributing).
-
 ## Contact
 
-Find out more: [CUDA-X for Data Science](https://developer.nvidia.com/topics/ai/data-science/cuda-x-for-data-science)
+Find out more: [NVIDIA CUDA-X for Data Science](https://developer.nvidia.com/topics/ai/data-science/cuda-x-for-data-science)
 
-## Open GPU Data Science
+## NVIDIA CUDA-X Libraries for Data Science
 
-The RAPIDS suite of open source software libraries aims to enable execution of end-to-end data science and analytics pipelines entirely on GPUs. It relies on NVIDIA® CUDA® primitives for low-level compute optimization, exposing GPU parallelism and high-bandwidth memory through user-friendly Python interfaces.
+The NVIDIA CUDA-X libraries for data science aim to enable execution of end-to-end data science and analytics pipelines entirely on GPUs. It relies on NVIDIA® CUDA® primitives for low-level compute optimization, exposing GPU parallelism and high-bandwidth memory through user-friendly Python interfaces.

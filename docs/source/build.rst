@@ -5,46 +5,26 @@ Building from the source
 Setting up your build environment
 =================================
 
-To install nvForest from source, ensure the following dependencies are met:
-
-**Hardware needed to run nvForest.**
-nvForest is part of RAPIDS and follows the RAPIDS support matrix.
-See https://docs.rapids.ai/platform-support/.
-It is possible to build and run nvForest on machines without a GPU; in such machines, nvForest will use the CPU to run inference.
-
-**Software dependencies.**
-See https://docs.rapids.ai/platform-support/ for the list of required C++ compilers and Python interpreters.
-In addition, nvForest requires Cython 3.0 or later.
+Please see the `Installation Guide <https://docs.rapids.ai/install/#system-requirements>`_
+for NVIDIA CUDA-X libraries for data science for information about supported operating systems,
+GPU drivers, and CUDA versions.
 
 .. note:: Building nvForest without GPU support
 
-   It is possible to build nvForest without GPU support; in this case, the CUDA toolkit is not required.
-   To build nvForest without GPU, set the CMake option ``NVFOREST_ENABLE_GPU=OFF``.
+    It is possible to build nvForest without GPU support; in this case, the CUDA toolkit is not required.
+    To build nvForest without GPU, set the CMake option ``NVFOREST_ENABLE_GPU=OFF``.
 
-**RAPIDS libraries.**
-The nvForest code base is updated in tandem with the rest of RAPIDS. So to build the latest nvForest, you
-should use the latest version of RAPIDS as well. (For example, nvForest 26.04 will require 26.04 version of
-all RAPIDS packages.)
+Using Conda to install all software dependencies
+------------------------------------------------
 
-**Python dependencies.**
-Please see https://docs.rapids.ai/install/ for RAPIDS-wide version support.
+We highly recommend the use of Conda, a package manager that lets you obtain all necessary
+software dependencies in a virtual environment.
+We provide environment definition files ``conda/environments/all_*.yaml`` containing all software
+dependencies for nvForest.
 
-We aim to meet the `SPEC 0 guidelines <https://scientific-python.org/specs/spec-0000/>`_ for minimal supported versions.
+To create a development environment named ``nvforest_dev``, use the following commands.
 
-**For development only.**
-
-* clang-format (= 20.1.8): enforces uniform C++ coding style; required for pre-commit hooks and CI checks. The packages ``clang=20`` and ``clang-tools=20`` from the conda-forge channel should be sufficient, if you are using conda. If not using conda, install the right version using your OS package manager.
-
-.. note:: Use Conda to install all software dependencies
-
-  We highly recommend the use of Conda, a package manager that lets you obtain all necessary
-  software dependencies in a virtual environment.
-  We provide environment definition files ``conda/environments/all_*.yaml`` containing all software
-  dependencies for nvForest.
-
-  To create a development environment named ``nvforest_dev``, use the following commands.
-
-  .. code-block:: console
+.. code-block:: console
 
     $ conda create -n nvforest_dev python=3.13
     $ conda env update -n nvforest_dev \
@@ -311,4 +291,4 @@ nvForest's cmake has the following configurable flags available:
    * - CMAKE_CUDA_ARCHITECTURES
      - List of GPU architectures, semicolon-separated
      - Empty
-     - List the GPU architectures to compile the GPU targets for. Set to "NATIVE" to auto detect GPU architecture of the system, set to "ALL" to compile for all RAPIDS supported archs.
+     - List the GPU architectures to compile the GPU targets for. Set to "NATIVE" to auto detect GPU architecture of the system, set to "ALL" to compile for all supported archs.

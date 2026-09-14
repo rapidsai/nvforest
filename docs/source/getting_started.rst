@@ -16,8 +16,9 @@ You can install nvForest using Pip or Conda.
    # Using Conda: need to specify the rapidsai channel
    $ conda install -c rapidsai -c conda-forge nvforest
 
-You can also install nvForest as part of RAPIDS, a collection of libraries for GPU accelerated data science.
-Visit https://docs.rapids.ai/install/ for more information.
+Please see the `Installation Guide <https://docs.rapids.ai/install/#system-requirements>`_
+for NVIDIA CUDA-X libraries for data science for information about supported operating systems,
+GPU drivers, and CUDA versions.
 
 nvForest with Python
 ====================

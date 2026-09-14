@@ -1,9 +1,5 @@
 # nvForest Inference Library
-RAPIDS nvForest Inference Library provides accelerated inference for
-tree-based machine learning models. Unlike packages like XGBoost,
-LightGBM, or even Scikit-Learn/cuML's random forest implementations, nvForest
-cannot be used to _train_ forest models. Instead, its goal is to speed up
-inference using forest models trained by all of those packages.
+nvForest is a highly-optimized and lightweight library that enables fast inference for decision tree models on NVIDIA GPUs and CPUs. It does not train models; it runs inference on models trained elsewhere (e.g., XGBoost, LightGBM, scikit-learn, or cuML).
 
 This directory contains an implementation of nvForest which
 provides both CPU and GPU execution. Its GPU implementation also offers
