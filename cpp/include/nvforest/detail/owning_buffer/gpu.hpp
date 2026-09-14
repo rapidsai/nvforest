@@ -8,6 +8,7 @@
 #include <nvforest/detail/owning_buffer/base.hpp>
 #include <nvforest/device_type.hpp>
 
+#include <rmm/cuda_stream_view.hpp>
 #include <rmm/device_buffer.hpp>
 
 #include <cuda_runtime_api.h>
