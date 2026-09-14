@@ -2,7 +2,6 @@
 # To make changes, edit ../../dependencies.yaml and run `rapids-dependency-file-generator`.
 channels:
 - rapidsai-nightly
-- rapidsai
 - conda-forge
 dependencies:
 - breathe
@@ -21,15 +20,15 @@ dependencies:
 - doxygen
 - gcc_linux-aarch64=14.*
 - graphviz
-- libraft==26.10.*,>=0.0.0a0
-- librmm==26.10.*,>=0.0.0a0
+- libraft==26.12.*,>=0.0.0a0
+- librmm==26.12.*,>=0.0.0a0
 - ninja
 - numpy>=2.0,<3.0a0
 - numpydoc
 - packaging
 - pandas
 - pre-commit
-- pylibraft==26.10.*,>=0.0.0a0
+- pylibraft==26.12.*,>=0.0.0a0
 - pytest
 - pytest-cov
 - pytest-xdist
