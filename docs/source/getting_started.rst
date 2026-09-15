@@ -180,6 +180,8 @@ You can also check what hyperparameters were selected by looking at the attribut
     # Optimal chunk size
     fm_optimized.default_chunk_size
 
+.. _nvforest-with-c-advanced:
+
 nvForest with C++ (Advanced)
 ============================
 
