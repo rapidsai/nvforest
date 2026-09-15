@@ -356,7 +356,7 @@ dependencies:
           - sphinx-markdown-tables
       - output_types: conda
         packages:
-          - doxygen
+          - doxygen=1.18.0
   py_version:
     specific:
       - output_types: conda
