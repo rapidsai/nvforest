@@ -17,6 +17,9 @@ project(
   VERSION "${RAPIDS_VERSION}"
   LANGUAGES CXX CUDA)
 
+# Find C++ libraries from RAPIDS wheels in site-packages.
+set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
+
 # Check if nvForest is already available. If so, it is the user's responsibility to ensure that the CMake package is
 # also available at build time of the Python nvForest package.
 find_package(nvforest "${RAPIDS_VERSION}")

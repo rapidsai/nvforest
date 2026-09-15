@@ -20,6 +20,9 @@ project(
   VERSION "${RAPIDS_VERSION}"
   LANGUAGES ${language_list})
 
+# Find C++ libraries from RAPIDS wheels in site-packages.
+set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
+
 # ######################################################################################################################
 # * User Options  --------------------------------------------------------------
 option(USE_LIBNVFOREST_WHEEL "Use libnvforest wheel to provide some dependencies" OFF)
