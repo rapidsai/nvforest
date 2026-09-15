@@ -124,7 +124,6 @@ jobs:
     with:
       docs-projects: nvforest
       dry-run: false
-      version-map: ${{ vars.VERSION_MAP }}
   upload-conda:
     needs: [cpp-build, python-build]
     permissions:
