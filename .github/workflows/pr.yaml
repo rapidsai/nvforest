@@ -347,7 +347,6 @@ jobs:
     with:
       docs-projects: nvforest
       dry-run: true
-      version-map: ${{ vars.VERSION_MAP }}
   wheel-build-libnvforest:
     needs: [build-details, checks]
     permissions:

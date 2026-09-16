@@ -25,7 +25,6 @@ files:
       - py_version
       - rapids_build_backend
       - test_python
-      - test_python_xgboost
   devcontainers:
     output: none
     includes:
@@ -98,7 +97,6 @@ files:
       - depends_on_libnvforest
       - py_version
       - test_python
-      - test_python_xgboost
   py_build_nvforest:
     output: pyproject
     pyproject_dir: python/nvforest
@@ -139,7 +137,6 @@ files:
       key: test
     includes:
       - test_python
-      - test_python_xgboost
   py_build_libnvforest:
     output: pyproject
     pyproject_dir: python/libnvforest
@@ -169,6 +166,7 @@ files:
       - depends_on_rapids_logger
 channels:
   - rapidsai-nightly
+  - rapidsai
   - conda-forge
 dependencies:
   rapids_build_backend:
@@ -424,36 +422,6 @@ dependencies:
           - pytest-cov
           - pytest-xdist
           - *scikit_learn
-  test_python_xgboost:
-    specific:
-      - output_types: [conda]
-        matrices:
-          - matrix:
-              py: "3.11"
-            packages: []
-          - matrix:
-            packages:
-              - xgboost>=3.3.0
-      - output_types: [requirements, pyproject]
-        matrices:
-          - matrix:
-              py: "3.11"
-            packages: []
-          - matrix:
-              cuda: "12.*"
-              cuda_suffixed: "true"
-            packages:
-              - xgboost-cu12>=3.3.0; python_version >= '3.12'
-          - matrix:
-              cuda: "13.*"
-              cuda_suffixed: "true"
-            packages:
-              - xgboost-cu13>=3.3.0; python_version >= '3.12'
-          # this unsuffixed dependency is useful in environments where xgboost is built from source
-          # (like RAPIDS DLFW builds)
-          - matrix:
-            packages:
-              - xgboost>=3.3.0; python_version >= '3.12'
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, pyproject]
