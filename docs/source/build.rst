@@ -5,7 +5,7 @@ Building from the source
 Setting up your build environment
 =================================
 
-Please see the `Installation Guide <https://docs.rapids.ai/install/#system-requirements>`_
+Please see the `Installation Guide <https://docs.nvidia.com/datascience/install/#system-requirements>`_
 for NVIDIA CUDA-X libraries for data science for information about supported operating systems,
 GPU drivers, and CUDA versions.
 

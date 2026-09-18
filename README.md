@@ -73,7 +73,7 @@ $ conda install -c rapidsai -c conda-forge nvforest
 
 ### System Requirements
 
-Please see the [Installation Guide](https://docs.rapids.ai/install/#system-requirements)
+Please see the [Installation Guide](https://docs.nvidia.com/datascience/install/#system-requirements)
 for NVIDIA CUDA-X libraries for data science for information about supported operating systems,
 GPU drivers, and CUDA versions.
 
