@@ -1,4 +1,4 @@
-# nvForest Inference Library
+# NVIDIA nvForest Inference Library
 nvForest is a highly-optimized and lightweight library that enables fast inference for decision tree models on NVIDIA GPUs and CPUs. It does not train models; it runs inference on models trained elsewhere (e.g., XGBoost, LightGBM, scikit-learn, or cuML).
 
 This directory contains an implementation of nvForest which
