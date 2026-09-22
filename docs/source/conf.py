@@ -51,6 +51,7 @@ extensions = [
     "recommonmark",
     "sphinx_markdown_tables",
     "sphinx_copybutton",
+    "sphinx_llm.txt",
 ]
 
 # Breathe Configuration
