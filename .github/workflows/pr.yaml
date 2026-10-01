@@ -195,6 +195,9 @@ jobs:
       enable_check_version_against_tag: false # TODO: Take this out after first release
       ignored_pr_jobs: >-
         telemetry-summarize
+      # Main builds seed this cache. PR merge refs can restore it but should not create
+      # duplicate archives that are inaccessible to other PRs.
+      pre-commit-cache-read-only: true
   clang-tidy:
     needs: checks
     permissions:
