@@ -927,3 +927,37 @@ def test_incorrect_data_shape(input_size, predict_func):
     with pytest.raises(ValueError, match=f"Expected {n_features} features"):
         X_test = np.zeros((1, input_size))
         _ = predict_func(fm, X_test)
+
+
+@pytest.mark.skipif(
+    cp.cuda.runtime.getDeviceCount() < 2, reason="Requires at least 2 GPUs"
+)
+def test_incompatible_stream(tmp_path):
+    random_state = np.random.RandomState(43210)
+
+    X, y = _simulate_data(
+        1000,
+        2,
+        random_state=random_state,
+        classification=False,
+        bias=10.0,
+    )
+
+    model_path = tmp_path / "xgb_class.ubj"
+    _ = _build_and_save_xgboost(
+        model_path,
+        X,
+        y,
+        num_rounds=10,
+        classification=False,
+    )
+    with cp.cuda.Device(1):
+        stream = cp.cuda.Stream(non_blocking=True)
+        assert stream.device_id == 1
+    with pytest.raises(
+        ValueError,
+        match=r".*stream is associated with device 1, but device_id is 0.*",
+    ):
+        _ = nvforest.load_model(
+            model_path, device="gpu", device_id=0, stream=stream
+        )

@@ -13,6 +13,7 @@ files:
       - cuda
       - cuda_version
       - depends_on_cuda_python
+      - depends_on_cuda_core
       - depends_on_cupy
       - depends_on_libraft
       - depends_on_librmm
@@ -36,6 +37,7 @@ files:
       - cuda
       - cuda_version
       - depends_on_cuda_python
+      - depends_on_cuda_core
       - depends_on_cupy
       - depends_on_libraft
       - depends_on_librmm
@@ -131,6 +133,7 @@ files:
       table: project
     includes:
       - depends_on_cuda_python
+      - depends_on_cuda_core
       - depends_on_cupy
       - depends_on_libnvforest
       - depends_on_pylibraft
@@ -437,6 +440,11 @@ dependencies:
           - pytest-cov
           - pytest-xdist
           - *scikit_learn
+  depends_on_cuda_core:
+    common:
+      - output_types: [conda, requirements, pyproject]
+        packages:
+          - cuda-core>=1.0.0,<2.0.0
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, pyproject]
