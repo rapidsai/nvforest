@@ -106,6 +106,10 @@ repos:
             ci/build_docs[.]sh
           )
       - id: verify-alpha-spec
+        args:
+          - --fix
+          - --mode
+          - release
       - id: verify-pyproject-license
         # ignore the top-level pyproject.toml, which doesn't
         # have or need a [project] table
@@ -137,6 +141,5 @@ repos:
     rev: v1.24.1
     hooks:
       - id: zizmor
-
 default_language_version:
   python: python3
