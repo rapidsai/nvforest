@@ -13,6 +13,39 @@
 #include <nvforest/detail/gpu_support.hpp>
 namespace nvforest::detail {
 
+/**
+ * Convert a floating-point feature value to a categorical bitset index.
+ *
+ * Truncates toward zero, matching LightGBM's int-cast categorical lookup:
+ * values in (-1, 0) map to 0, and any other negative value is out of range,
+ * as is anything at or beyond num_bits. A direct float-to-unsigned
+ * conversion is undefined behavior for negative values and differs between
+ * x86 (wraps out of range) and CUDA (clamps to 0), so the conversion must
+ * be explicit. Out-of-range values, including infinities, return an index
+ * >= num_bits, which bitset::test reports as false. NaN must be handled by
+ * the caller.
+ */
+template <typename io_t, typename index_t>
+HOST DEVICE auto categorical_bitset_index(io_t input_val, index_t num_bits) -> index_t
+{
+#ifdef __CUDA_ARCH__
+  // PTX defines cvt float-to-int as clamping to the int range (NaN -> 0);
+  // negative results wrap to >= num_bits, which bitset::test rejects.
+  static_cast<void>(num_bits);
+  auto truncated = 0;
+  if constexpr (std::is_same_v<io_t, float>) {
+    asm("cvt.rzi.s32.f32 %0, %1;" : "=r"(truncated) : "f"(input_val));
+  } else {
+    asm("cvt.rzi.s32.f64 %0, %1;" : "=r"(truncated) : "d"(input_val));
+  }
+  return static_cast<index_t>(truncated);
+#else
+  return (input_val > io_t{-1} && input_val < static_cast<io_t>(num_bits))
+           ? static_cast<index_t>(input_val)
+           : num_bits;
+#endif
+}
+
 /*
  * Evaluate a single tree on a single row.
  * If node_id_mapping is not-nullptr, this kernel outputs leaf node's ID
@@ -51,7 +84,9 @@ HOST DEVICE auto evaluate_tree_impl(node_t const* __restrict__ node,
       if (cur_node.is_categorical()) {
         auto valid_categories = categorical_set_type{
           &cur_node.index(), uint32_t(sizeof(typename node_t::index_type) * 8)};
-        condition = valid_categories.test(input_val) && !isnan(input_val);
+        condition =
+          !isnan(input_val) && valid_categories.test(categorical_bitset_index(
+                                 input_val, uint32_t(sizeof(typename node_t::index_type) * 8)));
       } else {
         condition = (input_val < cur_node.threshold());
       }
@@ -117,7 +152,8 @@ HOST DEVICE auto evaluate_tree_impl(node_t const* __restrict__ node,
         auto valid_categories =
           categorical_set_type{categorical_storage + cur_node.index() + 1,
                                uint32_t(categorical_storage[cur_node.index()])};
-        condition = valid_categories.test(input_val);
+        condition = valid_categories.test(
+          categorical_bitset_index(input_val, uint32_t(categorical_storage[cur_node.index()])));
       } else {
         condition = (input_val < cur_node.threshold());
       }
