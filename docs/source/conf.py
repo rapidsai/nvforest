@@ -205,6 +205,10 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "sklearn": ("https://scikit-learn.org/stable/", None),
     "treelite": ("https://treelite.readthedocs.io/en/latest/", None),
+    "cuda-python": (
+        "https://nvidia.github.io/cuda-python/cuda-core/",
+        None,
+    ),
 }
 
 # Config numpydoc
