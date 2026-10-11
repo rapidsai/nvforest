@@ -9,9 +9,10 @@ It supports many kinds of decision tree models, including XGBoost, LightGBM, sci
 * :doc:`cpp_api`: C++ API documentation
 * :doc:`build`: How to build nvForest from the source
 * :doc:`fil_migration`: How to migrate existing code using Forest Inference Library (FIL)
+* :doc:`blog/index`: Announcements and technical write-ups
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :hidden:
 
     Getting started <getting_started>
@@ -19,3 +20,4 @@ It supports many kinds of decision tree models, including XGBoost, LightGBM, sci
     cpp_api
     build
     fil_migration
+    Blog <blog/index>
