@@ -147,8 +147,10 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
       }
 
       if (infer_type == infer_kind::leaf_id) {
-        output_workspace[row_index * num_outputs * num_grove + tree_index * num_grove +
-                         grove_index] = static_cast<typename forest_t::io_type>(leaf_node_id);
+        if (real_task) {
+          output_workspace[row_index * num_outputs * num_grove + tree_index * num_grove +
+                           grove_index] = static_cast<typename forest_t::io_type>(leaf_node_id);
+        }
       } else {
         if constexpr (has_vector_leaves) {
           auto output_offset =
@@ -171,9 +173,9 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
           if (real_task) { output_workspace[output_offset] += tree_output; }
         }
       }
-
-      __syncthreads();
     }
+    // Each thread owns its (row, grove) slots in the loop; the reduction reads all of them.
+    __syncthreads();
 
     auto padded_num_groves = padded_size(num_grove, WARP_SIZE);
     for (auto row_index = threadIdx.x / WARP_SIZE; row_index < rows_in_this_iteration;
