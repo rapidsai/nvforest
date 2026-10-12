@@ -563,14 +563,15 @@ class TestDeviceHandling:
         if "xgboost" in FRAMEWORKS:
             assert FRAMEWORKS["xgboost"].supports_gpu_native is True
         if "lightgbm" in FRAMEWORKS:
-            assert FRAMEWORKS["lightgbm"].supports_gpu_native is True
+            assert FRAMEWORKS["lightgbm"].supports_gpu_native is False
 
     @pytest.mark.unit
     def test_lightgbm_train_with_gpu_device_param(self):
         """Test that LightGBM train_model accepts GPU device parameter.
 
-        Note: Actual GPU training requires LightGBM built with GPU support.
-        This test verifies the code path works (may fall back to CPU).
+        Note: Actual GPU training requires LightGBM built with CUDA support
+        (``-DUSE_CUDA=1``) and selects the ``device="cuda"`` backend. This
+        test verifies the code path works (may fall back to CPU).
         """
         if "lightgbm" not in FRAMEWORKS:
             pytest.skip("lightgbm not available")
@@ -593,8 +594,11 @@ class TestDeviceHandling:
             )
             assert hasattr(model, "predict")
         except Exception as e:
-            # Expected if LightGBM GPU support is not available
-            assert "GPU" in str(e).upper() or "gpu" in str(e).lower()
+            # When using a 'lightgbm' built without CUDA support, error is like:
+            #
+            #    > CUDA Tree Learner was not enabled in this build.
+            #
+            assert "cuda" in str(e).lower()
 
 
 class TestEndToEnd:
