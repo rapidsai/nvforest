@@ -507,11 +507,8 @@ def run_benchmark_suite(
                         framework = FRAMEWORKS[framework_name]
 
                         for device in devices:
-                            # Train model with appropriate device.
-                            # GPU *training* capability (e.g. LightGBM's CUDA
-                            # backend) is independent of GPU *native inference*
-                            # capability: LightGBM can train on GPU but its
-                            # ``Booster.predict`` is CPU-only.
+                            # Train model with appropriate device
+                            # For XGBoost, training on GPU enables GPU inference
                             train_device = (
                                 device
                                 if framework.supports_gpu_training
