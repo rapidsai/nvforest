@@ -37,7 +37,7 @@ class TestFrameworkConfig:
         config = FRAMEWORKS["sklearn"]
         assert config.name == "sklearn"
         assert config.model_extension == ".tl"
-        assert config.supports_gpu_native is False
+        assert config.supports_gpu_inference is False
 
     @pytest.mark.unit
     def test_framework_config_has_required_fields(self):
@@ -51,6 +51,8 @@ class TestFrameworkConfig:
             assert callable(config.load_native)
             assert callable(config.predict_native)
             assert isinstance(config.model_extension, str)
+            assert isinstance(config.supports_gpu_inference, bool)
+            assert isinstance(config.supports_gpu_training, bool)
 
 
 class TestParameterSpace:
@@ -556,14 +558,17 @@ class TestDeviceHandling:
             assert preds.shape == (10,)
 
     @pytest.mark.unit
-    def test_framework_supports_gpu_native_flag(self):
-        """Test that supports_gpu_native flag is set correctly."""
+    def test_framework_supports_gpu_capability_flags(self):
+        """Test that supports_gpu_* flags are set correctly."""
         if "sklearn" in FRAMEWORKS:
-            assert FRAMEWORKS["sklearn"].supports_gpu_native is False
+            assert FRAMEWORKS["sklearn"].supports_gpu_inference is False
+            assert FRAMEWORKS["sklearn"].supports_gpu_training is False
         if "xgboost" in FRAMEWORKS:
-            assert FRAMEWORKS["xgboost"].supports_gpu_native is True
+            assert FRAMEWORKS["xgboost"].supports_gpu_inference is True
+            assert FRAMEWORKS["xgboost"].supports_gpu_training is True
         if "lightgbm" in FRAMEWORKS:
-            assert FRAMEWORKS["lightgbm"].supports_gpu_native is False
+            assert FRAMEWORKS["lightgbm"].supports_gpu_inference is False
+            assert FRAMEWORKS["lightgbm"].supports_gpu_training is True
 
     @pytest.mark.unit
     def test_lightgbm_train_with_gpu_device_param(self):

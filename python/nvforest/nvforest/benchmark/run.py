@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -110,7 +110,7 @@ class FrameworkConfig:
         [Any, np.ndarray, str], np.ndarray
     ]  # (model, X, device) -> preds
     model_extension: str
-    supports_gpu_native: bool = False
+    supports_gpu_inference: bool = False
     supports_gpu_training: bool = False
 
 
@@ -208,7 +208,7 @@ if SKLEARN_AVAILABLE:
         load_native=_load_sklearn_model,
         predict_native=_predict_sklearn,
         model_extension=".tl",
-        supports_gpu_native=False,
+        supports_gpu_inference=False,
         supports_gpu_training=False,
     )
 
@@ -221,7 +221,7 @@ if XGBOOST_AVAILABLE:
         load_native=_load_xgboost_model,
         predict_native=_predict_xgboost,
         model_extension=".ubj",
-        supports_gpu_native=True,
+        supports_gpu_inference=True,
         supports_gpu_training=True,
     )
 
@@ -235,7 +235,7 @@ if LIGHTGBM_AVAILABLE:
         load_native=_load_lightgbm_model,
         predict_native=_predict_lightgbm,
         model_extension=".txt",
-        supports_gpu_native=False,
+        supports_gpu_inference=False,
         supports_gpu_training=True,
     )
 
@@ -587,11 +587,11 @@ def run_benchmark_suite(
                                 # For GPU-capable frameworks, use GPU data; otherwise CPU
                                 native_data = (
                                     X_device
-                                    if framework.supports_gpu_native
+                                    if framework.supports_gpu_inference
                                     else X
                                 )
                                 LOGGER.info(
-                                    f"    Running native inference (device={device}, gpu_native={framework.supports_gpu_native})..."
+                                    f"    Running native inference (device={device}, gpu_inference={framework.supports_gpu_inference})..."
                                 )
                                 try:
                                     native_time = run_inference_benchmark(
