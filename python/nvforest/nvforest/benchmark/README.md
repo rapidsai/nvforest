@@ -112,9 +112,7 @@ When `--device=gpu` is set, XGBoost models are trained on GPU which enables GPU-
 - **CPU**: Standard CPU inference
 - **GPU**: Does not natively support GPU inference.
 
-When GPU is requested and LightGBM GPU support is available, models are trained with `device="gpu"` and inference uses the GPU-trained model.
-
-If GPU support is not available, training falls back to CPU with a warning.
+When GPU is requested and LightGBM GPU support is available, models are trained with `device="cuda"`.
 
 ### sklearn
 - **CPU**: Standard CPU inference
