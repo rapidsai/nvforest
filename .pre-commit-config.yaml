@@ -7,6 +7,7 @@ repos:
     rev: 1.8.6
     hooks:
       - id: bandit
+        exclude: ^ci/tests/test_candidate_cuda_selectors[.]py$
   - repo: https://github.com/PyCQA/flake8
     rev: 7.3.0
     hooks:
@@ -14,6 +15,7 @@ repos:
         name: flake8-bugbear
         args: [--select=B]
         additional_dependencies: [flake8-bugbear==24.12.12]
+        exclude: ^ci/tests/test_candidate_cuda_selectors[.]py$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
@@ -25,6 +27,17 @@ repos:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
+      - id: ruff-check
+        alias: ruff-bugbear-candidate-selector-tests
+        name: Ruff bugbear checks for candidate selector tests
+        args: [--select, B]
+        files: ^ci/tests/test_candidate_cuda_selectors[.]py$
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.6
+    hooks:
+      - id: bandit
+        args: ["-q", "-s", "B101,B404,B603"]
+        files: ^ci/tests/test_candidate_cuda_selectors[.]py$
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
