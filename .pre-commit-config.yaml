@@ -104,7 +104,8 @@ repos:
           - cpp/src
           - cpp/tests
         pass_filenames: false
-        language: python
+        # This standalone checker uses only stdlib; no package installation is needed.
+        language: system
   - repo: https://github.com/rapidsai/pre-commit-hooks
     rev: v1.7.0
     hooks:
