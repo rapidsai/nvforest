@@ -415,12 +415,12 @@ dependencies:
               dependencies: "oldest"
               cuda: "12.*"
             packages:
-              - cuda-bindings==12.9.2
+              - cuda-bindings==12.9.3
           - matrix:
               dependencies: "oldest"
               cuda: "13.*"
             packages:
-              - cuda-bindings==13.0.1
+              - cuda-bindings==13.0.2
           - matrix:
             packages:
     common:
