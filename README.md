@@ -17,6 +17,30 @@ fm = nvforest.load_model("/path/to/xgboost_model.ubj", device="gpu",
 pred = fm.predict(X)
 ```
 
+By default, nvForest creates a new
+[CUDA stream](https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/asynchronous-execution.html#cuda-streams)
+for the model and retains it. To use a custom stream, pass in a :external+cuda-python:py:class:`cuda.core.Stream` or
+other stream-like objects (*):
+
+(*) A stream-like object is an object that exposes a method named `__cuda_stream__`. See [Stream Protocol](
+https://nvidia.github.io/cuda-python/cuda-core/latest/interoperability.html#cuda-stream-protocol) for more details.
+
+```python
+from cuda.core import Device
+
+device = Device(0)
+device.set_current()
+stream = device.create_stream()
+
+fm = nvforest.load_model(
+    "/path/to/xgboost_model.ubj",
+    device="gpu",
+    device_id=0,
+    stream=stream,
+)
+pred = fm.predict(X)  # Note: automatically syncs the stream
+```
+
 Load a scikit-learn random forest model and get class probabilities:
 
 ```python
