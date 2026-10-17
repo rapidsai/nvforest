@@ -20,14 +20,13 @@ demands.
 We are proud to announce nvForest, a lightweight library for fast inference
 for tree-based models on NVIDIA GPUs. nvForest builds on our past work on the
 `Forest Inference Library (FIL) <https://developer.nvidia.com/blog/supercharge-tree-based-model-inference-with-forest-inference-library-in-nvidia-cuml/>`_,
-which has lived inside cuML until now. With the release of nvForest, this
-interface is easier to install, easier to deploy, and useful to a wider range
+which was previously maintained and distributed in cuML.
+nvForest is easier to install, easier to deploy, and useful to a wider range
 of applications.
 
 nvForest enables fast inference for a variety of model formats, including
-cuML, scikit-learn, XGBoost, LightGBM, and any other Treelite-compatible
-model. It provides state-of-the-art performance on tree inference, a small
-binary footprint, and a simple API.
+cuML, scikit-learn, XGBoost, and LightGBM models. It provides state-of-the-art
+performance on tree inference, a small binary footprint, and a simple API.
 
 In this post, we explore the motivation behind releasing nvForest as a
 standalone library, provide updated benchmarks showing the benefits of
@@ -180,8 +179,9 @@ configurations.
 
    Speedup factor by tree count.
 
-A single NVIDIA H100 (80GB HBM3) was used for GPU results, and a 2-socket
-Intel Xeon Platinum 8480CL machine was used for CPU results.
+A single NVIDIA H100 (80GB HBM3) was used for GPU results (nvForest), and
+a 2-socket Intel Xeon Platinum 8480CL machine was used for CPU results
+(scikit-learn RandomForest).
 
 In general, nvForest outperforms scikit-learn by 2-3 orders of magnitude for
 inference latency and throughput. The difference in performance is greatest
@@ -191,13 +191,11 @@ of trees (1024).
 Migrating from FIL
 ==================
 
-If you are using FIL today through ``cuml.fil.ForestInference``, you do not
-need to rewrite your code immediately. Going forward,
-``cuml.fil.ForestInference`` will become a lightweight shim that uses
-nvForest underneath and emits a deprecation warning pointing you to nvForest.
-Starting in the 26.10 release, it will raise an error directing you to the
-standalone library. We recommend moving to nvForest directly prior to this
-release; for more details, see the :doc:`../fil_migration`.
+If you are using FIL today through ``cuml.fil.ForestInference``, you should
+migrate your code to use nvForest. Read the migration guide:
+:doc:`../fil_migration`.
+Using ``cuml.fil.ForestInference`` will raise an error starting in the
+26.10 version of cuML.
 
 Conclusion
 ==========
