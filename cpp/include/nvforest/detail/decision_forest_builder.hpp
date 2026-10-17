@@ -68,6 +68,25 @@ dest_t safe_cast_floating_point(src_t x)
   }
 }
 
+/* Cast a split threshold, rounding down for inclusive operators and up for
+ * exclusive ones so that narrowing does not change the outcome of the
+ * comparison for any input representable in dest_t */
+template <typename dest_t, typename src_t>
+dest_t cast_threshold(src_t x, bool is_inclusive)
+{
+  static_assert(std::is_floating_point_v<src_t> && std::is_floating_point_v<dest_t>,
+                "Source and destination types must be both floating-point types.");
+  auto result = static_cast<dest_t>(x);
+  if constexpr (sizeof(dest_t) < sizeof(src_t)) {
+    if (is_inclusive && static_cast<src_t>(result) > x) {
+      result = std::nextafter(result, -std::numeric_limits<dest_t>::infinity());
+    } else if (!is_inclusive && static_cast<src_t>(result) < x) {
+      result = std::nextafter(result, std::numeric_limits<dest_t>::infinity());
+    }
+  }
+  return result;
+}
+
 /*
  * Struct used to build nvForest forests
  */

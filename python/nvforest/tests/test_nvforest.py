@@ -406,6 +406,35 @@ def test_sklearn_regressor_gpu_single_precision_shallow_tree():
     np.testing.assert_allclose(nvforest_preds.ravel(), expected_preds)
 
 
+def _float64_threshold_data():
+    eps = float(np.finfo(np.float32).eps)
+    # The split threshold, ~1 + 1.5 * eps, rounds up to X[2] in float32
+    X_train = np.repeat(
+        np.array([[1.0], [1.0 + 3 * eps]], dtype=np.float32), 50, axis=0
+    )
+    y_train = np.repeat([0.0, 1.0], 50)
+    X = (1.0 + eps * np.arange(4)).astype(np.float32).reshape(-1, 1)
+    return X_train, y_train, X
+
+
+@pytest.mark.parametrize("device", ("cpu", "gpu"))
+def test_sklearn_single_precision_float64_threshold(device):
+    X_train, y_train, X = _float64_threshold_data()
+    skl_model = RandomForestRegressor(
+        n_estimators=1, max_depth=1, bootstrap=False, random_state=0
+    ).fit(X_train, y_train)
+    threshold = float(skl_model.estimators_[0].tree_.threshold[0])
+    assert float(np.float32(threshold)) > threshold
+    assert np.float32(threshold) in X
+
+    fm = nvforest.load_from_sklearn(
+        skl_model, device=device, precision="single"
+    )
+
+    nvforest_preds = _get_numpy_array(fm.predict(X))
+    np.testing.assert_allclose(nvforest_preds.ravel(), skl_model.predict(X))
+
+
 @pytest.fixture(scope="session", params=["ubjson", "json"])
 def small_classifier_and_preds(tmpdir_factory, request):
     X, y = _simulate_data(500, 10, random_state=43210, classification=True)
@@ -598,6 +627,27 @@ def test_lightgbm(device, tmp_path, num_classes, n_categorical):
             [1 - nvforest_proba, nvforest_proba], axis=1
         )
     np.testing.assert_almost_equal(gbm_proba, nvforest_proba)
+
+
+@pytest.mark.parametrize("device", ("cpu", "gpu"))
+def test_lightgbm_single_precision_float64_threshold(device, tmp_path):
+    lgb = pytest.importorskip("lightgbm")
+
+    X_train, y_train, X = _float64_threshold_data()
+    lgm = lgb.LGBMRegressor(n_estimators=1).fit(X_train, y_train)
+    tree = lgm.booster_.dump_model()["tree_info"][0]["tree_structure"]
+    threshold = float(tree["threshold"])
+    assert float(np.float32(threshold)) > threshold
+    assert np.float32(threshold) in X
+
+    model_path = tmp_path / "lgb.model"
+    lgm.booster_.save_model(model_path)
+    fm = nvforest.load_model(
+        model_path, model_type="lightgbm", device=device, precision="single"
+    )
+
+    nvforest_preds = _get_numpy_array(fm.predict(X))
+    np.testing.assert_almost_equal(nvforest_preds.ravel(), lgm.predict(X))
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))

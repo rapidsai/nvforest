@@ -16,8 +16,11 @@
 #include <treelite/model_builder.h>
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
+#include <vector>
 
 namespace nvforest {
 
@@ -426,6 +429,132 @@ TEST(TreeliteImporter, DegenerateTreeWithVectorLeaf)
                          nvforest::infer_kind::default_kind,
                          1);
   ASSERT_EQ(preds, expected_preds);
+}
+
+TEST(TreeliteImporter, CastThreshold)
+{
+  auto constexpr eps        = double{std::numeric_limits<float>::epsilon()};
+  auto constexpr inf        = std::numeric_limits<float>::infinity();
+  auto constexpr flt_max    = std::numeric_limits<float>::max();
+  auto constexpr denorm_min = std::numeric_limits<float>::denorm_min();
+
+  ASSERT_EQ(detail::cast_threshold<float>(1.5, true), 1.5f);
+  ASSERT_EQ(detail::cast_threshold<float>(1.5, false), 1.5f);
+
+  auto mid = 1.0 + 1.5 * eps;
+  ASSERT_EQ(detail::cast_threshold<float>(mid, true), static_cast<float>(1.0 + eps));
+  ASSERT_EQ(detail::cast_threshold<float>(mid, false), static_cast<float>(1.0 + 2.0 * eps));
+
+  auto low = 1.0 + 0.25 * eps;
+  ASSERT_EQ(detail::cast_threshold<float>(low, true), 1.0f);
+  ASSERT_EQ(detail::cast_threshold<float>(low, false), static_cast<float>(1.0 + eps));
+
+  ASSERT_EQ(detail::cast_threshold<float>(1e300, true), flt_max);
+  ASSERT_EQ(detail::cast_threshold<float>(1e300, false), inf);
+  ASSERT_EQ(detail::cast_threshold<float>(-1e300, true), -inf);
+  ASSERT_EQ(detail::cast_threshold<float>(-1e300, false), -flt_max);
+
+  ASSERT_EQ(detail::cast_threshold<float>(1e-50, true), 0.0f);
+  ASSERT_EQ(detail::cast_threshold<float>(1e-50, false), denorm_min);
+  ASSERT_EQ(detail::cast_threshold<float>(-1e-50, true), -denorm_min);
+  ASSERT_EQ(detail::cast_threshold<float>(-1e-50, false), 0.0f);
+  ASSERT_TRUE(std::signbit(detail::cast_threshold<float>(-1e-50, false)));
+
+  ASSERT_TRUE(
+    std::isnan(detail::cast_threshold<float>(std::numeric_limits<double>::quiet_NaN(), true)));
+
+  ASSERT_EQ(detail::cast_threshold<double>(mid, true), mid);
+  ASSERT_EQ(detail::cast_threshold<double>(mid, false), mid);
+  ASSERT_EQ(detail::cast_threshold<double>(1.1f, true), static_cast<double>(1.1f));
+}
+
+auto static constexpr const DOUBLE_THRESHOLD_OPS = std::array{treelite::Operator::kLT,
+                                                              treelite::Operator::kLE,
+                                                              treelite::Operator::kGT,
+                                                              treelite::Operator::kGE};
+
+/* One single-split tree per operator; tree i outputs 2^i if its test is true */
+auto make_double_threshold_forest(double threshold)
+{
+  auto num_tree = static_cast<std::int32_t>(DOUBLE_THRESHOLD_OPS.size());
+  auto metadata = treelite::model_builder::Metadata{
+    1,
+    treelite::TaskType::kRegressor,
+    false,
+    1,
+    {1},
+    {1, 1},
+  };
+  auto tree_annotation = treelite::model_builder::TreeAnnotation{
+    num_tree, std::vector<std::int32_t>(num_tree, 0), std::vector<std::int32_t>(num_tree, 0)};
+  auto model_builder =
+    treelite::model_builder::GetModelBuilder(treelite::TypeInfo::kFloat64,
+                                             treelite::TypeInfo::kFloat64,
+                                             metadata,
+                                             tree_annotation,
+                                             treelite::model_builder::PostProcessorFunc{"identity"},
+                                             std::vector<double>{0.0});
+  for (auto i = std::size_t{}; i < DOUBLE_THRESHOLD_OPS.size(); ++i) {
+    model_builder->StartTree();
+    model_builder->StartNode(0);
+    model_builder->NumericalTest(0, threshold, false, DOUBLE_THRESHOLD_OPS[i], 1, 2);
+    model_builder->EndNode();
+    model_builder->StartNode(1);
+    model_builder->LeafScalar(static_cast<double>(1 << i));
+    model_builder->EndNode();
+    model_builder->StartNode(2);
+    model_builder->LeafScalar(0.0);
+    model_builder->EndNode();
+    model_builder->EndTree();
+  }
+  return model_builder->CommitModel();
+}
+
+TEST(TreeliteImporter, SinglePrecisionDoubleThresholds)
+{
+  auto constexpr eps = double{std::numeric_limits<float>::epsilon()};
+  auto constexpr inf = std::numeric_limits<float>::infinity();
+#ifdef NVFOREST_ENABLE_GPU
+  auto raft_handle = raft::handle_t{};
+  auto handle      = nvforest::handle_t{raft_handle};
+#else
+  auto handle = nvforest::handle_t{};
+#endif
+  for (auto threshold : {1.0 + 1.5 * eps, 1.0 + 0.25 * eps, -1e300, 1e300}) {
+    auto tl_model = make_double_threshold_forest(threshold);
+    auto nearest  = static_cast<float>(threshold);
+    auto X =
+      std::vector<float>{std::nextafter(nearest, -inf), nearest, std::nextafter(nearest, inf)};
+
+    auto expected_preds = std::vector<float>{};
+    for (auto x : X) {
+      auto value = static_cast<double>(x);
+      auto tests =
+        std::array{value<threshold, value <= threshold, value> threshold, value >= threshold};
+      auto pred = 0.0f;
+      for (auto i = std::size_t{}; i < tests.size(); ++i) {
+        if (tests[i]) { pred += static_cast<float>(1 << i); }
+      }
+      expected_preds.push_back(pred);
+    }
+
+    for (auto layout : {tree_layout::depth_first,
+                        tree_layout::breadth_first,
+                        tree_layout::layered_children_together}) {
+      auto nvforest_model = import_from_treelite_model(*tl_model, layout, index_type{}, false);
+      ASSERT_FALSE(nvforest_model.is_double_precision());
+      auto preds = std::vector<float>(X.size(), 0.0f);
+      nvforest_model.predict(handle,
+                             preds.data(),
+                             X.data(),
+                             X.size(),
+                             nvforest::device_type::cpu,
+                             nvforest::device_type::cpu,
+                             nvforest::infer_kind::default_kind,
+                             1);
+      ASSERT_EQ(preds, expected_preds);
+    }
+  }
 }
 
 }  // namespace nvforest

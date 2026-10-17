@@ -1,6 +1,6 @@
 # =============================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2021-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2021-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 # cmake-format: on
 # =============================================================================
@@ -70,9 +70,9 @@ endfunction()
 
 find_and_configure_treelite(
   VERSION
-  4.7.0
+  4.7.2
   PINNED_TAG
-  74b25ecedb964ccac37d034860cc5c1224e73e91
+  e8a2a7770354318f1e702ba8c059c3b6096d78cf
   EXCLUDE_FROM_ALL
   ${NVFOREST_EXCLUDE_TREELITE_FROM_ALL}
   BUILD_STATIC_LIBS

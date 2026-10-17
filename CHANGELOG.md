@@ -1,3 +1,39 @@
+# nvforest 26.10.00 (7 Oct 2026)
+
+### 🚨 Breaking Changes
+* Remove RMM/RAFT dependencies, Part 1 by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/195
+* Migrate stream APIs from rmm::cuda_stream_view to cuda::stream_ref by @bdice in https://github.com/rapidsai/nvforest/pull/209
+### 🐛 Bug Fixes
+* [backport] Remove `rapidsai` from channel resolution to avoid `rapids-xgboost` (#221) by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/225
+### 📖 Documentation
+* Enable public docs features in CI by @bdice in https://github.com/rapidsai/nvforest/pull/204
+* Fix precision parameter documentation typo by @csadorf in https://github.com/rapidsai/nvforest/pull/212
+### 🛠️ Improvements
+* Merge release/26.06 into main by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/177
+* enforce 'yamllint' checks by @jameslamb in https://github.com/rapidsai/nvforest/pull/179
+* X-ORG-183:  Publish API docs to docs.nvidia.com by @josephine-wolf-oberholtzer in https://github.com/rapidsai/nvforest/pull/184
+* Replace `rapids-xgboost` with `xgboost` in the CI. by @trivialfis in https://github.com/rapidsai/nvforest/pull/185
+* X-ORG-183: Enable docs version picker by @josephine-wolf-oberholtzer in https://github.com/rapidsai/nvforest/pull/187
+* ensure nightly builds always produce new packages, expand 'changed-files' lists by @jameslamb in https://github.com/rapidsai/nvforest/pull/188
+* Update to rapids-logger 0.3 by @bdice in https://github.com/rapidsai/nvforest/pull/186
+* Move buffers into `decision_forest`, to avoid triggering copy constructor by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/196
+* wheels: enforce 'abi3audit' checks by @jameslamb in https://github.com/rapidsai/nvforest/pull/194
+* test: isolate library wheel smoke test by @bdice in https://github.com/rapidsai/nvforest/pull/178
+* ci: avoid triggered-by-schedule and triggered-by-merge builds cancelling each other by @jameslamb in https://github.com/rapidsai/nvforest/pull/197
+* X-ORG-183: publish-api-docs version-map uses vars by @josephine-wolf-oberholtzer in https://github.com/rapidsai/nvforest/pull/198
+* pre-commit: update 'cython-lint' to 0.21.1 by @jameslamb in https://github.com/rapidsai/nvforest/pull/202
+* Revert "Remove RMM/RAFT dependencies, Part 1 (#195)" by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/213
+* Add devcontainer fallback for C++ test location by @jameslamb in https://github.com/rapidsai/nvforest/pull/210
+* Discover CMake packages installed by wheels by @bdice in https://github.com/rapidsai/nvforest/pull/215
+* Fix GPU introspection constants for arch 1070 by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/228
+* Restore `rapidsai` to channel resolution by @chyunsu3 in https://github.com/rapidsai/nvforest/pull/235
+* X-ORG-410: Integrate archived docs into version switcher by @josephine-wolf-oberholtzer in https://github.com/rapidsai/nvforest/pull/240
+
+## New Contributors
+* @trivialfis made their first contribution in https://github.com/rapidsai/nvforest/pull/185
+
+**Full Changelog**: https://github.com/rapidsai/nvforest/compare/v26.10.00a...release/26.10
+
 # nvforest 26.08.00 (5 Aug 2026)
 
 ### 🚨 Breaking Changes

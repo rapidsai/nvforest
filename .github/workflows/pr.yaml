@@ -195,6 +195,9 @@ jobs:
       enable_check_version_against_tag: false # TODO: Take this out after first release
       ignored_pr_jobs: >-
         telemetry-summarize
+      # Main builds seed this cache. PR merge refs can restore it but should not create
+      # duplicate archives that are inaccessible to other PRs.
+      pre-commit-cache-read-only: true
   clang-tidy:
     needs: checks
     permissions:
@@ -225,7 +228,7 @@ jobs:
     with:
       build_type: pull-request
       build-datetime: ${{ needs.build-details.outputs.build-datetime }}
-      node_type: cpu16
+      node_type: cpu8
       arch: "amd64"
       container_image: "rapidsai/ci-conda:26.12-latest"
       script: "env NVFOREST_EXTRA_CMAKE_ARGS=-DNVFOREST_ENABLE_GPU=OFF ci/build_cpp.sh"
@@ -242,7 +245,7 @@ jobs:
     with:
       build_type: pull-request
       build-datetime: ${{ needs.build-details.outputs.build-datetime }}
-      node_type: cpu16
+      node_type: cpu8
       script: ci/build_cpp.sh
   conda-cpp-tests:
     needs: [conda-cpp-build, changed-files]
@@ -342,6 +345,7 @@ jobs:
       target-aws-access-key-id: ${{ secrets.NVIDIA_DOCS_AWS_ACCESS_KEY_ID }}
       target-aws-region: ${{ secrets.NVIDIA_DOCS_AWS_REGION }}
       target-aws-secret-access-key: ${{ secrets.NVIDIA_DOCS_AWS_SECRET_ACCESS_KEY }}
+      target-archive-s3-bucket: ${{ secrets.NVIDIA_DOCS_ARCHIVE_S3_BUCKET }}
       target-s3-bucket: ${{ secrets.NVIDIA_DOCS_S3_BUCKET }}
     uses: rapidsai/shared-workflows/.github/workflows/publish-api-docs.yaml@main
     with:
@@ -363,7 +367,7 @@ jobs:
       branch: ${{ inputs.branch }}
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
-      node_type: cpu16
+      node_type: cpu8
       script: ci/build_wheel_libnvforest.sh
       # build for every combination of arch and CUDA version, but only for the latest Python
       matrix_filter: group_by([.ARCH, (.CUDA_VER|split(".")|map(tonumber)|.[0])]) | map(max_by(.PY_VER|split(".")|map(tonumber)))

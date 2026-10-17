@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -110,7 +110,8 @@ class FrameworkConfig:
         [Any, np.ndarray, str], np.ndarray
     ]  # (model, X, device) -> preds
     model_extension: str
-    supports_gpu_native: bool = False
+    supports_gpu_inference: bool = False
+    supports_gpu_training: bool = False
 
 
 def _save_sklearn_model(model: Any, path: str) -> None:
@@ -174,63 +175,23 @@ def _save_lightgbm_model(model: Any, path: str) -> None:
 
 
 def _load_lightgbm_model(path: str, device: str = "cpu") -> Any:
-    """Load LightGBM booster from file.
-
-    Note: LightGBM GPU inference requires the library to be built with GPU support.
-    """
+    """Load LightGBM booster from file."""
     return lgb.Booster(model_file=path)
-
-
-def _check_lightgbm_gpu_available() -> bool:
-    """Check if LightGBM was built with GPU support."""
-    try:
-        # Try to create a dummy dataset and check if GPU device works
-        # This is a lightweight check that doesn't require actual training
-        params = {"device": "gpu", "gpu_platform_id": 0, "gpu_device_id": 0}
-        _ = lgb.Dataset([], params=params)
-        # LightGBM will raise an error if GPU is not available when we try to use it
-        return True  # Assume available, will fail gracefully during training/predict
-    except Exception:
-        return False
-
-
-# Cache for LightGBM GPU availability
-_LIGHTGBM_GPU_CHECKED = False
-_LIGHTGBM_GPU_AVAILABLE = False
 
 
 def _predict_lightgbm(
     model: Any, X: np.ndarray, device: str = "cpu"
 ) -> np.ndarray:
-    """Run LightGBM prediction on specified device.
+    """Run LightGBM prediction.
 
-    LightGBM GPU inference requires the library to be built with GPU support
-    (cmake -DUSE_GPU=1 or pip install lightgbm --install-option=--gpu).
-
-    When GPU is requested and available, uses GPU prediction.
-    Falls back to CPU if GPU is not available.
+    As of LightGBM v4.7.0, 'lightgbm' inference is CPU-only.
+    ``device`` is provided as an argument here just to match the interface for
+    other backends.
     """
-    global _LIGHTGBM_GPU_CHECKED, _LIGHTGBM_GPU_AVAILABLE
 
     # LightGBM requires numpy arrays (doesn't support cupy directly)
     if hasattr(X, "get"):  # cupy array
         X = X.get()
-
-    if device == "gpu":
-        try:
-            # LightGBM GPU prediction - works if model was trained with GPU
-            # and LightGBM was built with GPU support
-            return model.predict(X, num_threads=1)
-        except lgb.basic.LightGBMError as e:
-            if not _LIGHTGBM_GPU_CHECKED:
-                _LIGHTGBM_GPU_CHECKED = True
-                _LIGHTGBM_GPU_AVAILABLE = False
-                LOGGER.warning(
-                    f"LightGBM GPU inference failed: {e}. "
-                    "Ensure LightGBM is built with GPU support. "
-                    "Falling back to CPU inference."
-                )
-            return model.predict(X)
 
     return model.predict(X)
 
@@ -247,7 +208,8 @@ if SKLEARN_AVAILABLE:
         load_native=_load_sklearn_model,
         predict_native=_predict_sklearn,
         model_extension=".tl",
-        supports_gpu_native=False,
+        supports_gpu_inference=False,
+        supports_gpu_training=False,
     )
 
 if XGBOOST_AVAILABLE:
@@ -259,10 +221,12 @@ if XGBOOST_AVAILABLE:
         load_native=_load_xgboost_model,
         predict_native=_predict_xgboost,
         model_extension=".ubj",
-        supports_gpu_native=True,
+        supports_gpu_inference=True,
+        supports_gpu_training=True,
     )
 
 if LIGHTGBM_AVAILABLE:
+    # as of v4.7.0, LightGBM supports GPU training but inference is CPU-only.
     FRAMEWORKS["lightgbm"] = FrameworkConfig(
         name="lightgbm",
         regressor_class=lgb.LGBMRegressor,
@@ -271,7 +235,8 @@ if LIGHTGBM_AVAILABLE:
         load_native=_load_lightgbm_model,
         predict_native=_predict_lightgbm,
         model_extension=".txt",
-        supports_gpu_native=True,
+        supports_gpu_inference=False,
+        supports_gpu_training=True,
     )
 
 
@@ -404,15 +369,14 @@ def train_model(
             n_jobs=-1,
         )
     elif framework.name == "lightgbm":
-        # LightGBM GPU training requires library built with GPU support
-        # (cmake -DUSE_GPU=1 or pip install lightgbm --install-option=--gpu)
+        # LightGBM GPU training uses the CUDA backend (built with
+        # ``-DUSE_CUDA=1``), preferred over the deprecated OpenCL backend
+        # (``device="gpu"``).
         if device == "gpu":
             model = model_class(
                 n_estimators=num_trees,
                 max_depth=max_depth,
-                device="gpu",
-                gpu_platform_id=0,
-                gpu_device_id=0,
+                device="cuda",
                 n_jobs=1,  # GPU mode uses single thread
                 verbose=-1,
             )
@@ -547,7 +511,7 @@ def run_benchmark_suite(
                             # For XGBoost, training on GPU enables GPU inference
                             train_device = (
                                 device
-                                if framework.supports_gpu_native
+                                if framework.supports_gpu_training
                                 else "cpu"
                             )
 
@@ -620,11 +584,11 @@ def run_benchmark_suite(
                                 # For GPU-capable frameworks, use GPU data; otherwise CPU
                                 native_data = (
                                     X_device
-                                    if framework.supports_gpu_native
+                                    if framework.supports_gpu_inference
                                     else X
                                 )
                                 LOGGER.info(
-                                    f"    Running native inference (device={device}, gpu_native={framework.supports_gpu_native})..."
+                                    f"    Running native inference (device={device}, gpu_inference={framework.supports_gpu_inference})..."
                                 )
                                 try:
                                     native_time = run_inference_benchmark(

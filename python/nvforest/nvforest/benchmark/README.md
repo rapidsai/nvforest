@@ -108,13 +108,11 @@ The `--device` parameter affects how both native frameworks and nvforest run inf
 When `--device=gpu` is set, XGBoost models are trained on GPU which enables GPU-native inference. This provides a fair comparison between XGBoost GPU inference and nvforest GPU inference.
 
 ### LightGBM
-- **CPU**: Standard CPU inference
-- **GPU**: LightGBM GPU training and inference requires the presence of OpenCL Runtime libraries. Install LightGBM from PyPI to automatically enable OpenCL GPU support.
-  ```bash
-  pip install lightgbm
-  ```
 
-When GPU is requested and LightGBM GPU support is available, models are trained with `device="gpu"` and inference uses the GPU-trained model. If GPU support is not available, training/inference falls back to CPU with a warning.
+- **CPU**: Standard CPU inference
+- **GPU**: Does not natively support GPU inference.
+
+When GPU is requested and LightGBM GPU support is available, models are trained with `device="cuda"`.
 
 ### sklearn
 - **CPU**: Standard CPU inference

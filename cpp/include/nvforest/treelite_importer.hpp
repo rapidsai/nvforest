@@ -296,7 +296,9 @@ struct treelite_importer {
                                                node.get_feature(),
                                                offsets[node_index]);
                 } else {
-                  builder.add_node(typename forest_model_t::threshold_type(node.threshold()),
+                  auto threshold = detail::cast_threshold<typename forest_model_t::threshold_type>(
+                    node.threshold(), node.is_inclusive());
+                  builder.add_node(threshold,
                                    node.get_treelite_id(),
                                    depth,
                                    false,
