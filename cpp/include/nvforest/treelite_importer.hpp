@@ -95,8 +95,7 @@ struct treelite_importer {
     if (tl_model.num_class.Empty() || tl_model.num_class[0] < 1) {
       throw model_import_error{"Treelite model must contain at least one output"};
     }
-    auto const vector_leaf =
-      tl_model.leaf_vector_shape[0] > 1 || tl_model.leaf_vector_shape[1] > 1;
+    auto const vector_leaf = tl_model.leaf_vector_shape[0] > 1 || tl_model.leaf_vector_shape[1] > 1;
     if (vector_leaf && tl_model.task_type != treelite::TaskType::kRegressor &&
         (tl_model.task_type != treelite::TaskType::kMultiClf || tl_model.num_target != 1)) {
       throw model_import_error{"Unsupported vector-leaf task type"};
@@ -117,7 +116,9 @@ struct treelite_importer {
   }
 
   static auto get_num_target(treelite::Model const& tl_model)
-  { return static_cast<index_type>(tl_model.num_target); }
+  {
+    return static_cast<index_type>(tl_model.num_target);
+  }
 
   auto get_num_feature(treelite::Model const& tl_model)
   {
@@ -164,7 +165,7 @@ struct treelite_importer {
         auto outputs = tl_model.task_type == treelite::TaskType::kMultiClf
                          ? get_num_class(tl_model)
                          : get_num_target(tl_model);
-        result = static_cast<double>(num_trees(tl_model)) / outputs;
+        result       = static_cast<double>(num_trees(tl_model)) / outputs;
       } else {
         result = num_trees(tl_model);
       }
@@ -437,7 +438,7 @@ struct treelite_importer {
 
     auto is_classifier = tl_model.task_type == treelite::TaskType::kBinaryClf ||
                          tl_model.task_type == treelite::TaskType::kMultiClf;
-    auto num_class     = is_classifier ? get_num_class(tl_model) : get_num_target(tl_model);
+    auto num_class = is_classifier ? get_num_class(tl_model) : get_num_target(tl_model);
 
     return forest_model{import_to_specific_variant<index_type{}>(variant_index,
                                                                  tl_model,
