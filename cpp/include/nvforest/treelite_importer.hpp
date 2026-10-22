@@ -95,6 +95,12 @@ struct treelite_importer {
     if (tl_model.num_class.Empty() || tl_model.num_class[0] < 1) {
       throw model_import_error{"Treelite model must contain at least one output"};
     }
+    auto const vector_leaf =
+      tl_model.leaf_vector_shape[0] > 1 || tl_model.leaf_vector_shape[1] > 1;
+    if (vector_leaf && tl_model.task_type != treelite::TaskType::kRegressor &&
+        (tl_model.task_type != treelite::TaskType::kMultiClf || tl_model.num_target != 1)) {
+      throw model_import_error{"Unsupported vector-leaf task type"};
+    }
   }
 
   auto get_tree_sizes(treelite::Model const& tl_model)
@@ -154,9 +160,11 @@ struct treelite_importer {
   {
     auto result = double{};
     if (tl_model.average_tree_output) {
-      if (tl_model.task_type == treelite::TaskType::kMultiClf &&
-          tl_model.leaf_vector_shape[1] == 1) {  // grove-per-class
-        result = num_trees(tl_model) / tl_model.num_class[0];
+      if (tl_model.leaf_vector_shape[0] == 1 && tl_model.leaf_vector_shape[1] == 1) {
+        auto outputs = tl_model.task_type == treelite::TaskType::kMultiClf
+                         ? get_num_class(tl_model)
+                         : get_num_target(tl_model);
+        result = static_cast<double>(num_trees(tl_model)) / outputs;
       } else {
         result = num_trees(tl_model);
       }

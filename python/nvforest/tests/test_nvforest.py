@@ -226,14 +226,16 @@ def test_regression(
     np.testing.assert_almost_equal(fil_preds, xgb_preds, decimal=4)
 
 
-@pytest.mark.unit
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
+@pytest.mark.parametrize(
+    "multi_strategy", ("one_output_per_tree", "multi_output_tree")
+)
 @pytest.mark.parametrize(
     "objective",
     ["reg:squarederror", "count:poisson", "multi:softprob"],
     ids=["regression", "poisson", "classification"],
 )
-def test_xgboost_vector_leaf(objective, device):
+def test_xgboost_vector_leaf(objective, device, multi_strategy):
     classification = objective == "multi:softprob"
     if classification:
         X, y = make_classification(
@@ -265,7 +267,7 @@ def test_xgboost_vector_leaf(objective, device):
     model = model_class(
         objective=objective,
         tree_method="hist",
-        multi_strategy="multi_output_tree",
+        multi_strategy=multi_strategy,
         n_estimators=5,
         max_depth=2,
         n_jobs=2,
@@ -282,7 +284,9 @@ def test_xgboost_vector_leaf(objective, device):
     )
     np.testing.assert_array_equal(
         header.get_field("leaf_vector_shape"),
-        (1, n_outputs) if classification else (n_outputs, 1),
+        ((1, n_outputs) if classification else (n_outputs, 1))
+        if multi_strategy == "multi_output_tree"
+        else (1, 1),
     )
 
     forest = nvforest.load_from_treelite_model(tl_model, device=device)
