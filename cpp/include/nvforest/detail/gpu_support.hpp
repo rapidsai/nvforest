@@ -5,7 +5,6 @@
 #pragma once
 #include <stdint.h>
 
-#include <cstddef>
 #include <exception>
 
 namespace nvforest::detail {

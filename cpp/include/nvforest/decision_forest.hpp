@@ -23,7 +23,6 @@
 #include <stdint.h>
 
 #include <algorithm>
-#include <cstddef>
 #include <limits>
 #include <optional>
 #include <utility>
