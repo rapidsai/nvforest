@@ -110,6 +110,9 @@ struct treelite_importer {
     return static_cast<index_type>(tl_model.num_class[0]);
   }
 
+  static auto get_num_target(treelite::Model const& tl_model)
+  { return static_cast<index_type>(tl_model.num_target); }
+
   auto get_num_feature(treelite::Model const& tl_model)
   {
     return static_cast<index_type>(tl_model.num_feature);
@@ -377,9 +380,6 @@ struct treelite_importer {
         *processed_tl_model.get(), align_bytes, use_double_precision, dev_type, device, stream);
     }
 
-    if (tl_model.num_target != 1) {
-      throw model_import_error("nvForest does not support multi-target model");
-    }
     // Check tree annotation (assignment)
     if (tl_model.task_type == treelite::TaskType::kMultiClf) {
       if (tl_model.num_class.Empty() || tl_model.num_class[0] <= 0) {
@@ -426,7 +426,11 @@ struct treelite_importer {
                                                   max_num_categories,
                                                   num_leaf_vector_nodes,
                                                   layout);
-    auto num_class     = get_num_class(tl_model);
+
+    auto is_classifier = tl_model.task_type == treelite::TaskType::kBinaryClf ||
+                         tl_model.task_type == treelite::TaskType::kMultiClf;
+    auto num_class     = is_classifier ? get_num_class(tl_model) : get_num_target(tl_model);
+
     return forest_model{import_to_specific_variant<index_type{}>(variant_index,
                                                                  tl_model,
                                                                  num_class,
