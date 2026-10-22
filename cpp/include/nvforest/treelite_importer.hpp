@@ -110,12 +110,12 @@ struct treelite_importer {
     return result;
   }
 
-  auto get_num_class(treelite::Model const& tl_model)
+  [[nodiscard]] static auto get_num_class(treelite::Model const& tl_model)
   {
     return static_cast<index_type>(tl_model.num_class[0]);
   }
 
-  static auto get_num_target(treelite::Model const& tl_model)
+  [[nodiscard]] static auto get_num_target(treelite::Model const& tl_model)
   {
     return static_cast<index_type>(tl_model.num_target);
   }
@@ -438,11 +438,11 @@ struct treelite_importer {
 
     auto is_classifier = tl_model.task_type == treelite::TaskType::kBinaryClf ||
                          tl_model.task_type == treelite::TaskType::kMultiClf;
-    auto num_class = is_classifier ? get_num_class(tl_model) : get_num_target(tl_model);
+    auto num_outputs = is_classifier ? get_num_class(tl_model) : get_num_target(tl_model);
 
     return forest_model{import_to_specific_variant<index_type{}>(variant_index,
                                                                  tl_model,
-                                                                 num_class,
+                                                                 num_outputs,
                                                                  num_feature,
                                                                  max_num_categories,
                                                                  offsets,
