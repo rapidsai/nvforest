@@ -95,9 +95,13 @@ struct treelite_importer {
     if (tl_model.num_class.Empty() || tl_model.num_class[0] < 1) {
       throw model_import_error{"Treelite model must contain at least one output"};
     }
+    if (tl_model.num_target != 1 && (tl_model.task_type == treelite::TaskType::kBinaryClf ||
+                                     tl_model.task_type == treelite::TaskType::kMultiClf)) {
+      throw model_import_error{"Multi-target classification is not supported"};
+    }
     auto const vector_leaf = tl_model.leaf_vector_shape[0] > 1 || tl_model.leaf_vector_shape[1] > 1;
     if (vector_leaf && tl_model.task_type != treelite::TaskType::kRegressor &&
-        (tl_model.task_type != treelite::TaskType::kMultiClf || tl_model.num_target != 1)) {
+        tl_model.task_type != treelite::TaskType::kMultiClf) {
       throw model_import_error{"Unsupported vector-leaf task type"};
     }
   }
