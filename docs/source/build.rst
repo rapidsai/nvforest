@@ -272,10 +272,6 @@ nvForest's cmake has the following configurable flags available:
      - [ON, OFF]
      - OFF
      - Whether to cache build artifacts with ccache.
-   * - NVFOREST_USE_RAFT_STATIC
-     - [ON, OFF]
-     - OFF
-     - Whether to statically link the RAFT library.
    * - NVFOREST_USE_TREELITE_STATIC
      - [ON, OFF]
      - OFF

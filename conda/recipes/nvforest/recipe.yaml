@@ -82,6 +82,7 @@ requirements:
     - libnvforest =${{ version }}
     - pip
     - pylibraft =${{ minor_version }}
+    - cuda-core >=1.0.0,<2.0.0
     - python =${{ py_abi_min }}
     - python-abi3 ${{ py_abi_min }}.*
     - rapids-build-backend >=0.4.0,<0.5.0.dev0
@@ -99,6 +100,7 @@ requirements:
     - numpy >=2.0,<3.0a0
     - scikit-learn >=1.4
     - pylibraft =${{ minor_version }}
+    - cuda-core >=1.0.0,<2.0.0
     - python
     - treelite ${{ treelite_version }}
     - cuda-cudart
