@@ -273,7 +273,7 @@ Install it into your development environment:
 
 .. code-block:: bash
 
-  python -m pip install sphinx-autobuild
+  conda install -c conda-forge sphinx-autobuild
 
 Then, from the ``docs`` directory:
 
