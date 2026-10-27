@@ -214,6 +214,83 @@ If you want a list of the available tests:
 
   pytest -v python/nvforest/tests --collect-only
 
+Building the Documentation
+==========================
+
+The documentation build requires ``nvforest`` to be installed, since Sphinx imports it to generate
+the Python API reference. Build and install it first using one of the options above. The tools needed
+to build the documentation (Sphinx, Doxygen, etc.) are included in the ``conda/environments/all_*.yaml``
+environment files.
+
+1. Generate the Doxygen XML for the C++ API reference. This step is always required before the first
+documentation build, since neither ``make html`` nor ``sphinx-build`` runs Doxygen. Afterwards, it only
+needs to be re-run when the C++ headers change. From the repository root:
+
+.. code-block:: bash
+
+  (cd cpp/doxygen && doxygen Doxyfile.in)
+
+2. Build the HTML documentation from the ``docs`` directory:
+
+.. code-block:: bash
+
+  cd docs
+  make html
+
+The output is written to ``docs/build/html``. Open ``docs/build/html/index.html`` in your browser to view it.
+
+.. tip::
+
+  If you are building on a remote machine, serve the output with ``python -m http.server -d build/html 8000``
+  and forward port 8000 to your local machine (e.g., ``ssh -L 8000:localhost:8000 <remote-host>``, or the
+  Ports panel in VS Code Remote-SSH). Then open http://localhost:8000 in your browser.
+
+3. Before opening a pull request, check that the documentation builds as it does in CI
+(see ``ci/build_docs.sh``). From the ``docs`` directory:
+
+.. code-block:: bash
+
+  # Build the HTML documentation, treating warnings as errors
+  sphinx-build -b dirhtml ./source _html -W
+
+  # Run the code examples in the documentation as tests
+  sphinx-build --builder doctest ./source _doctest -W
+
+Unlike ``make html``, these commands use ``-W`` to turn warnings into errors, so they catch issues that
+would fail CI. The ``dirhtml`` builder generates a ``<page>/index.html`` layout, so to view its output,
+serve the directory and open http://localhost:8000 in your browser:
+
+.. code-block:: bash
+
+  python -m http.server -d _html 8000
+
+Live preview with sphinx-autobuild
+----------------------------------
+
+When editing the documentation, `sphinx-autobuild <https://github.com/sphinx-doc/sphinx-autobuild>`_
+rebuilds the docs whenever a file changes and refreshes the page in your browser automatically.
+Install it into your development environment:
+
+.. code-block:: bash
+
+  python -m pip install sphinx-autobuild
+
+Then, from the ``docs`` directory:
+
+.. code-block:: bash
+
+  sphinx-autobuild ./source _autobuild --port 8000
+
+and open http://localhost:8000 in your browser. By default, only files under ``source`` are watched.
+To also rebuild when Python docstrings change, add ``--watch ../python/nvforest``. Note that docstring
+changes only take effect if Sphinx imports the modified code, so ``nvforest`` must be installed in
+editable mode or reinstalled after each change.
+
+.. tip::
+
+  If you are building on a remote machine, either forward the port over SSH
+  (e.g., ``ssh -L 8000:localhost:8000 <remote-host>``) or pass ``--host 0.0.0.0`` to ``sphinx-autobuild``.
+
 .. _custom-build-options:
 
 Custom Build Options
