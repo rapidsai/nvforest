@@ -45,6 +45,10 @@ outputs:
           NVCC_APPEND_FLAGS: ${{ env.get("NVCC_APPEND_FLAGS", default="") }}
           NVFOREST_EXTRA_CMAKE_ARGS: ${{ env.get("NVFOREST_EXTRA_CMAKE_ARGS", default="") }}
           PARALLEL_LEVEL: ${{ env.get("PARALLEL_LEVEL", default="8") }}
+          # CMake configure imports Python packages registering `cmake.prefix` entry points
+          # (e.g. ucxx, via libraft-headers). Without this their __pycache__ is written into
+          # $PREFIX and packaged into libnvforest.
+          PYTHONDONTWRITEBYTECODE: "1"
           RAPIDS_ARTIFACTS_DIR: ${{ env.get("RAPIDS_ARTIFACTS_DIR", default="") }}
           SCCACHE_BUCKET: ${{ env.get("SCCACHE_BUCKET", default="") }}
           SCCACHE_CONF: ${{ env.get("SCCACHE_CONF", default="") }}
