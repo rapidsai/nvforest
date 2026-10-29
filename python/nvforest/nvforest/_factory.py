@@ -14,11 +14,11 @@ from nvforest._forest_inference import (
     CPUForestInferenceRegressor,
     GPUForestInferenceClassifier,
     GPUForestInferenceRegressor,
-    infer_device,
     infer_is_classifier,
 )
 from nvforest._handle import Handle
 from nvforest._typing import StreamLike
+from nvforest.detail.device_infer import infer_device
 from nvforest.detail.raft_stream import _handle_deprecated_handle_arg
 
 
