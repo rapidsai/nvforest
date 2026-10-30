@@ -2,6 +2,9 @@
 Python API
 ##########
 
+Model loading functions
+=======================
+
 .. role:: py(code)
    :language: python
    :class: highlight
