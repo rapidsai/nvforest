@@ -28,7 +28,7 @@ To create a development environment named ``nvforest_dev``, use the following co
 
     $ conda create -n nvforest_dev python=3.13
     $ conda env update -n nvforest_dev \
-        --file=conda/environments/all_cuda-133_arch-$(uname -m).yaml
+        --file=conda/environments/all_cuda-134_arch-$(uname -m).yaml
     $ conda activate nvforest_dev
 
 Installing from Source
