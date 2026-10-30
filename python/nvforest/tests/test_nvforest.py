@@ -228,6 +228,85 @@ def test_regression(
 
 
 @pytest.mark.parametrize("device", ("cpu", "gpu"))
+@pytest.mark.parametrize(
+    "multi_strategy", ("one_output_per_tree", "multi_output_tree")
+)
+@pytest.mark.parametrize(
+    "objective",
+    ["reg:squarederror", "count:poisson", "multi:softprob"],
+    ids=["regression", "poisson", "classification"],
+)
+def test_xgboost_vector_leaf(objective, device, multi_strategy):
+    classification = objective == "multi:softprob"
+    if classification:
+        X, y = make_classification(
+            n_samples=100,
+            n_features=4,
+            n_informative=3,
+            n_redundant=0,
+            n_classes=3,
+            n_clusters_per_class=1,
+            random_state=0,
+        )
+        model_class = xgb.XGBClassifier
+        n_outputs = 3
+    else:
+        X, y = make_regression(
+            n_samples=100,
+            n_features=4,
+            n_targets=2,
+            bias=10.0,
+            random_state=0,
+        )
+        if objective == "count:poisson":
+            # Shift each target to produce positive integer counts.
+            y = np.rint(y - y.min(axis=0) + 1)
+        model_class = xgb.XGBRegressor
+        n_outputs = 2
+    X = X.astype(np.float32)
+
+    model = model_class(
+        objective=objective,
+        tree_method="hist",
+        multi_strategy=multi_strategy,
+        n_estimators=5,
+        max_depth=2,
+        n_jobs=2,
+        random_state=0,
+    ).fit(X, y)
+    tl_model = treelite.frontend.from_xgboost(model.get_booster())
+    header = tl_model.get_header_accessor()
+    np.testing.assert_array_equal(
+        header.get_field("num_target"), [1 if classification else n_outputs]
+    )
+    np.testing.assert_array_equal(
+        header.get_field("num_class"),
+        [n_outputs] if classification else [1] * n_outputs,
+    )
+    np.testing.assert_array_equal(
+        header.get_field("leaf_vector_shape"),
+        ((1, n_outputs) if classification else (n_outputs, 1))
+        if multi_strategy == "multi_output_tree"
+        else (1, 1),
+    )
+
+    forest = nvforest.load_from_treelite_model(tl_model, device=device)
+    assert forest.num_outputs == n_outputs
+    if classification:
+        expected = model.predict_proba(X)
+        actual = forest.predict_proba(X)
+        np.testing.assert_array_equal(
+            _get_numpy_array(forest.predict(X)), model.predict(X)
+        )
+    else:
+        expected = model.predict(X)
+        actual = forest.predict(X)
+    actual = _get_numpy_array(actual)
+    assert actual.shape == expected.shape == (X.shape[0], n_outputs)
+    np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-7)
+
+
+@pytest.mark.parametrize("device", ("cpu", "gpu"))
 @pytest.mark.parametrize("n_rows", [1000])
 @pytest.mark.parametrize("n_columns", [30])
 @pytest.mark.parametrize(

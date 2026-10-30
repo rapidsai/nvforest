@@ -347,6 +347,7 @@ struct decision_forest_builder {
   index_type output_size_;
   row_op row_postproc_;
   element_op element_postproc_;
+  // The number of trees contributing to each output when ensemble averaging is enabled. (RF)
   double average_factor_;
   double postproc_constant_;
 

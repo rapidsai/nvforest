@@ -79,7 +79,7 @@ outputs:
         - libraft-headers =${{ minor_version }}
         - librmm =${{ minor_version }}
         - rapids-logger =0.3
-        - treelite ${{ treelite_version }}
+        - treelite ${{ treelite_version_build }}
         - cuda-cudart-dev
 
   - package:
@@ -106,14 +106,14 @@ outputs:
         - cuda-version =${{ cuda_version }}
         - rapids-logger =0.3
         - librmm =${{ minor_version }}
-        - treelite ${{ treelite_version }}
+        - treelite ${{ treelite_version_build }}
         - cuda-cudart-dev
       run:
         - libgomp >=${{ c_compiler_version }}
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
         - librmm =${{ minor_version }}
         - rapids-logger =0.3
-        - treelite ${{ treelite_version }}
+        - treelite ${{ treelite_version_run }}
       ignore_run_exports:
         by_name:
           - cuda-cudart
@@ -148,7 +148,7 @@ outputs:
         - ${{ pin_compatible("cuda-version", upper_bound="x", lower_bound="x") }}
         - ${{ pin_subpackage("libnvforest", exact=True) }}
         - librmm =${{ minor_version }}
-        - treelite ${{ treelite_version }}
+        - treelite ${{ treelite_version_run }}
       ignore_run_exports:
         by_name:
           - cuda-cudart

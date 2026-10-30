@@ -87,7 +87,7 @@ requirements:
     - python-abi3 ${{ py_abi_min }}.*
     - rapids-build-backend >=0.4.0,<0.5.0.dev0
     - scikit-build-core>=0.11.0
-    - treelite ${{ treelite_version }}
+    - treelite ${{ treelite_version_build }}
     - cuda-cudart-dev
     - if: cuda_major == "12"
       then: cuda-bindings >=12.9.3,<13.0
@@ -102,7 +102,7 @@ requirements:
     - pylibraft =${{ minor_version }}
     - cuda-core >=1.0.0,<2.0.0
     - python
-    - treelite ${{ treelite_version }}
+    - treelite ${{ treelite_version_run }}
     - cuda-cudart
     - if: cuda_major == "12"
       then: cuda-bindings >=12.9.3,<13.0

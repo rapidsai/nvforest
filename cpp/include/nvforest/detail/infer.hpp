@@ -13,9 +13,7 @@
 #include <nvforest/infer_kind.hpp>
 
 #include <cstddef>
-#include <iostream>
 #include <optional>
-#include <type_traits>
 
 #ifdef NVFOREST_ENABLE_GPU
 #include <nvforest/detail/infer/gpu.hpp>
