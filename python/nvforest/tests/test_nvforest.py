@@ -1024,8 +1024,8 @@ def test_device_selection(device_id, model_kind, tmp_path):
 def test_gpu_inference_with_nondefault_device():
     rng = np.random.default_rng(0)
     X = rng.normal(size=(64, 4)).astype(np.float32)
-    y = X[:, 0] - 2 * X[:, 1]
-    skl_model = RandomForestRegressor(
+    y = (X[:, 0] - 2 * X[:, 1] > 0).astype(np.int32)
+    skl_model = RandomForestClassifier(
         n_estimators=3, max_depth=3, random_state=0
     ).fit(X, y)
 
@@ -1035,12 +1035,12 @@ def test_gpu_inference_with_nondefault_device():
         )
 
     with cp.cuda.Device(0):
-        predictions = _get_numpy_array(model.predict(X))[:, 0]
+        predictions = _get_numpy_array(model.predict_proba(X))
         # This line should succeed, since the inference object
         # remembers the correct device ID and will activate it
         # before inference
 
-    np.testing.assert_allclose(predictions, skl_model.predict(X))
+    np.testing.assert_allclose(predictions, skl_model.predict_proba(X))
 
 
 def test_wide_data():
