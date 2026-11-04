@@ -340,12 +340,17 @@ struct forest_model {
                device_type out_mem_type,
                device_type in_mem_type,
                infer_kind predict_type                        = infer_kind::default_kind,
-               std::optional<index_type> specified_chunk_size = std::nullopt)
+               std::optional<index_type> specified_chunk_size = std::nullopt,
+               std::optional<int> device_id                   = std::nullopt)
   {
     int current_device_id;
     if (out_mem_type == device_type::gpu || in_mem_type == device_type::gpu) {
 #ifdef NVFOREST_ENABLE_GPU
-      detail::cuda_check(cudaGetDevice(&current_device_id));
+      if (device_id.has_value()) {
+          current_device_id = device_id.value();
+      } else {
+          detail::cuda_check(cudaGetDevice(&current_device_id));
+      }
 #else
       throw detail::gpu_unsupported("Tried to use GPU memory in CPU-only build");
 #endif

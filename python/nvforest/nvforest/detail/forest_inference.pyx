@@ -38,7 +38,8 @@ cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
             nvforest_device_t,
             nvforest_device_t,
             infer_kind,
-            optional[uint32_t]
+            optional[uint32_t],
+            optional[int]
         ) except +
 
         bool is_double_precision() except +
@@ -196,6 +197,7 @@ cdef class ForestInference_impl():
         cdef nvforest_device_t out_dev
         cdef infer_kind infer_type_enum
         cdef optional[uint32_t] chunk_specification
+        cdef optional[int] device_id
 
         n_rows = X.shape[0]
         model_dtype = self.get_dtype()
@@ -244,6 +246,7 @@ cdef class ForestInference_impl():
             chunk_specification = nullopt
         else:
             chunk_specification = <uint32_t> chunk_size
+        device_id = <int> self.device_id
 
         if model_dtype == np.float32:
             self.model.predict[float](
@@ -254,7 +257,8 @@ cdef class ForestInference_impl():
                 out_dev,
                 in_dev,
                 infer_type_enum,
-                chunk_specification
+                chunk_specification,
+                device_id,
             )
         else:
             self.model.predict[double](
@@ -265,7 +269,8 @@ cdef class ForestInference_impl():
                 out_dev,
                 in_dev,
                 infer_type_enum,
-                chunk_specification
+                chunk_specification,
+                device_id,
             )
 
         if self.device == "gpu":

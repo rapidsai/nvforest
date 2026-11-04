@@ -1018,6 +1018,31 @@ def test_device_selection(device_id, model_kind, tmp_path):
     assert cp.cuda.runtime.getDevice() == current_device
 
 
+@pytest.mark.skipif(
+    cp.cuda.runtime.getDeviceCount() < 2, reason="Requires at least 2 GPUs"
+)
+def test_gpu_inference_with_nondefault_device():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(64, 4)).astype(np.float32)
+    y = X[:, 0] - 2 * X[:, 1]
+    skl_model = RandomForestRegressor(
+        n_estimators=3, max_depth=3, random_state=0
+    ).fit(X, y)
+
+    with cp.cuda.Device(1):
+        model = nvforest.load_from_sklearn(
+            skl_model, device="gpu", device_id=1
+        )
+
+    with cp.cuda.Device(0):
+        predictions = _get_numpy_array(model.predict(X))[:, 0]
+        # This line should succeed, since the inference object
+        # remembers the correct device ID and will activate it
+        # before inference
+
+    np.testing.assert_allclose(predictions, skl_model.predict(X))
+
+
 def test_wide_data():
     n_rows = 50
     n_features = 100000
