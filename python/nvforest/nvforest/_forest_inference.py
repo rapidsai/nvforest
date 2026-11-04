@@ -5,6 +5,7 @@
 
 import itertools
 from enum import Enum
+from pickle import PicklingError
 from time import perf_counter
 from typing import Optional
 
@@ -69,19 +70,46 @@ def detect_current_device(require: bool) -> Optional[int]:
     return current_device_id
 
 
+def _get_device_count() -> int:
+    """
+    Query the number of visible GPUs
+
+    Returns
+    -------
+    int or None
+        ID of the currently active GPU device, or None if no GPU is available.
+    """
+    status, device_count = runtime.cudaGetDeviceCount()
+    if status != runtime.cudaError_t.cudaSuccess:
+        _, name = runtime.cudaGetErrorName(status)
+        _, msg = runtime.cudaGetErrorString(status)
+        name, msg = name.decode("utf-8"), msg.decode("utf-8")
+        raise RuntimeError(
+            f"Failed to detect a GPU device. Diagnostic:\n    {name}: {msg}"
+        )
+    return device_count
+
+
 def infer_device(
     device: str,
-    device_id: Optional[int],
+    device_id: Optional[int] = None,
 ) -> tuple[str, int]:
     if device == "auto":
         # Auto mode: Use GPU if available; use CPU otherwise.
         device_id = detect_current_device(require=False)
         device = "cpu" if device_id is None else "gpu"
-    elif device == "gpu" and device_id is None:
-        # If no device ID is explicitly given, use the currently
-        # active device
-        device_id = detect_current_device(require=True)
+    elif device == "gpu":
+        if device_id is None:
+            # If no device ID is explicitly given, use the currently
+            # active device
+            device_id = detect_current_device(require=True)
+        elif device_id < 0 or device_id >= _get_device_count():
+            # If a device ID is explicitly given, validate
+            raise ValueError(f"Invalid device ID: {device_id}")
+
     assert device in ("gpu", "cpu")
+    if device == "cpu":
+        device_id = -1
     return device, device_id
 
 
@@ -255,8 +283,16 @@ class OptimizeMixin:
         )
 
 
+class DoNotPickleMixin:
+    def __getstate__(self):
+        raise PicklingError(
+            "nvForest inference object cannot be pickled directly. "
+            "Use nvforest.serialize() and nvforest.deserialize() instead."
+        )
+
+
 class CPUForestInferenceClassifier(
-    OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
+    OptimizeMixin, ClassifierMixin, DoNotPickleMixin, ForestInferenceClassifier
 ):
     def __init__(
         self,
@@ -396,7 +432,9 @@ class CPUForestInferenceClassifier(
         return -1
 
 
-class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
+class CPUForestInferenceRegressor(
+    OptimizeMixin, DoNotPickleMixin, ForestInferenceRegressor
+):
     def __init__(
         self,
         *,
@@ -526,7 +564,7 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
 
 
 class GPUForestInferenceClassifier(
-    OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
+    OptimizeMixin, ClassifierMixin, DoNotPickleMixin, ForestInferenceClassifier
 ):
     def __init__(
         self,
@@ -668,7 +706,9 @@ class GPUForestInferenceClassifier(
         return self.forest.device_id
 
 
-class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
+class GPUForestInferenceRegressor(
+    OptimizeMixin, DoNotPickleMixin, ForestInferenceRegressor
+):
     def __init__(
         self,
         *,

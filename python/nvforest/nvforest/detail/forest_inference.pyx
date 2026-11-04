@@ -280,7 +280,7 @@ class ForestInferenceImpl:
     def __init__(
         self,
         *,
-        treelite_model: treelite.Model,
+        treelite_model: Union[treelite.Model, bytes],
         device: str,
         device_id: int,
         stream: Optional[StreamLike] = None,
@@ -337,7 +337,12 @@ class ForestInferenceImpl:
             raise ValueError(f"Unknown precision value: {self.precision}")
 
         # Store treelite model bytes for creating new instances with different settings
-        self._treelite_model_bytes = treelite_model.serialize_bytes()
+        if isinstance(treelite_model, bytes):
+            self._treelite_model_bytes = treelite_model
+        elif isinstance(treelite_model, treelite.Model):
+            self._treelite_model_bytes = treelite_model.serialize_bytes()
+        else:
+            raise ValueError("`treelite_model` must be either bytes or treelite.Model object")
 
         self.impl = ForestInference_impl(
             self.stream,
