@@ -5,6 +5,7 @@
 
 from typing import Optional, Union
 
+import cupy as cp
 import numpy as np
 import treelite
 from cuda.core import Device, Stream
@@ -67,6 +68,7 @@ cdef class ForestInference_impl():
     cdef nvforest_stream_t stream_handle
     cdef object stream
     cdef object device
+    cdef int device_id
 
     def __cinit__(
         self,
@@ -77,7 +79,7 @@ cdef class ForestInference_impl():
         align_bytes: int = 0,
         use_double_precision: Optional[bool] = None,
         device: str = "cpu",
-        device_id: Optional[int] = None,
+        device_id: int = -1,
     ):
         # Assumption: The caller needs to pass in correct (device, device_id) pair
         # This function will not contain any logic for auto-detecting device.
@@ -130,6 +132,7 @@ cdef class ForestInference_impl():
             "device_id should be set before building ForestInference_impl"
         )
         self.device = device
+        self.device_id = device_id
 
         self.model = import_from_treelite_handle(
             tl_handle,
@@ -230,13 +233,13 @@ cdef class ForestInference_impl():
             out_dev = nvforest_device_t.cpu
         else:
             assert self.device == "gpu"
-            import cupy as cp
-            X = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
-            preds = cp.empty(
-                shape=output_shape,
-                dtype=model_dtype,
-                order="C",
-            )
+            with cp.cuda.Device(self.device_id):
+                X = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
+                preds = cp.empty(
+                    shape=output_shape,
+                    dtype=model_dtype,
+                    order="C",
+                )
             in_ptr = X.__cuda_array_interface__["data"][0]
             in_dev = nvforest_device_t.gpu
             out_ptr = preds.__cuda_array_interface__["data"][0]
