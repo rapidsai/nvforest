@@ -233,6 +233,8 @@ cdef class ForestInference_impl():
             out_dev = nvforest_device_t.cpu
         else:
             assert self.device == "gpu"
+            if isinstance(X, cp.ndarray) and X.device.id != self.device_id:
+                raise RuntimeError("I/O data on different device than model")
             with cp.cuda.Device(self.device_id):
                 X = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
                 preds = cp.empty(
@@ -344,15 +346,25 @@ class ForestInferenceImpl:
         # Store treelite model bytes for creating new instances with different settings
         self._treelite_model_bytes = treelite_model.serialize_bytes()
 
-        self.impl = ForestInference_impl(
-            self.stream,
-            self._treelite_model_bytes,
-            layout=self._layout,
-            align_bytes=self.align_bytes,
-            use_double_precision=self._use_double_precision,
-            device=self.device,
-            device_id=self.device_id
-        )
+        import_previous_device = None
+        try:
+            if self.device == "gpu":
+                # Keep the target device current while the native importer
+                # copies the forest buffers using this device's stream.
+                import_previous_device = Device()
+                Device(self.device_id).set_current()
+            self.impl = ForestInference_impl(
+                self.stream,
+                self._treelite_model_bytes,
+                layout=self._layout,
+                align_bytes=self.align_bytes,
+                use_double_precision=self._use_double_precision,
+                device=self.device,
+                device_id=self.device_id
+            )
+        finally:
+            if import_previous_device is not None:
+                import_previous_device.set_current()
 
     @property
     def layout(self) -> str:
