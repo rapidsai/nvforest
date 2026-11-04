@@ -347,9 +347,9 @@ struct forest_model {
     if (out_mem_type == device_type::gpu || in_mem_type == device_type::gpu) {
 #ifdef NVFOREST_ENABLE_GPU
       if (device_id.has_value()) {
-          current_device_id = device_id.value();
+        current_device_id = device_id.value();
       } else {
-          detail::cuda_check(cudaGetDevice(&current_device_id));
+        detail::cuda_check(cudaGetDevice(&current_device_id));
       }
 #else
       throw detail::gpu_unsupported("Tried to use GPU memory in CPU-only build");
