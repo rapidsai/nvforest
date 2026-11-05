@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 from abc import ABC, abstractmethod
@@ -34,9 +34,7 @@ class ForestInference(ABC):
             to the correct datatype before inference. If this input is in a
             memory location that is inaccessible to the current device type
             (as set with the 'device' parameter in the constructor),
-            it will be copied to the correct location. This copy will be
-            distributed across as many CUDA streams as are available
-            in the stream pool of the model's RAFT handle.
+            it will be copied to the correct location on the model's CUDA stream.
         chunk_size :
             The number of rows to simultaneously process in one iteration
             of the inference algorithm. Batches are further broken down into
@@ -72,9 +70,7 @@ class ForestInference(ABC):
             to the correct datatype before inference. If this input is in a
             memory location that is inaccessible to the current device type
             (as set with the 'device' parameter in the constructor),
-            it will be copied to the correct location. This copy will be
-            distributed across as many CUDA streams as are available
-            in the stream pool of the model's RAFT handle.
+            it will be copied to the correct location on the model's CUDA stream.
         chunk_size :
             The number of rows to simultaneously process in one iteration
             of the inference algorithm. Batches are further broken down into
@@ -226,9 +222,7 @@ class ForestInferenceClassifier(ForestInference):
             to the correct datatype before inference. If this input is in a
             memory location that is inaccessible to the current device type
             (as set with the 'device' parameter in the constructor),
-            it will be copied to the correct location. This copy will be
-            distributed across as many CUDA streams as are available
-            in the stream pool of the model's RAFT handle.
+            it will be copied to the correct location on the model's CUDA stream.
         chunk_size :
             The number of rows to simultaneously process in one iteration
             of the inference algorithm. Batches are further broken down into
@@ -270,9 +264,7 @@ class ForestInferenceClassifier(ForestInference):
             to the correct datatype before inference. If this input is in a
             memory location that is inaccessible to the current device type
             (as set with the 'device' parameter in the constructor),
-            it will be copied to the correct location. This copy will be
-            distributed across as many CUDA streams as are available
-            in the stream pool of the model's RAFT handle.
+            it will be copied to the correct location on the model's CUDA stream.
         chunk_size :
             The number of rows to simultaneously process in one iteration
             of the inference algorithm. Batches are further broken down into
@@ -314,9 +306,7 @@ class ForestInferenceRegressor(ForestInference):
             to the correct datatype before inference. If this input is in a
             memory location that is inaccessible to the current device type
             (as set with the 'device' parameter in the constructor),
-            it will be copied to the correct location. This copy will be
-            distributed across as many CUDA streams as are available
-            in the stream pool of the model's RAFT handle.
+            it will be copied to the correct location on the model's CUDA stream.
         chunk_size :
             The number of rows to simultaneously process in one iteration
             of the inference algorithm. Batches are further broken down into

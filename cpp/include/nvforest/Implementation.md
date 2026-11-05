@@ -147,13 +147,16 @@ a standard benchmark) on the CPU.
 
 With some motivation for the general approach to CPU-GPU interoperability, we
 now offer an overview of the layout of the codebase to help guide future
-improvements. Because `nvforest::detail` utilities are going to be moved to RAFT or other
-general-purpose libraries, we will not review anything within the `nvforest::detail`
-directory here.
+improvements. The `nvforest::detail` namespace is private implementation infrastructure and
+may change without notice, so this overview focuses on its responsibilities
+rather than treating individual utilities as stable APIs.
 
 ### Public Headers
 * `constants.hpp`: Contains constant values that may be useful in working
   with nvForest in other C++ applications
+* `cuda_stream.hpp`: Defines the public `nvforest::cuda_stream` abstraction.
+  It aliases `cudaStream_t` in GPU builds and is a CUDA-free placeholder in
+  CPU-only builds.
 * `decision_forest.hpp`: Provides `decision_forest`, a template which provides
   concrete implementations of a decision forest. Because different types may
   be optimal for different sizes of models or models with different features,
