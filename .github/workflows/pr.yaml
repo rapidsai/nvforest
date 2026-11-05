@@ -246,7 +246,7 @@ jobs:
     with:
       build_type: pull-request
       script: ci/test_cpp.sh
-      matrix_type: pull-request
+      matrix_type: pull-request,wsl-pr
   conda-cpp-checks:
     needs: conda-cpp-build
     permissions:
@@ -397,7 +397,7 @@ jobs:
     with:
       build_type: pull-request
       script: ci/test_wheel.sh
-      matrix_type: pull-request
+      matrix_type: pull-request,wsl-pr
   devcontainer:
     permissions:
       actions: read
