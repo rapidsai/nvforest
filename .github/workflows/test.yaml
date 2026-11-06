@@ -71,7 +71,7 @@ jobs:
       sha: ${{ inputs.sha }}
       script: "ci/test_python.sh"
       run_codecov: false
-      matrix_type: nightly
+      matrix_type: python-3-15-nightly,nightly
   wheel-tests-nvforest:
     permissions:
       actions: read
@@ -87,4 +87,4 @@ jobs:
       date: ${{ inputs.date }}
       sha: ${{ inputs.sha }}
       script: ci/test_wheel.sh
-      matrix_type: nightly
+      matrix_type: python-3-15-nightly,nightly
