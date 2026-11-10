@@ -117,12 +117,13 @@ You can inspect the type of the model by printing its type:
 .. note:: Selecting among multiple GPUs
 
     If your system has more than one NVIDIA GPU, you can select one of them to run tree inference
-    by activating the GPU device with :external+cupy:py:class:`cuda.cuda.Device` or
+    by activating the GPU device with :external+cupy:py:class:`cupy.cuda.Device` or
     :external+cuda-python:py:class:`cuda.core.Device`.
 
     .. code-block:: python
 
         # Load model to GPU device 1
+        import cupy
         with cupy.cuda.Device(1):
             fm = nvforest.load_model(model_dir / "xgboost_model.json",
                                      device="gpu")
