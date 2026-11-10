@@ -127,7 +127,8 @@ You can inspect the type of the model by printing its type:
         with cupy.cuda.Device(1):
             fm = nvforest.load_model(model_dir / "xgboost_model.json",
                                      device="gpu")
-            fm = nvforest.load_from_sklearn(skl_model, device="gpu")
+            # Model import and inference must happen on the same device
+            fm.predict(X)
 
     Each model object is associated with a single device. Make sure that the same GPU device
     is active at the time of inference.
