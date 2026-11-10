@@ -34,6 +34,10 @@ from nvforest.testing.utils import (  # noqa: E402
     unit_param,
 )
 
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:.*`device_id` is deprecated.*:FutureWarning"
+)
+
 
 def _get_numpy_array(x):
     if isinstance(x, cp.ndarray):
@@ -1032,7 +1036,7 @@ def test_cuda_core_stream():
 
         assert isinstance(default_fm.forest.stream, Stream)
         assert isinstance(stream, Stream)
-        assert fm.forest.stream is stream
+        assert fm.forest.stream.handle == stream.handle
         np.testing.assert_array_equal(
             cp.asnumpy(fm.predict(X)), skl_model.predict(X)
         )
