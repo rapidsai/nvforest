@@ -3,7 +3,7 @@ max_cache_age = "3d"
 max_concurrency = 8
 max_retries = 3
 retry_wait_time = 2
-exclude_link_local = true
+exclude_all_private = true
 
 # Doxygen resolves modules.html and $relpath placeholders during generation.
 exclude = ['modules\.html$', '\$relpath']
