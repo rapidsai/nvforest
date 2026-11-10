@@ -117,17 +117,19 @@ You can inspect the type of the model by printing its type:
 .. note:: Selecting among multiple GPUs
 
     If your system has more than one NVIDIA GPU, you can select one of them to run tree inference
-    by passing ``device_id`` parameter.
+    by activating the GPU device with :external+cupy:py:class:`cuda.cuda.Device` or
+    :external+cuda-python:py:class:`cuda.core.Device`.
 
     .. code-block:: python
 
         # Load model to GPU device 1
-        fm = nvforest.load_model(model_dir / "xgboost_model.json",
-                                 device="gpu", device_id=1)
-        fm = nvforest.load_from_sklearn(skl_model, device="gpu", device_id=1)
+        with cupy.cuda.Device(1):
+            fm = nvforest.load_model(model_dir / "xgboost_model.json",
+                                     device="gpu")
+            fm = nvforest.load_from_sklearn(skl_model, device="gpu")
 
-    Each model object is associated with a single device. Use the ``device_id`` property to look up
-    which device the model object is located on.
+    Each model object is associated with a single device. Make sure that the same GPU device
+    is active at the time of inference.
 
 CUDA stream selection
 ---------------------
@@ -135,7 +137,8 @@ CUDA stream selection
 By default, nvForest creates a new
 `CUDA stream <https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/asynchronous-execution.html#cuda-streams>`_
 for a GPU model. To use a custom stream, pass in a :external+cuda-python:py:class:`cuda.core.Stream` (or
-any stream-like object [#]_) via the ``stream`` parameter. A supplied stream must be associated with the same device as ``device_id``.
+any stream-like object [#]_) via the ``stream`` parameter. A supplied stream must be associated with the currently
+active device.
 
 .. code-block:: python
 
@@ -146,7 +149,7 @@ any stream-like object [#]_) via the ``stream`` parameter. A supplied stream mus
     stream = device.create_stream()
 
     fm = nvforest.load_from_sklearn(
-        skl_model, device="gpu", device_id=0, stream=stream
+        skl_model, device="gpu", stream=stream
     )
     predictions = fm.predict(X)
 
