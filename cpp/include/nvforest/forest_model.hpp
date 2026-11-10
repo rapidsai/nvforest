@@ -333,8 +333,8 @@ struct forest_model {
    * reasonable value. On CPU, this argument can generally just be omitted.
    * @param[in] device_id: The GPU device that hosts the model. This value
    * should be std::nullopt if the model is on the CPU. Also, if either
-   * output or input buffers are on the GPU, it should reside on the same
-   * GPU device as the model; otherwise, the function will throw an exception.
+   * output or input buffers are on the GPU, it must reside on the same
+   * GPU device as the model.
    */
   template <typename io_t>
   void predict(cuda_stream stream,
