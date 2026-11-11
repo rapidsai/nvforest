@@ -25,6 +25,12 @@ from nvforest._forest_inference import (
     GPUForestInferenceRegressor,
 )
 from nvforest._handle import Handle
+from nvforest._serialize import (
+    deserialize,
+    deserialize_bytes,
+    serialize,
+    serialize_bytes,
+)
 from nvforest._typing import StreamLike
 from nvforest._version import __git_commit__, __version__
 
@@ -38,6 +44,10 @@ __all__ = [
     "load_model",
     "load_from_sklearn",
     "load_from_treelite_model",
+    "serialize",
+    "serialize_bytes",
+    "deserialize",
+    "deserialize_bytes",
     "__git_commit__",
     "__version__",
 ]
