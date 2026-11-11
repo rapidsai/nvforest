@@ -18,7 +18,6 @@ except ImportError:
 
 import numpy as np
 import treelite
-from cuda.bindings import runtime
 
 from nvforest._base import ForestInferenceClassifier, ForestInferenceRegressor
 from nvforest._typing import DataType, StreamLike
@@ -42,47 +41,27 @@ def infer_is_classifier(treelite_model: treelite.Model) -> bool:
     )
 
 
-def detect_current_device(require: bool) -> Optional[int]:
-    """
-    Query the currently active GPU.
+def _restore_forest_inference(state: dict, is_classifier: bool):
+    """Restore a forest inference object using the available device."""
+    forest = ForestInferenceImpl.__new__(ForestInferenceImpl)
+    forest.__setstate__(state)
 
-    Parameters
-    ----------
-    require:
-        Whether to raise an exception when no GPU is available.
-
-    Returns
-    -------
-    int or None
-        ID of the currently active GPU device, or None if no GPU is available.
-    """
-    status, current_device_id = runtime.cudaGetDevice()
-    if status != runtime.cudaError_t.cudaSuccess:
-        if not require:
-            return None
-        _, name = runtime.cudaGetErrorName(status)
-        _, msg = runtime.cudaGetErrorString(status)
-        name, msg = name.decode("utf-8"), msg.decode("utf-8")
-        raise RuntimeError(
-            f"Failed to detect a GPU device. Diagnostic:\n    {name}: {msg}"
+    if forest.device == "gpu":
+        cls = (
+            GPUForestInferenceClassifier
+            if is_classifier
+            else GPUForestInferenceRegressor
         )
-    return current_device_id
+    else:
+        cls = (
+            CPUForestInferenceClassifier
+            if is_classifier
+            else CPUForestInferenceRegressor
+        )
 
-
-def infer_device(
-    device: str,
-    device_id: Optional[int],
-) -> tuple[str, int]:
-    if device == "auto":
-        # Auto mode: Use GPU if available; use CPU otherwise.
-        device_id = detect_current_device(require=False)
-        device = "cpu" if device_id is None else "gpu"
-    elif device == "gpu" and device_id is None:
-        # If no device ID is explicitly given, use the currently
-        # active device
-        device_id = detect_current_device(require=True)
-    assert device in ("gpu", "cpu")
-    return device, device_id
+    result = cls.__new__(cls)
+    result.forest = forest
+    return result
 
 
 class ClassifierMixin:
@@ -99,6 +78,16 @@ class ClassifierMixin:
         else:
             result = raw_out.argmax(axis=1)
         return result
+
+
+class PickleMixin:
+    """Mixin class that provides pickle support for ForestInference classes."""
+
+    def __reduce__(self):
+        return (
+            _restore_forest_inference,
+            (self.forest.__getstate__(), self.is_classifier),
+        )
 
 
 class _AutoIterations:
@@ -256,7 +245,7 @@ class OptimizeMixin:
 
 
 class CPUForestInferenceClassifier(
-    OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
+    PickleMixin, OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
 ):
     def __init__(
         self,
@@ -396,7 +385,9 @@ class CPUForestInferenceClassifier(
         return -1
 
 
-class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
+class CPUForestInferenceRegressor(
+    PickleMixin, OptimizeMixin, ForestInferenceRegressor
+):
     def __init__(
         self,
         *,
@@ -526,7 +517,7 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
 
 
 class GPUForestInferenceClassifier(
-    OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
+    PickleMixin, OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
 ):
     def __init__(
         self,
@@ -668,7 +659,9 @@ class GPUForestInferenceClassifier(
         return self.forest.device_id
 
 
-class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
+class GPUForestInferenceRegressor(
+    PickleMixin, OptimizeMixin, ForestInferenceRegressor
+):
     def __init__(
         self,
         *,
