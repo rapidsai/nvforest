@@ -456,6 +456,12 @@ dependencies:
     specific:
       - output_types: [requirements, pyproject]
         matrices:
+          # if use_cuda_wheels=false is provided, do not add the cu12/cu13 extras
+          # because they pull in CUDA wheels
+          - matrix:
+              use_cuda_wheels: "false"
+            packages:
+              - cuda-core>=1.0.0,<2.0.0
           - matrix:
               cuda: "12.*"
             packages:
