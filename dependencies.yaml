@@ -406,7 +406,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - libnvforest-tests==26.12.*,>=0.0.0a0
+          - libnvforest-tests==27.2.*,>=0.0.0a0
   test_cpp:
     common:
       - output_types: conda
@@ -448,9 +448,28 @@ dependencies:
           - *scikit_learn
   depends_on_cuda_core:
     common:
-      - output_types: [conda, requirements, constraints, pyproject]
+      - output_types: [conda, constraints]
         packages:
           - cuda-core>=1.0.0,<2.0.0
+    # cuda-core enforces a minimum cuda-bindings version at import time but only
+    # declares it in the cu12/cu13 extras, so wheels must request the extra.
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          # if use_cuda_wheels=false is provided, do not add the cu12/cu13 extras
+          # because they pull in CUDA wheels
+          - matrix:
+              use_cuda_wheels: "false"
+            packages:
+              - cuda-core>=1.0.0,<2.0.0
+          - matrix:
+              cuda: "12.*"
+            packages:
+              - cuda-core[cu12]>=1.0.0,<2.0.0
+          # fallback to CUDA 13 versions if 'cuda' is '13.*' or not provided
+          - matrix:
+            packages:
+              - cuda-core[cu13]>=1.0.0,<2.0.0
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, constraints, pyproject]
@@ -467,7 +486,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - nvforest==26.12.*,>=0.0.0a0
+          - nvforest==27.2.*,>=0.0.0a0
   depends_on_cupy:
     common:
       - output_types: conda
@@ -513,7 +532,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - &libnvforest_unsuffixed libnvforest==26.12.*,>=0.0.0a0
+          - &libnvforest_unsuffixed libnvforest==27.2.*,>=0.0.0a0
     specific:
       - output_types: [requirements, constraints, pyproject]
         matrices:
@@ -521,12 +540,12 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libnvforest-cu12==26.12.*,>=0.0.0a0
+              - libnvforest-cu12==27.2.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libnvforest-cu13==26.12.*,>=0.0.0a0
+              - libnvforest-cu13==27.2.*,>=0.0.0a0
           - matrix:
               cuda_suffixed: "false"
             packages:
@@ -535,7 +554,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - &libraft_unsuffixed libraft==26.12.*,>=0.0.0a0
+          - &libraft_unsuffixed libraft==27.2.*,>=0.0.0a0
     specific:
       - output_types: [requirements, constraints, pyproject]
         matrices:
@@ -543,12 +562,12 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libraft-cu12==26.12.*,>=0.0.0a0
+              - libraft-cu12==27.2.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libraft-cu13==26.12.*,>=0.0.0a0
+              - libraft-cu13==27.2.*,>=0.0.0a0
           - matrix:
               cuda_suffixed: "false"
             packages:
@@ -557,12 +576,12 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - libraft-headers==26.12.*,>=0.0.0a0
+          - libraft-headers==27.2.*,>=0.0.0a0
   depends_on_librmm:
     common:
       - output_types: conda
         packages:
-          - &librmm_unsuffixed librmm==26.12.*,>=0.0.0a0
+          - &librmm_unsuffixed librmm==27.2.*,>=0.0.0a0
     specific:
       - output_types: [requirements, constraints, pyproject]
         matrices:
@@ -570,12 +589,12 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu12==26.12.*,>=0.0.0a0
+              - librmm-cu12==27.2.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu13==26.12.*,>=0.0.0a0
+              - librmm-cu13==27.2.*,>=0.0.0a0
           - matrix:
               cuda_suffixed: "false"
             packages:
@@ -584,7 +603,7 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - &pylibraft_unsuffixed pylibraft==26.12.*,>=0.0.0a0
+          - &pylibraft_unsuffixed pylibraft==27.2.*,>=0.0.0a0
     specific:
       - output_types: [requirements, constraints, pyproject]
         matrices:
@@ -592,12 +611,12 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - pylibraft-cu12==26.12.*,>=0.0.0a0
+              - pylibraft-cu12==27.2.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - pylibraft-cu13==26.12.*,>=0.0.0a0
+              - pylibraft-cu13==27.2.*,>=0.0.0a0
           - matrix:
               cuda_suffixed: "false"
             packages:
