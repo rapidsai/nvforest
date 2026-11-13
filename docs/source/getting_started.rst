@@ -133,6 +133,9 @@ You can inspect the type of the model by printing its type:
     Each model object is associated with a single device. Make sure that the same GPU device
     is active at the time of inference.
 
+    Alternatively, you can set the environment variable ``CUDA_VISIBLE_DEVICES`` to configure
+    the GPU device for the whole Python session. See `CUDA Programming Guide <https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/environment-variables.html#cuda-visible-devices>`_ for more details.
+
 CUDA stream selection
 ---------------------
 
