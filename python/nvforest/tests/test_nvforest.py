@@ -954,34 +954,39 @@ def test_device_selection(device_id, model_kind, tmp_path):
         classification=True,
     )
 
-    # 1. Model can be loaded with device_id set
-    if model_kind == "sklearn":
-        skl_model = RandomForestClassifier(
-            max_depth=3, random_state=0, n_estimators=n_estimators
-        )
-        skl_model.fit(X, y)
-        fm = nvforest.load_from_sklearn(
-            skl_model,
-            precision="native",
-            device="gpu",
-            device_id=device_id,
-        )
-    elif model_kind == "xgboost":
-        xgb_model = xgb.XGBClassifier(
-            max_depth=3, random_state=0, n_estimators=n_estimators
-        )
-        xgb_model.fit(X, y)
-        model_path = tmp_path / "xgb_class.ubj"
-        xgb_model.save_model(model_path)
-        fm = nvforest.load_model(
-            model_path,
-            model_type="xgboost_ubj",
-            precision="native",
-            device="gpu",
-            device_id=device_id,
-        )
-    else:
-        raise NotImplementedError()
+    with (
+        pytest.warns(FutureWarning, match=r".*`device_id` is deprecated.*")
+        if device_id is not None
+        else nullcontext()
+    ):
+        # 1. Model can be loaded with device_id set
+        if model_kind == "sklearn":
+            skl_model = RandomForestClassifier(
+                max_depth=3, random_state=0, n_estimators=n_estimators
+            )
+            skl_model.fit(X, y)
+            fm = nvforest.load_from_sklearn(
+                skl_model,
+                precision="native",
+                device="gpu",
+                device_id=device_id,
+            )
+        elif model_kind == "xgboost":
+            xgb_model = xgb.XGBClassifier(
+                max_depth=3, random_state=0, n_estimators=n_estimators
+            )
+            xgb_model.fit(X, y)
+            model_path = tmp_path / "xgb_class.ubj"
+            xgb_model.save_model(model_path)
+            fm = nvforest.load_model(
+                model_path,
+                model_type="xgboost_ubj",
+                precision="native",
+                device="gpu",
+                device_id=device_id,
+            )
+        else:
+            raise NotImplementedError()
 
     # 2. The section above didn't corrupt current device context
     assert cp.cuda.runtime.getDevice() == current_device
@@ -1010,6 +1015,9 @@ def test_device_selection(device_id, model_kind, tmp_path):
     assert cp.cuda.runtime.getDevice() == current_device
 
 
+@pytest.mark.filterwarnings(
+    "ignore:.*`device_id` is deprecated.*:FutureWarning"
+)
 def test_cuda_core_stream():
     previous_device = Device()
     try:
@@ -1032,7 +1040,7 @@ def test_cuda_core_stream():
 
         assert isinstance(default_fm.forest.stream, Stream)
         assert isinstance(stream, Stream)
-        assert fm.forest.stream is stream
+        assert fm.forest.stream.handle == stream.handle
         np.testing.assert_array_equal(
             cp.asnumpy(fm.predict(X)), skl_model.predict(X)
         )
