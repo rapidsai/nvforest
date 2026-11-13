@@ -235,6 +235,10 @@ cdef class ForestInference_impl():
                 dtype=model_dtype,
                 order="C",
             )
+            # X and preds are ordered on CuPy's current stream, which may still
+            # have work pending (e.g. the kernel that produced X). Inference
+            # runs on self.stream, so make it wait for that work first.
+            self.stream.wait(cp.cuda.get_current_stream())
             in_ptr = X.__cuda_array_interface__["data"][0]
             in_dev = nvforest_device_t.gpu
             out_ptr = preds.__cuda_array_interface__["data"][0]

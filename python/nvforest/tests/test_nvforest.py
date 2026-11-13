@@ -1040,6 +1040,53 @@ def test_cuda_core_stream():
         previous_device.set_current()
 
 
+@pytest.mark.parametrize(
+    "non_blocking", [False, True], ids=["null_stream", "non_blocking_stream"]
+)
+def test_predict_waits_for_cupy_stream(non_blocking):
+    # GPU inference must see input that is still being written by work
+    # queued on CuPy's current stream when predict() is called.
+    X, y = _simulate_data(
+        2000, 8, n_informative=4, random_state=0, classification=False
+    )
+    skl_model = RandomForestRegressor(
+        n_estimators=5, max_depth=4, random_state=0
+    ).fit(X, y)
+    # Single precision matches the float32 input, so nvForest does not
+    # convert X before inference.
+    fm = nvforest.load_from_sklearn(
+        skl_model, device="gpu", precision="single"
+    )
+
+    spin = cp.RawKernel(
+        r"""
+        extern "C" __global__ void spin(long long cycles) {
+          long long start = clock64();
+          while (clock64() - start < cycles) { }
+        }
+        """,
+        "spin",
+    )
+    stream = (
+        cp.cuda.Stream(non_blocking=True)
+        if non_blocking
+        else cp.cuda.Stream.null
+    )
+    with stream:
+        X_src = cp.asarray(X)
+        X_gpu = cp.zeros_like(X_src)
+        stream.synchronize()
+        expected = cp.asnumpy(fm.predict(X_src))
+        # Predictions for the zero-filled X_gpu would be constant.
+        assert np.unique(expected).size > 1
+        # Keep the stream busy so that the copy below is still pending when
+        # predict() is called.
+        spin((1,), (1,), (np.int64(1_000_000_000),))
+        X_gpu[...] = X_src
+        preds = cp.asnumpy(fm.predict(X_gpu))
+    np.testing.assert_array_equal(preds, expected)
+
+
 def test_wide_data():
     n_rows = 50
     n_features = 100000
