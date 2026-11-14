@@ -5,6 +5,7 @@
 
 from typing import Optional, Union
 
+import cupy as cp
 import numpy as np
 import treelite
 from cuda.core import Device, Stream
@@ -38,7 +39,8 @@ cdef extern from "nvforest/forest_model.hpp" namespace "nvforest" nogil:
             nvforest_device_t,
             nvforest_device_t,
             infer_kind,
-            optional[uint32_t]
+            optional[uint32_t],
+            optional[int]
         ) except +
 
         bool is_double_precision() except +
@@ -66,6 +68,7 @@ cdef class ForestInference_impl():
     cdef nvforest_stream_t stream_handle
     cdef object stream
     cdef object device
+    cdef int device_id
 
     def __cinit__(
         self,
@@ -76,7 +79,7 @@ cdef class ForestInference_impl():
         align_bytes: int = 0,
         use_double_precision: Optional[bool] = None,
         device: str = "cpu",
-        device_id: Optional[int] = None,
+        device_id: int = -1,
     ):
         # Assumption: The caller needs to pass in correct (device, device_id) pair
         # This function will not contain any logic for auto-detecting device.
@@ -129,6 +132,7 @@ cdef class ForestInference_impl():
             "device_id should be set before building ForestInference_impl"
         )
         self.device = device
+        self.device_id = device_id
 
         self.model = import_from_treelite_handle(
             tl_handle,
@@ -196,6 +200,7 @@ cdef class ForestInference_impl():
         cdef nvforest_device_t out_dev
         cdef infer_kind infer_type_enum
         cdef optional[uint32_t] chunk_specification
+        cdef optional[int] device_id
 
         n_rows = X.shape[0]
         model_dtype = self.get_dtype()
@@ -228,17 +233,19 @@ cdef class ForestInference_impl():
             out_dev = nvforest_device_t.cpu
         else:
             assert self.device == "gpu"
-            import cupy as cp
-            X = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
-            preds = cp.empty(
-                shape=output_shape,
-                dtype=model_dtype,
-                order="C",
-            )
-            # X and preds are ordered on CuPy's current stream, which may still
-            # have work pending (e.g. the kernel that produced X). Inference
-            # runs on self.stream, so make it wait for that work first.
-            self.stream.wait(cp.cuda.get_current_stream())
+            if isinstance(X, cp.ndarray) and X.device.id != self.device_id:
+                raise RuntimeError("I/O data on different device than model")
+            with cp.cuda.Device(self.device_id):
+                X = cp.asarray(X, dtype=model_dtype, order="C", blocking=True)
+                preds = cp.empty(
+                    shape=output_shape,
+                    dtype=model_dtype,
+                    order="C",
+                )
+                # X and preds are ordered on CuPy's current stream, which may still
+                # have work pending (e.g. the kernel that produced X). Inference
+                # runs on self.stream, so make it wait for that work first.
+                self.stream.wait(cp.cuda.get_current_stream())
             in_ptr = X.__cuda_array_interface__["data"][0]
             in_dev = nvforest_device_t.gpu
             out_ptr = preds.__cuda_array_interface__["data"][0]
@@ -248,6 +255,7 @@ cdef class ForestInference_impl():
             chunk_specification = nullopt
         else:
             chunk_specification = <uint32_t> chunk_size
+        device_id = <int> self.device_id
 
         if model_dtype == np.float32:
             self.model.predict[float](
@@ -258,7 +266,8 @@ cdef class ForestInference_impl():
                 out_dev,
                 in_dev,
                 infer_type_enum,
-                chunk_specification
+                chunk_specification,
+                device_id,
             )
         else:
             self.model.predict[double](
@@ -269,7 +278,8 @@ cdef class ForestInference_impl():
                 out_dev,
                 in_dev,
                 infer_type_enum,
-                chunk_specification
+                chunk_specification,
+                device_id,
             )
 
         if self.device == "gpu":
@@ -340,15 +350,25 @@ class ForestInferenceImpl:
         # Store treelite model bytes for creating new instances with different settings
         self._treelite_model_bytes = treelite_model.serialize_bytes()
 
-        self.impl = ForestInference_impl(
-            self.stream,
-            self._treelite_model_bytes,
-            layout=self._layout,
-            align_bytes=self.align_bytes,
-            use_double_precision=self._use_double_precision,
-            device=self.device,
-            device_id=self.device_id
-        )
+        import_previous_device = None
+        try:
+            if self.device == "gpu":
+                # Keep the target device current while the native importer
+                # copies the forest buffers using this device's stream.
+                import_previous_device = Device()
+                Device(self.device_id).set_current()
+            self.impl = ForestInference_impl(
+                self.stream,
+                self._treelite_model_bytes,
+                layout=self._layout,
+                align_bytes=self.align_bytes,
+                use_double_precision=self._use_double_precision,
+                device=self.device,
+                device_id=self.device_id
+            )
+        finally:
+            if import_previous_device is not None:
+                import_previous_device.set_current()
 
     @property
     def layout(self) -> str:

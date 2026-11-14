@@ -19,6 +19,7 @@ except ImportError:
 import numpy as np
 import treelite
 from cuda.bindings import runtime
+from cuda.core import Device
 
 from nvforest._base import ForestInferenceClassifier, ForestInferenceRegressor
 from nvforest._typing import DataType, StreamLike
@@ -91,14 +92,22 @@ class ClassifierMixin:
         raw_out: DataType,
         threshold: Optional[float] = None,
     ) -> DataType:
-        if self.forest.row_postprocessing == "max_index":
-            return raw_out[:, 0]
-        if len(raw_out.shape) < 2 or raw_out.shape[1] == 1:
-            threshold = 0.5 if threshold is None else threshold
-            result = (raw_out > threshold).astype("int")
-        else:
-            result = raw_out.argmax(axis=1)
-        return result
+        import_previous_device = None
+        try:
+            if self.device_id >= 0:
+                import_previous_device = Device()
+                Device(self.device_id).set_current()
+            if self.forest.row_postprocessing == "max_index":
+                return raw_out[:, 0]
+            if len(raw_out.shape) < 2 or raw_out.shape[1] == 1:
+                threshold = 0.5 if threshold is None else threshold
+                result = (raw_out > threshold).astype("int")
+            else:
+                result = raw_out.argmax(axis=1)
+            return result
+        finally:
+            if import_previous_device is not None:
+                import_previous_device.set_current()
 
 
 class _AutoIterations:

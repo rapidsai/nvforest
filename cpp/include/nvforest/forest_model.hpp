@@ -331,6 +331,10 @@ struct forest_model {
    * larger batches benefit from higher values, but it is hard to predict the
    * optimal value a priori. If omitted, a heuristic will be used to select a
    * reasonable value. On CPU, this argument can generally just be omitted.
+   * @param[in] device_id: The GPU device that hosts the model. This value
+   * should be std::nullopt if the model is on the CPU. Also, if either
+   * output or input buffers are on the GPU, it must reside on the same
+   * GPU device as the model.
    */
   template <typename io_t>
   void predict(cuda_stream stream,
@@ -340,12 +344,17 @@ struct forest_model {
                device_type out_mem_type,
                device_type in_mem_type,
                infer_kind predict_type                        = infer_kind::default_kind,
-               std::optional<index_type> specified_chunk_size = std::nullopt)
+               std::optional<index_type> specified_chunk_size = std::nullopt,
+               std::optional<int> device_id                   = std::nullopt)
   {
     int current_device_id;
     if (out_mem_type == device_type::gpu || in_mem_type == device_type::gpu) {
 #ifdef NVFOREST_ENABLE_GPU
-      detail::cuda_check(cudaGetDevice(&current_device_id));
+      if (device_id.has_value()) {
+        current_device_id = device_id.value();
+      } else {
+        detail::cuda_check(cudaGetDevice(&current_device_id));
+      }
 #else
       throw detail::gpu_unsupported("Tried to use GPU memory in CPU-only build");
 #endif
