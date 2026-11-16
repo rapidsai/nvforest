@@ -4,6 +4,7 @@
 #
 
 import pathlib
+import warnings
 from typing import Any, Optional, Union
 
 import treelite
@@ -20,6 +21,16 @@ from nvforest._forest_inference import (
 from nvforest._handle import Handle
 from nvforest._typing import StreamLike
 from nvforest.detail.raft_stream import _handle_deprecated_handle_arg
+
+
+def _warn_device_id_deprecated(device_id: Optional[int]) -> None:
+    if device_id is not None:
+        warnings.warn(
+            "`device_id` is deprecated and will be removed in release 27.02. "
+            "Set the current CUDA device before loading the model instead.",
+            FutureWarning,
+            stacklevel=3,
+        )
 
 
 def get_forest_inference_class(device, is_classifier) -> type:
@@ -114,6 +125,8 @@ def load_model(
         conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
+        **Deprecated**. This argument will be removed in 27.02. Please
+        activate the correct GPU device before calling this function.
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
     stream : StreamLike or None, default=None
@@ -126,6 +139,7 @@ def load_model(
         For GPU execution, the nvForest handle containing the stream or stream
         pool to use during loading and inference.
     """
+    _warn_device_id_deprecated(device_id)
     model_path = pathlib.Path(model_file)
     if not model_path.exists():
         raise FileNotFoundError(f"Error: Model file '{model_file}' not found.")
@@ -216,6 +230,8 @@ def load_from_sklearn(
         conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
+        **Deprecated**. This argument will be removed in 27.02. Please
+        activate the correct GPU device before calling this function.
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
     stream : StreamLike or None, default=None
@@ -228,6 +244,7 @@ def load_from_sklearn(
         For GPU execution, the nvForest handle containing the stream or stream
         pool to use during loading and inference.
     """
+    _warn_device_id_deprecated(device_id)
     tl_model = treelite.sklearn.import_model(skl_model)
 
     stream = _handle_deprecated_handle_arg(handle=handle, stream=stream)
@@ -285,6 +302,8 @@ def load_from_treelite_model(
         conformance between results from nvForest and the original training
         framework is of paramount importance.
     device_id : int or None, default=None
+        **Deprecated**. This argument will be removed in 27.02. Please
+        activate the correct GPU device before calling this function.
         For GPU execution, the device on which to load and execute this
         model. For CPU execution, this value is currently ignored.
     stream : StreamLike or None, default=None
@@ -297,6 +316,7 @@ def load_from_treelite_model(
         For GPU execution, the nvForest handle containing the stream or stream
         pool to use during loading and inference.
     """
+    _warn_device_id_deprecated(device_id)
     stream = _handle_deprecated_handle_arg(handle=handle, stream=stream)
     return make_forest_inference_object(
         treelite_model=tl_model,

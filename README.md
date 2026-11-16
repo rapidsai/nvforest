@@ -35,7 +35,6 @@ stream = device.create_stream()
 fm = nvforest.load_model(
     "/path/to/xgboost_model.ubj",
     device="gpu",
-    device_id=0,
     stream=stream,
 )
 pred = fm.predict(X)  # Note: automatically syncs the stream
