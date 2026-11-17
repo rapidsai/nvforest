@@ -244,11 +244,6 @@ cdef class ForestInference_impl():
             out_ptr = preds.__cuda_array_interface__["data"][0]
             out_dev = nvforest_device_t.gpu
 
-        if n_rows == 0:
-            # Nothing to infer. Return the empty output without calling into
-            # the inference engine.
-            return preds
-
         if chunk_size is None:
             chunk_specification = nullopt
         else:

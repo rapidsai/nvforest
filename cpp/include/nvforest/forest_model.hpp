@@ -348,9 +348,6 @@ struct forest_model {
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
-    // An input with zero rows has nothing to infer. Return before any device
-    // work, since the GPU path fails on empty input.
-    if (num_rows == 0) { return; }
     int current_device_id;
     if (out_mem_type == device_type::gpu || in_mem_type == device_type::gpu) {
 #ifdef NVFOREST_ENABLE_GPU
@@ -407,9 +404,6 @@ struct forest_model {
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
-    // An input with zero rows has nothing to infer. Return before any device
-    // work, since the GPU path fails on empty input.
-    if (num_rows == 0) { return; }
     int current_device_id;
     if (out_mem_type == device_type::gpu || in_mem_type == device_type::gpu) {
 #ifdef NVFOREST_ENABLE_GPU
