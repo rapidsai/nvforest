@@ -113,6 +113,9 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
                        (infer_type == infer_kind::default_kind) +
                      (infer_type != infer_kind::default_kind);
 
+    // An odd row stride puts the rows of a chunk in different shared memory banks.
+    auto const row_stride = odd_padded_size(num_outputs * num_grove);
+
     // Note that this sync is safe because every thread in the block will agree
     // on whether or not a sync is required
     shared_mem.sync();
@@ -148,13 +151,13 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
 
       if (infer_type == infer_kind::leaf_id) {
         if (real_task) {
-          output_workspace[row_index * num_outputs * num_grove + tree_index * num_grove +
-                           grove_index] = static_cast<typename forest_t::io_type>(leaf_node_id);
+          output_workspace[row_index * row_stride + tree_index * num_grove + grove_index] =
+            static_cast<typename forest_t::io_type>(leaf_node_id);
         }
       } else {
         if constexpr (has_vector_leaves) {
           auto output_offset =
-            (row_index * num_outputs * num_grove +
+            (row_index * row_stride +
              tree_index * default_num_outputs * num_grove * (infer_type == infer_kind::per_tree) +
              grove_index);
           for (auto output_index = index_type{}; output_index < default_num_outputs;
@@ -166,7 +169,7 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
           }
         } else {
           auto output_offset =
-            (row_index * num_outputs * num_grove +
+            (row_index * row_stride +
              (tree_index % default_num_outputs) * num_grove *
                (infer_type == infer_kind::default_kind) +
              tree_index * num_grove * (infer_type == infer_kind::per_tree) + grove_index);
@@ -181,7 +184,7 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
     for (auto row_index = threadIdx.x / WARP_SIZE; row_index < rows_in_this_iteration;
          row_index += blockDim.x / WARP_SIZE) {
       for (auto class_index = index_type{}; class_index < num_outputs; ++class_index) {
-        auto grove_offset = (row_index * num_outputs * num_grove + class_index * num_grove);
+        auto grove_offset = (row_index * row_stride + class_index * num_grove);
         auto class_sum    = output_t{};
         for (auto grove_index = threadIdx.x % WARP_SIZE; grove_index < padded_num_groves;
              grove_index += WARP_SIZE) {
@@ -197,7 +200,7 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
       }
       if (threadIdx.x % WARP_SIZE == 0) {
         postproc(infer_type,
-                 output_workspace + row_index * num_outputs * num_grove,
+                 output_workspace + row_index * row_stride,
                  num_outputs,
                  forest.bias(),
                  output + ((i + row_index) * num_outputs),

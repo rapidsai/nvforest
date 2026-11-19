@@ -36,11 +36,11 @@ inline auto compute_output_size(index_type row_output_size,
                                 index_type rows_per_block_iteration,
                                 infer_kind infer_type = infer_kind::default_kind)
 {
-  auto result = row_output_size * rows_per_block_iteration;
+  auto row_stride = row_output_size;
   if (infer_type == infer_kind::default_kind) {
-    result *= ceildiv(threads_per_block, rows_per_block_iteration);
+    row_stride *= ceildiv(threads_per_block, rows_per_block_iteration);
   }
-  return result;
+  return odd_padded_size(row_stride) * rows_per_block_iteration;
 }
 
 // If a non-default stream is provided, it must reside on the correct device.

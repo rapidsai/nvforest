@@ -84,6 +84,7 @@ if(NVFOREST_ENABLE_GPU)
   ConfigureTest(NAME INFERENCE_TEST inference.cu)
   ConfigureTest(NAME INVALID_STREAM_TEST invalid_stream.cu)
 endif()
+ConfigureTest(NAME PADDING_TEST padding.cpp)
 ConfigureTest(NAME FOREST_TRAVERSAL_TEST forest/traversal_forest.cpp)
 ConfigureTest(NAME TREELITE_TRAVERSAL_TEST forest/treelite_traversal.cpp)
 ConfigureTest(NAME TREELITE_IMPORTER_TEST treelite_importer.cpp treelite_importer_invalid_inputs.cpp
