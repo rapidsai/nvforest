@@ -7,7 +7,6 @@
 #include <nvforest/constants.hpp>
 #include <nvforest/cuda_stream.hpp>
 #include <nvforest/detail/cpu_introspection.hpp>
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/index_type.hpp>
@@ -81,7 +80,6 @@ infer(forest_t const& forest,
       categorical_data_t categorical_data            = nullptr,
       infer_kind infer_type                          = infer_kind::default_kind,
       std::optional<index_type> specified_chunk_size = std::nullopt,
-      device_id<D> device                            = device_id<D>{},
       cuda_stream                                    = cuda_stream{})
 {
   if constexpr (D == device_type::gpu) {

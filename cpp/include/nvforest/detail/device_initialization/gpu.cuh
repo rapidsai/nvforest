@@ -6,8 +6,6 @@
 
 #include <nvforest/constants.hpp>
 #include <nvforest/detail/cuda_check.hpp>
-#include <nvforest/detail/device_id.hpp>
-#include <nvforest/detail/device_setter.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
 #include <nvforest/detail/gpu_support.hpp>
@@ -31,12 +29,12 @@ template <typename forest_t, device_type D>
 std::enable_if_t<
   std::conjunction_v<std::bool_constant<GPU_ENABLED>, std::bool_constant<D == device_type::gpu>>,
   void>
-initialize_device(device_id<D> device)
+initialize_device()
 {
-  auto device_context           = device_setter(device);
-  auto max_shared_mem_per_block = get_max_shared_mem_per_block(device);
+  int device_id                 = get_current_device_id();
+  auto max_shared_mem_per_block = get_max_shared_mem_per_block(device_id);
   // Run solely for side-effect of caching SM count
-  get_sm_count(device);
+  get_sm_count(device_id);
   cuda_check(cudaFuncSetAttribute(infer_kernel<false, 1, forest_t, std::nullptr_t, std::nullptr_t>,
                                   cudaFuncAttributeMaxDynamicSharedMemorySize,
                                   max_shared_mem_per_block));

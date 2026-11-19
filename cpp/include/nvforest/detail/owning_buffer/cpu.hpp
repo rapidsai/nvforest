@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/owning_buffer/base.hpp>
 #include <nvforest/device_type.hpp>
 

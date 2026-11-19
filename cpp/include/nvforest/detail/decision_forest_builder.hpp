@@ -248,12 +248,8 @@ struct decision_forest_builder {
   auto get_decision_forest(index_type num_feature,
                            index_type num_class,
                            device_type mem_type = device_type::cpu,
-                           int device           = 0,
                            cuda_stream stream   = cuda_stream{})
   {
-    // Set device = -1 when loading the model onto CPU
-    if (mem_type == device_type::cpu) { device = -1; }
-
     // Validate forest invariants the inference kernel relies on. After this
     // function returns, the forest is treated as trusted by the kernel.
     if (root_node_indexes_.size() > std::numeric_limits<index_type>::max()) {
@@ -313,26 +309,25 @@ struct decision_forest_builder {
                                e.what()};
     }
 
+    auto make_owned_buffer = [mem_type, stream](auto& host_vector) {
+      auto const view = buffer{host_vector.data(), host_vector.size()};
+      return buffer{view, mem_type, stream};
+    };
+
     return decision_forest_t{
-      buffer{buffer{nodes_.data(), nodes_.size()}, mem_type, device, stream},
-      buffer{
-        buffer{root_node_indexes_.data(), root_node_indexes_.size()}, mem_type, device, stream},
-      buffer{buffer{node_id_mapping_.data(), node_id_mapping_.size()}, mem_type, device, stream},
-      buffer{buffer{bias_.data(), bias_.size()}, mem_type, device, stream},
+      make_owned_buffer(nodes_),
+      make_owned_buffer(root_node_indexes_),
+      make_owned_buffer(node_id_mapping_),
+      make_owned_buffer(bias_),
       num_feature,
       num_class,
       max_num_categories_ != 0,
-      vector_output_.empty()
-        ? std::nullopt
-        : std::make_optional<buffer<typename node_type::threshold_type>>(
-            buffer{vector_output_.data(), vector_output_.size()}, mem_type, device, stream),
-      categorical_storage_.empty()
-        ? std::nullopt
-        : std::make_optional<buffer<typename node_type::index_type>>(
-            buffer{categorical_storage_.data(), categorical_storage_.size()},
-            mem_type,
-            device,
-            stream),
+      vector_output_.empty() ? std::nullopt
+                             : std::optional<buffer<typename node_type::threshold_type>>(
+                                 make_owned_buffer(vector_output_)),
+      categorical_storage_.empty() ? std::nullopt
+                                   : std::optional<buffer<typename node_type::index_type>>(
+                                       make_owned_buffer(categorical_storage_)),
       output_size_,
       row_postproc_,
       element_postproc_,

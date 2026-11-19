@@ -40,7 +40,6 @@ auto nvforest_model = import_from_treelite_model(
   128u,  // align_bytes
   false,  // use_double_precision
   nvforest::device_type::gpu,  // mem_type
-  0,  // device_id
   stream  // CUDA stream
 );
 ```
@@ -64,9 +63,6 @@ at double precision if this value is set to `true` or single precision if this
 value is set to `false`.
 
 **dev_type**: This argument controls where the model will be executed. If `nvforest::device_type::gpu`, then it will be executed on GPU. If `nvforest::device_type::cpu`, then it will be executed on CPU.
-
-**device_id**: This integer indicates the ID of the GPU which should be used.
-If CPU is being used, this argument is ignored.
 
 **stream**: The CUDA stream which will be used for the actual model import.
 If CPU is being used, this argument is ignored. Note that you do *not* need

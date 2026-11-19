@@ -180,11 +180,11 @@ struct decision_forest {
       throw detail::mem_type_mismatch(
         "Nodes and indexes of forest must both be stored on either host or device");
     }
-    if (nodes_.device_index() != root_node_indexes_.device_index()) {
-      throw detail::mem_type_mismatch(
-        "Nodes and indexes of forest must both be stored on same device");
+    if (nodes_.memory_type() == device_type::gpu) {
+      detail::initialize_device<forest_type, device_type::gpu>();
+    } else {
+      detail::initialize_device<forest_type, device_type::cpu>();
     }
-    detail::initialize_device<forest_type>(nodes_.device());
   }
 
   /** The number of features per row expected by the model */
@@ -221,8 +221,6 @@ struct decision_forest {
 
   /** The type of memory (device/host) where the model is stored */
   auto memory_type() { return nodes_.memory_type(); }
-  /** The ID of the device on which this model is loaded */
-  auto device_index() { return nodes_.device_index(); }
 
   /**
    * Perform inference with this model
@@ -256,46 +254,41 @@ struct decision_forest {
       throw detail::wrong_device_type{
         "Tried to use host I/O data with model on device or vice versa"};
     }
-    if (output.device_index() != device_index() || input.device_index() != device_index()) {
-      throw detail::wrong_device{"I/O data on different device than model"};
-    }
     auto* vector_output_data =
       (vector_output_.has_value() ? vector_output_->data() : static_cast<io_type*>(nullptr));
     auto* categorical_storage_data =
       (categorical_storage_.has_value() ? categorical_storage_->data()
                                         : static_cast<categorical_storage_type*>(nullptr));
-    switch (nodes_.device().index()) {
-      case 0:
-        detail::infer(obj(),
-                      get_postprocessor(predict_type),
-                      output.data(),
-                      input.data(),
-                      index_type(input.size() / num_features_),
-                      num_features_,
-                      num_outputs(predict_type),
-                      has_categorical_nodes_,
-                      vector_output_data,
-                      categorical_storage_data,
-                      predict_type,
-                      specified_rows_per_block_iter,
-                      std::get<0>(nodes_.device()),
-                      stream);
+    switch (nodes_.memory_type()) {
+      case device_type::cpu:
+        detail::infer<device_type::cpu>(obj(),
+                                        get_postprocessor(predict_type),
+                                        output.data(),
+                                        input.data(),
+                                        index_type(input.size() / num_features_),
+                                        num_features_,
+                                        num_outputs(predict_type),
+                                        has_categorical_nodes_,
+                                        vector_output_data,
+                                        categorical_storage_data,
+                                        predict_type,
+                                        specified_rows_per_block_iter,
+                                        stream);
         break;
-      case 1:
-        detail::infer(obj(),
-                      get_postprocessor(predict_type),
-                      output.data(),
-                      input.data(),
-                      index_type(input.size() / num_features_),
-                      num_features_,
-                      num_outputs(predict_type),
-                      has_categorical_nodes_,
-                      vector_output_data,
-                      categorical_storage_data,
-                      predict_type,
-                      specified_rows_per_block_iter,
-                      std::get<1>(nodes_.device()),
-                      stream);
+      case device_type::gpu:
+        detail::infer<device_type::gpu>(obj(),
+                                        get_postprocessor(predict_type),
+                                        output.data(),
+                                        input.data(),
+                                        index_type(input.size() / num_features_),
+                                        num_features_,
+                                        num_outputs(predict_type),
+                                        has_categorical_nodes_,
+                                        vector_output_data,
+                                        categorical_storage_data,
+                                        predict_type,
+                                        specified_rows_per_block_iter,
+                                        stream);
         break;
     }
   }

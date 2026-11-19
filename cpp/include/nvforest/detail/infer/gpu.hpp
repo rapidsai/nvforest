@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <nvforest/cuda_stream.hpp>
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
@@ -33,7 +32,6 @@ std::enable_if_t<D == device_type::gpu, void> infer(
   categorical_data_t categorical_data            = nullptr,
   infer_kind infer_type                          = infer_kind::default_kind,
   std::optional<index_type> specified_chunk_size = std::nullopt,
-  device_id<D> device                            = device_id<D>{},
   cuda_stream stream                             = cuda_stream{});
 
 }  // namespace nvforest::detail::inference

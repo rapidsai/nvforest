@@ -259,7 +259,6 @@ TEST(TreeliteImporter, depth_first)
   ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
   ASSERT_EQ(nvforest_model.memory_type(), nvforest::device_type::cpu);
-  ASSERT_EQ(nvforest_model.device_index(), -1);
   ASSERT_FALSE(nvforest_model.is_double_precision());
 }
 
@@ -273,7 +272,6 @@ TEST(TreeliteImporter, breadth_first)
   ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
   ASSERT_EQ(nvforest_model.memory_type(), nvforest::device_type::cpu);
-  ASSERT_EQ(nvforest_model.device_index(), -1);
   ASSERT_FALSE(nvforest_model.is_double_precision());
 }
 
@@ -288,7 +286,6 @@ TEST(TreeliteImporter, layered_children_together)
   ASSERT_EQ(nvforest_model.row_postprocessing(), row_op::disable);
   ASSERT_EQ(nvforest_model.elem_postprocessing(), element_op::disable);
   ASSERT_EQ(nvforest_model.memory_type(), nvforest::device_type::cpu);
-  ASSERT_EQ(nvforest_model.device_index(), -1);
   ASSERT_FALSE(nvforest_model.is_double_precision());
 }
 

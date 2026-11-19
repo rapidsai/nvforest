@@ -42,14 +42,9 @@ def infer_is_classifier(treelite_model: treelite.Model) -> bool:
     )
 
 
-def detect_current_device(require: bool) -> Optional[int]:
+def detect_current_device() -> Optional[int]:
     """
     Query the currently active GPU.
-
-    Parameters
-    ----------
-    require:
-        Whether to raise an exception when no GPU is available.
 
     Returns
     -------
@@ -58,31 +53,19 @@ def detect_current_device(require: bool) -> Optional[int]:
     """
     status, current_device_id = runtime.cudaGetDevice()
     if status != runtime.cudaError_t.cudaSuccess:
-        if not require:
-            return None
-        _, name = runtime.cudaGetErrorName(status)
-        _, msg = runtime.cudaGetErrorString(status)
-        name, msg = name.decode("utf-8"), msg.decode("utf-8")
-        raise RuntimeError(
-            f"Failed to detect a GPU device. Diagnostic:\n    {name}: {msg}"
-        )
+        return None
     return current_device_id
 
 
 def infer_device(
     device: str,
-    device_id: Optional[int],
-) -> tuple[str, int]:
+) -> str:
     if device == "auto":
         # Auto mode: Use GPU if available; use CPU otherwise.
-        device_id = detect_current_device(require=False)
+        device_id = detect_current_device()
         device = "cpu" if device_id is None else "gpu"
-    elif device == "gpu" and device_id is None:
-        # If no device ID is explicitly given, use the currently
-        # active device
-        device_id = detect_current_device(require=True)
     assert device in ("gpu", "cpu")
-    return device, device_id
+    return device
 
 
 class ClassifierMixin:
@@ -131,7 +114,6 @@ class OptimizeMixin:
         align_bytes: Optional[int],
         precision: Optional[str],
         device: str,
-        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size.
 
@@ -208,7 +190,6 @@ class OptimizeMixin:
                     align_bytes=self.forest.align_bytes,
                     precision=self.forest.precision,
                     device=self.forest.device,
-                    device_id=self.forest.device_id,
                 )
 
         all_params = list(itertools.product(valid_layouts, valid_chunk_sizes))
@@ -251,7 +232,6 @@ class OptimizeMixin:
             align_bytes=self.forest.align_bytes,
             precision=self.forest.precision,
             device=self.forest.device,
-            device_id=self.forest.device_id,
         )
 
 
@@ -275,7 +255,6 @@ class CPUForestInferenceClassifier(
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
-            device_id=-1,
             stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
@@ -294,7 +273,6 @@ class CPUForestInferenceClassifier(
         align_bytes: Optional[int],
         precision: Optional[str],
         device: str,
-        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
@@ -390,10 +368,6 @@ class CPUForestInferenceClassifier(
     @property
     def layout(self) -> str:
         return self.forest.layout
-
-    @property
-    def device_id(self) -> int:
-        return -1
 
 
 class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
@@ -414,7 +388,6 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="cpu",
-            device_id=-1,
             stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
@@ -433,7 +406,6 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         align_bytes: Optional[int],
         precision: Optional[str],
         device: str,
-        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
@@ -520,10 +492,6 @@ class CPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def layout(self) -> str:
         return self.forest.layout
 
-    @property
-    def device_id(self) -> int:
-        return -1
-
 
 class GPUForestInferenceClassifier(
     OptimizeMixin, ClassifierMixin, ForestInferenceClassifier
@@ -538,7 +506,6 @@ class GPUForestInferenceClassifier(
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
         handle: Optional[Handle] = None,
-        device_id: int,
     ):
         if not infer_is_classifier(treelite_model):
             raise ValueError("treelite_model must be a classifier.")
@@ -546,7 +513,6 @@ class GPUForestInferenceClassifier(
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
-            device_id=device_id,
             stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
@@ -565,7 +531,6 @@ class GPUForestInferenceClassifier(
         align_bytes: Optional[int],
         precision: Optional[str],
         device: str,
-        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
@@ -576,7 +541,6 @@ class GPUForestInferenceClassifier(
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
             precision=precision,
-            device_id=device_id,
         )
 
     def predict(
@@ -663,10 +627,6 @@ class GPUForestInferenceClassifier(
     def layout(self) -> str:
         return self.forest.layout
 
-    @property
-    def device_id(self) -> int:
-        return self.forest.device_id
-
 
 class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     def __init__(
@@ -679,7 +639,6 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
         handle: Optional[Handle] = None,
-        device_id: int,
     ):
         if infer_is_classifier(treelite_model):
             raise ValueError("treelite_model must be a regressor.")
@@ -687,7 +646,6 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         self.forest = ForestInferenceImpl(
             treelite_model=treelite_model,
             device="gpu",
-            device_id=device_id,
             stream=stream,
             layout=layout,
             default_chunk_size=default_chunk_size,
@@ -706,7 +664,6 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
         align_bytes: Optional[int],
         precision: Optional[str],
         device: str,
-        device_id: int,
     ) -> Self:
         """Create a new instance with the specified layout and chunk size."""
         tl_model = treelite.Model.deserialize_bytes(treelite_model_bytes)
@@ -717,7 +674,6 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
             default_chunk_size=default_chunk_size,
             align_bytes=align_bytes,
             precision=precision,
-            device_id=device_id,
         )
 
     def predict(
@@ -793,7 +749,3 @@ class GPUForestInferenceRegressor(OptimizeMixin, ForestInferenceRegressor):
     @property
     def layout(self) -> str:
         return self.forest.layout
-
-    @property
-    def device_id(self) -> int:
-        return self.forest.device_id

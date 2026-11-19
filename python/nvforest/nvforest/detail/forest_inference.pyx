@@ -56,7 +56,6 @@ cdef extern from "nvforest/treelite_importer.hpp" namespace "nvforest" nogil:
         uint32_t,
         optional[bool],
         nvforest_device_t,
-        int,
         nvforest_stream_t
     ) except +
 
@@ -76,9 +75,8 @@ cdef class ForestInference_impl():
         align_bytes: int = 0,
         use_double_precision: Optional[bool] = None,
         device: str = "cpu",
-        device_id: Optional[int] = None,
     ):
-        # Assumption: The caller needs to pass in correct (device, device_id) pair
+        # Assumption: The caller needs to pass in correct 'device' parameter.
         # This function will not contain any logic for auto-detecting device.
         # Assumption: The caller should convert a user-provided stream-like object
         # into cuda.core.Stream before constructing ForestInference_impl()
@@ -121,13 +119,6 @@ cdef class ForestInference_impl():
         else:
             raise RuntimeError(f"Unrecognized tree layout {layout}")
 
-        # Use assertion here, since device_id being None would indicate
-        # a bug, not a user error. The outer ForestInference object
-        # should set an integer device_id before passing it to
-        # ForestInference_impl.
-        assert device_id is not None, (
-            "device_id should be set before building ForestInference_impl"
-        )
         self.device = device
 
         self.model = import_from_treelite_handle(
@@ -136,7 +127,6 @@ cdef class ForestInference_impl():
             align_bytes,
             use_double_precision_c,
             dev_type,
-            device_id,
             self.stream_handle
         )
 
@@ -283,42 +273,31 @@ class ForestInferenceImpl:
         *,
         treelite_model: treelite.Model,
         device: str,
-        device_id: int,
         stream: Optional[StreamLike] = None,
         layout: str = "depth_first",
         default_chunk_size: Optional[int] = None,
         align_bytes: Optional[int] = None,
         precision: Optional[str] = None,
     ):
-        # Assumption: The caller needs to pass in correct (device, device_id) pair
+        # Assumption: The caller needs to pass in correct 'device' parameter
         # This function will not contain any logic for auto-detecting device.
         if stream is not None and not isinstance(stream, StreamLike):
             raise TypeError("stream must be a stream-like object or None")
         if device == "gpu":
-            previous_device = Device()
-            try:
-                cuda_device = Device(device_id)
-                cuda_device.set_current()
-                if stream is None:
-                    stream = cuda_device.create_stream()
-                else:
-                    stream = cuda_device.create_stream(stream)
-            finally:
-                previous_device.set_current()
+            cuda_device = Device()
+            cuda_device.set_current()
+            if stream is None:
+                stream = cuda_device.create_stream()
+            else:
+                stream = cuda_device.create_stream(stream)
         else:
             assert device == "cpu"
             stream = None
-        if device == "gpu" and stream.device.device_id != device_id:
-            raise ValueError(
-                f"stream is associated with device {stream.device.device_id}, "
-                f"but device_id is {device_id}"
-            )
         self.stream = stream
         self._layout = layout
         self.precision = precision
         self.default_chunk_size = default_chunk_size
         self.device = device
-        self.device_id = device_id
 
         if align_bytes is not None:
             self.align_bytes = align_bytes
@@ -347,7 +326,6 @@ class ForestInferenceImpl:
             align_bytes=self.align_bytes,
             use_double_precision=self._use_double_precision,
             device=self.device,
-            device_id=self.device_id
         )
 
     @property

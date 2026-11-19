@@ -5,7 +5,6 @@
 #pragma once
 #include <nvforest/constants.hpp>
 #include <nvforest/cuda_stream.hpp>
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/postprocessor.hpp>
@@ -31,7 +30,6 @@
    std::nullptr_t,                                                     \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   device_id<dev>,                                                     \
    cuda_stream stream)
 
 /* Macro which expands to the valid arguments to an inference call for a forest
@@ -48,7 +46,6 @@
    std::nullptr_t,                                                     \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   device_id<dev>,                                                     \
    cuda_stream stream)
 
 /* Macro which expands to the valid arguments to an inference call for a forest
@@ -65,7 +62,6 @@
    NVFOREST_SPEC(variant_index)::index_type*,                          \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   device_id<dev>,                                                     \
    cuda_stream stream)
 
 /* Macro which expands to the valid arguments to an inference call for a forest
@@ -82,7 +78,6 @@
    NVFOREST_SPEC(variant_index)::index_type*,                          \
    infer_kind,                                                         \
    std::optional<index_type>,                                          \
-   device_id<dev>,                                                     \
    cuda_stream stream)
 
 /* Macro which expands to the declaration of an inference template for a forest
