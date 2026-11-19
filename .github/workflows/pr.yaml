@@ -177,6 +177,7 @@ jobs:
       contents: read
     uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@main
     with:
+      ignored_pr_jobs: "docs-preview"
       enable_check_generated_files: false
       enable_check_version_against_tag: false # TODO: Take this out after first release
       # Main builds seed this cache. PR merge refs can restore it but should not create
@@ -320,6 +321,16 @@ jobs:
       arch: "${{ matrix.arch }}"
       container_image: "rapidsai/ci-conda:27.02-cuda${{ matrix.CUDA_VER }}-${{ matrix.LINUX_VER }}-py${{ matrix.PY_VER }}"
       script: "ci/build_docs.sh"
+  docs-preview:
+    needs: [docs-build]
+    if: needs.docs-build.result == 'success'
+    permissions:
+      statuses: write
+    uses: rapidsai/shared-workflows/.github/workflows/docs-preview-status.yaml@main
+    with:
+      docs-project: nvforest
+      docs-preview-urls: ${{ needs.docs-build.outputs.docs-preview-urls }}
+      sha: ${{ github.sha }}
   publish-api-docs:
     needs: [docs-build]
     permissions:
