@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2020-2026, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2020-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -12,7 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-import tomli
+import tomllib
 
 EXPECTED_VERSION = "15.0.7"
 VERSION_REGEX = re.compile(r"  LLVM version ([0-9.]+)")
@@ -27,12 +27,12 @@ UNSUPPORTED_CLANG_FLAGS = (
 
 def _read_config_file(config_file):
     try:
-        return tomli.loads(Path(config_file).read_text())["tool"][
+        return tomllib.loads(Path(config_file).read_text())["tool"][
             "run-clang-tidy"
         ]
     except KeyError:
         return {}
-    except tomli.TOMLDecodeError as error:
+    except tomllib.TOMLDecodeError as error:
         raise RuntimeError(
             f"Failed to read config file '{config_file}' due to syntax error: {error}"
         )
