@@ -264,7 +264,6 @@ struct treelite_importer {
                                   std::vector<index_type> const& offsets,
                                   index_type align_bytes         = index_type{},
                                   nvforest::device_type mem_type = nvforest::device_type::cpu,
-                                  int device                     = 0,
                                   nvforest::cuda_stream stream   = nvforest::cuda_stream{})
   {
     auto result = decision_forest_variant{};
@@ -339,7 +338,7 @@ struct treelite_importer {
         builder.set_postproc_constant(postproc_params.constant);
 
         result.template emplace<variant_index>(
-          builder.get_decision_forest(num_feature, num_class, mem_type, device, stream));
+          builder.get_decision_forest(num_feature, num_class, mem_type, stream));
       } else {
         result = import_to_specific_variant<variant_index + 1>(target_variant_index,
                                                                tl_model,
@@ -349,7 +348,6 @@ struct treelite_importer {
                                                                offsets,
                                                                align_bytes,
                                                                mem_type,
-                                                               device,
                                                                stream);
       }
     }
@@ -373,8 +371,6 @@ struct treelite_importer {
    * @param use_double_precision Whether or not to use 64 bit floats for model
    * evaluation and 64 bit ints for applicable indexing
    * @param dev_type Which device type to use for inference (CPU or GPU)
-   * @param device For GPU execution, the device id for the device on which this
-   * model is to be loaded
    * @param stream The CUDA stream to use for loading this model (can be
    * omitted for CPU).
    */
@@ -382,15 +378,13 @@ struct treelite_importer {
                       index_type align_bytes                   = index_type{},
                       std::optional<bool> use_double_precision = std::nullopt,
                       nvforest::device_type dev_type           = nvforest::device_type::cpu,
-                      int device                               = 0,
                       nvforest::cuda_stream stream             = nvforest::cuda_stream{})
   {
     validate_model_shape(tl_model);
 
     // Handle degenerate trees (a single root node with no child)
     if (auto processed_tl_model = detail::convert_degenerate_trees(tl_model); processed_tl_model) {
-      return import(
-        *processed_tl_model.get(), align_bytes, use_double_precision, dev_type, device, stream);
+      return import(*processed_tl_model, align_bytes, use_double_precision, dev_type, stream);
     }
 
     // Check tree annotation (assignment)
@@ -452,7 +446,6 @@ struct treelite_importer {
                                                                  offsets,
                                                                  align_bytes,
                                                                  dev_type,
-                                                                 device,
                                                                  stream)};
   }
 };
@@ -475,8 +468,6 @@ struct treelite_importer {
  * @param use_double_precision Whether or not to use 64 bit floats for model
  * evaluation and 64 bit ints for applicable indexing
  * @param dev_type Which device type to use for inference (CPU or GPU)
- * @param device For GPU execution, the device id for the device on which this
- * model is to be loaded
  * @param stream The CUDA stream to use for loading this model (can be
  * omitted for CPU).
  */
@@ -485,22 +476,21 @@ inline auto import_from_treelite_model(treelite::Model const& tl_model,
                                        index_type align_bytes = index_type{},
                                        std::optional<bool> use_double_precision = std::nullopt,
                                        nvforest::device_type dev_type = nvforest::device_type::cpu,
-                                       int device                     = 0,
                                        nvforest::cuda_stream stream   = nvforest::cuda_stream{})
 {
   auto result = forest_model{};
   switch (layout) {
     case tree_layout::depth_first:
       result = treelite_importer<tree_layout::depth_first>{}.import(
-        tl_model, align_bytes, use_double_precision, dev_type, device, stream);
+        tl_model, align_bytes, use_double_precision, dev_type, stream);
       break;
     case tree_layout::breadth_first:
       result = treelite_importer<tree_layout::breadth_first>{}.import(
-        tl_model, align_bytes, use_double_precision, dev_type, device, stream);
+        tl_model, align_bytes, use_double_precision, dev_type, stream);
       break;
     case tree_layout::layered_children_together:
       result = treelite_importer<tree_layout::layered_children_together>{}.import(
-        tl_model, align_bytes, use_double_precision, dev_type, device, stream);
+        tl_model, align_bytes, use_double_precision, dev_type, stream);
       break;
   }
   return result;
@@ -525,8 +515,6 @@ inline auto import_from_treelite_model(treelite::Model const& tl_model,
  * @param use_double_precision Whether or not to use 64 bit floats for model
  * evaluation and 64 bit ints for applicable indexing
  * @param dev_type Which device type to use for inference (CPU or GPU)
- * @param device For GPU execution, the device id for the device on which this
- * model is to be loaded
  * @param stream The CUDA stream to use for loading this model (can be
  * omitted for CPU).
  */
@@ -535,7 +523,6 @@ inline auto import_from_treelite_handle(TreeliteModelHandle tl_handle,
                                         index_type align_bytes = index_type{},
                                         std::optional<bool> use_double_precision = std::nullopt,
                                         nvforest::device_type dev_type = nvforest::device_type::cpu,
-                                        int device                     = 0,
                                         nvforest::cuda_stream stream   = nvforest::cuda_stream{})
 {
   return import_from_treelite_model(*static_cast<treelite::Model*>(tl_handle),
@@ -543,7 +530,6 @@ inline auto import_from_treelite_handle(TreeliteModelHandle tl_handle,
                                     align_bytes,
                                     use_double_precision,
                                     dev_type,
-                                    device,
                                     stream);
 }
 

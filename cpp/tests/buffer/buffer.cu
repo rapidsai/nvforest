@@ -30,7 +30,7 @@ TEST(Buffer, device_buffer_access)
   auto data     = std::vector<int>{1, 2, 3};
   auto expected = std::vector<int>{4, 5, 6};
   auto buf      = buffer<int>(
-    buffer<int>(data.data(), data.size(), device_type::cpu), device_type::gpu, 0, cuda_stream{});
+    buffer<int>(data.data(), data.size(), device_type::cpu), device_type::gpu, cuda_stream{});
   check_buffer_access<<<1, 1>>>(buf.data());
   auto data_out = std::vector<int>(expected.size());
   auto host_buf = buffer<int>(data_out.data(), data_out.size(), device_type::cpu);

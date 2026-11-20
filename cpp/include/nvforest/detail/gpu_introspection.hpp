@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <nvforest/detail/cuda_check.hpp>
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/device_type.hpp>
 
@@ -14,7 +13,14 @@
 
 namespace nvforest::detail {
 
-inline auto get_max_shared_mem_per_block(device_id<nvforest::device_type::gpu> device_id)
+inline auto get_current_device_id()
+{
+  int device_id;
+  cuda_check(cudaGetDevice(&device_id));
+  return device_id;
+}
+
+inline auto get_max_shared_mem_per_block(int device_id)
 {
   auto thread_local cache = std::vector<int>{};
   if (cache.size() == 0) {
@@ -26,10 +32,10 @@ inline auto get_max_shared_mem_per_block(device_id<nvforest::device_type::gpu> d
         cudaDeviceGetAttribute(&(cache[dev]), cudaDevAttrMaxSharedMemoryPerBlockOptin, dev));
     }
   }
-  return index_type(cache.at(device_id.value()));
+  return index_type(cache.at(device_id));
 }
 
-inline auto get_sm_count(device_id<nvforest::device_type::gpu> device_id)
+inline auto get_sm_count(int device_id)
 {
   auto thread_local cache = std::vector<int>{};
   if (cache.size() == 0) {
@@ -40,18 +46,17 @@ inline auto get_sm_count(device_id<nvforest::device_type::gpu> device_id)
       cuda_check(cudaDeviceGetAttribute(&(cache[dev]), cudaDevAttrMultiProcessorCount, dev));
     }
   }
-  return index_type(cache.at(device_id.value()));
+  return index_type(cache.at(device_id));
 }
 
-inline auto get_max_threads_per_sm(device_id<nvforest::device_type::gpu> device_id)
+inline auto get_max_threads_per_sm(int device_id)
 {
   auto result = int{};
-  cuda_check(
-    cudaDeviceGetAttribute(&result, cudaDevAttrMaxThreadsPerMultiProcessor, device_id.value()));
+  cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrMaxThreadsPerMultiProcessor, device_id));
   return index_type(result);
 }
 
-inline auto get_max_shared_mem_per_sm(device_id<nvforest::device_type::gpu> device_id)
+inline auto get_max_shared_mem_per_sm(int device_id)
 {
   auto thread_local cache = std::vector<int>{};
   if (cache.size() == 0) {
@@ -63,20 +68,20 @@ inline auto get_max_shared_mem_per_sm(device_id<nvforest::device_type::gpu> devi
         cudaDeviceGetAttribute(&(cache[dev]), cudaDevAttrMaxSharedMemoryPerMultiprocessor, dev));
     }
   }
-  return index_type(cache.at(device_id.value()));
+  return index_type(cache.at(device_id));
 }
 
-inline auto get_mem_clock_rate(device_id<nvforest::device_type::gpu> device_id)
+inline auto get_mem_clock_rate(int device_id)
 {
   auto result = int{};
-  cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrMemoryClockRate, device_id.value()));
+  cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrMemoryClockRate, device_id));
   return index_type(result);
 }
 
-inline auto get_core_clock_rate(device_id<nvforest::device_type::gpu> device_id)
+inline auto get_core_clock_rate(int device_id)
 {
   auto result = int{};
-  cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrClockRate, device_id.value()));
+  cuda_check(cudaDeviceGetAttribute(&result, cudaDevAttrClockRate, device_id));
   return index_type(result);
 }
 

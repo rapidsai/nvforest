@@ -4,7 +4,6 @@
  */
 #pragma once
 
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/device_type.hpp>
 
@@ -19,6 +18,6 @@ template <typename forest_t, device_type D>
 std::enable_if_t<
   std::conjunction_v<std::bool_constant<GPU_ENABLED>, std::bool_constant<D == device_type::gpu>>,
   void>
-initialize_device(device_id<D> device);
+initialize_device();
 
 }  // namespace nvforest::detail::device_initialization
