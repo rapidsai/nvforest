@@ -22,6 +22,7 @@
 #include <treelite/tree.h>
 
 #include <array>
+#include <cstdint>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -29,7 +30,9 @@
 
 namespace nvforest {
 
-std::unique_ptr<treelite::Model> get_tree_model()
+// A forest of identical stumps on one feature. Rows below 0.0 reach leaf 1 (-1.0), the others
+// reach leaf 2 (1.0).
+std::unique_ptr<treelite::Model> get_stump_model(std::int32_t tree_count)
 {
   auto model_builder = treelite::model_builder::GetModelBuilder(
     treelite::TypeInfo::kFloat32,
@@ -42,35 +45,28 @@ std::unique_ptr<treelite::Model> get_tree_model()
       {1},
       {1, 1},
     },
-    treelite::model_builder::TreeAnnotation{2, {0, 0}, {0, 0}},
+    treelite::model_builder::TreeAnnotation{tree_count,
+                                            std::vector<std::int32_t>(tree_count, 0),
+                                            std::vector<std::int32_t>(tree_count, 0)},
     treelite::model_builder::PostProcessorFunc{"identity"},
     std::vector<double>{0.0});
-  model_builder->StartTree();
-  model_builder->StartNode(0);
-  model_builder->NumericalTest(0, 0.0, true, treelite::Operator::kLT, 1, 2);
-  model_builder->EndNode();
-  model_builder->StartNode(1);
-  model_builder->LeafScalar(-1.0);
-  model_builder->EndNode();
-  model_builder->StartNode(2);
-  model_builder->LeafScalar(1.0);
-  model_builder->EndNode();
-  model_builder->EndTree();
-
-  model_builder->StartTree();
-  model_builder->StartNode(0);
-  model_builder->NumericalTest(0, 0.0, true, treelite::Operator::kLT, 1, 2);
-  model_builder->EndNode();
-  model_builder->StartNode(1);
-  model_builder->LeafScalar(-1.0);
-  model_builder->EndNode();
-  model_builder->StartNode(2);
-  model_builder->LeafScalar(1.0);
-  model_builder->EndNode();
-  model_builder->EndTree();
-
+  for (auto tree = std::int32_t{}; tree < tree_count; ++tree) {
+    model_builder->StartTree();
+    model_builder->StartNode(0);
+    model_builder->NumericalTest(0, 0.0, true, treelite::Operator::kLT, 1, 2);
+    model_builder->EndNode();
+    model_builder->StartNode(1);
+    model_builder->LeafScalar(-1.0);
+    model_builder->EndNode();
+    model_builder->StartNode(2);
+    model_builder->LeafScalar(1.0);
+    model_builder->EndNode();
+    model_builder->EndTree();
+  }
   return model_builder->CommitModel();
 }
+
+std::unique_ptr<treelite::Model> get_tree_model() { return get_stump_model(2); }
 
 std::vector<float> repeat(std::vector<float> const& x, std::size_t n_repeat)
 {
@@ -195,6 +191,43 @@ TEST(Inference, EmptyStreamPool)
     model.predict(
       next_stream, 0, output.data(), input.data(), 1, device_type::cpu, device_type::cpu),
     std::invalid_argument);
+}
+
+// The output workspace of these forests fills the shared memory of a block exactly, which leaves
+// no room for an odd row stride. Inference must keep the launch plan that fits.
+TEST(Inference, WorkspaceThatFillsSharedMemory)
+{
+  int max_shared_mem_per_block{};
+  detail::cuda_check(
+    cudaDeviceGetAttribute(&max_shared_mem_per_block, cudaDevAttrMaxSharedMemoryPerBlockOptin, 0));
+
+  std::size_t n_repeat = 32;
+  auto input = thrust::device_vector<float>(repeat(std::vector<float>{-1.0f, 1.0f}, n_repeat));
+  auto const cases = std::array{std::tuple{infer_kind::leaf_id, index_type{32}, 1.0f, 2.0f},
+                                std::tuple{infer_kind::per_tree, index_type{16}, -1.0f, 1.0f}};
+  for (auto const& [infer_type, chunk_size, left_output, right_output] : cases) {
+    SCOPED_TRACE(static_cast<int>(infer_type));
+    auto const tree_count =
+      static_cast<std::size_t>(max_shared_mem_per_block) / (sizeof(float) * chunk_size);
+    auto tree_model     = get_stump_model(static_cast<std::int32_t>(tree_count));
+    auto nvforest_model = import_from_treelite_model(
+      *tree_model, tree_layout::breadth_first, index_type{}, false, device_type::gpu);
+
+    auto row_pair = std::vector<float>(tree_count, left_output);
+    row_pair.resize(2 * tree_count, right_output);
+    auto expected = thrust::device_vector<float>(repeat(row_pair, n_repeat));
+    auto output   = thrust::device_vector<float>(expected.size());
+    nvforest_model.predict(cuda_stream{},
+                           thrust::raw_pointer_cast(output.data()),
+                           thrust::raw_pointer_cast(input.data()),
+                           input.size(),
+                           device_type::gpu,
+                           device_type::gpu,
+                           infer_type,
+                           chunk_size);
+    detail::cuda_check(cudaDeviceSynchronize());
+    EXPECT_EQ(output, expected);
+  }
 }
 
 // TODO(chyunsu3): Remove once we remove the RAFT dependency in 27.02.
