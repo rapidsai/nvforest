@@ -113,8 +113,12 @@ NVFOREST_KERNEL void __launch_bounds__(MAX_THREADS_PER_BLOCK, MIN_BLOCKS_PER_SM)
                        (infer_type == infer_kind::default_kind) +
                      (infer_type != infer_kind::default_kind);
 
-    // An odd row stride puts the rows of a chunk in different shared memory banks.
-    auto const row_stride = odd_padded_size(num_outputs * num_grove);
+    // An odd row stride puts the rows of a chunk in different shared memory banks. The host
+    // leaves room for it only where it fits the launch plan.
+    auto const dense_row_stride = num_outputs * num_grove;
+    auto const row_stride = odd_padded_size(dense_row_stride) * chunk_size <= output_workspace_size
+                              ? odd_padded_size(dense_row_stride)
+                              : dense_row_stride;
 
     // Note that this sync is safe because every thread in the block will agree
     // on whether or not a sync is required

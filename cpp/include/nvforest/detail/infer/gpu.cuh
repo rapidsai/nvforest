@@ -34,13 +34,15 @@ namespace nvforest::detail::inference {
 inline auto compute_output_size(index_type row_output_size,
                                 index_type threads_per_block,
                                 index_type rows_per_block_iteration,
-                                infer_kind infer_type = infer_kind::default_kind)
+                                infer_kind infer_type = infer_kind::default_kind,
+                                bool odd_row_stride   = false)
 {
   auto row_stride = row_output_size;
   if (infer_type == infer_kind::default_kind) {
     row_stride *= ceildiv(threads_per_block, rows_per_block_iteration);
   }
-  return odd_padded_size(row_stride) * rows_per_block_iteration;
+  if (odd_row_stride) { row_stride = odd_padded_size(row_stride); }
+  return row_stride * rows_per_block_iteration;
 }
 
 // If a non-default stream is provided, it must reside on the correct device.
@@ -195,6 +197,24 @@ std::enable_if_t<D == device_type::gpu, void> infer(
         rows_per_block_iteration >>= index_type{1};
       }
     } while (shared_mem_per_block > max_overall_shared_mem && rows_per_block_iteration > 1);
+  }
+
+  // An odd row stride for the output workspace avoids shared memory bank conflicts. It takes up
+  // to one more element per row. Use it only where it fits the plan above without lowering the
+  // number of blocks per SM.
+  if (row_output_size != 0) {
+    auto const padded_workspace_size = compute_output_size(
+      row_output_size, threads_per_block, rows_per_block_iteration, infer_type, true);
+    auto const padded_shared_mem =
+      rows_per_block_iteration * row_size_bytes + output_item_bytes * padded_workspace_size;
+    auto const blocks_per_sm = [&](index_type shared_mem) {
+      return std::min(max_shared_mem_per_sm / shared_mem, max_resident_blocks / sm_count);
+    };
+    if (padded_shared_mem <= max_overall_shared_mem &&
+        blocks_per_sm(padded_shared_mem) == blocks_per_sm(shared_mem_per_block)) {
+      output_workspace_size = padded_workspace_size;
+      shared_mem_per_block  = padded_shared_mem;
+    }
   }
 
   shared_mem_per_block = std::min(shared_mem_per_block, max_overall_shared_mem);
