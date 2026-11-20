@@ -148,6 +148,9 @@ struct forest_model {
                infer_kind predict_type                        = infer_kind::default_kind,
                std::optional<index_type> specified_chunk_size = std::nullopt)
   {
+    // An input with zero rows has nothing to infer. Return before any device
+    // work, since the GPU path fails on empty input.
+    if (input.size() == 0) { return; }
     std::visit(
       [this, predict_type, &output, &input, &stream, &specified_chunk_size](
         auto&& concrete_forest) {
@@ -230,6 +233,9 @@ struct forest_model {
     if (stream_pool_size == 0) {
       throw std::invalid_argument("stream_pool_size must be greater than zero");
     }
+    // An input with zero rows has nothing to infer. Return before any device
+    // work, since the GPU path fails on empty input.
+    if (input.size() == 0) { return; }
     std::visit(
       [this,
        predict_type,

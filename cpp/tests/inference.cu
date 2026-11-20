@@ -180,6 +180,45 @@ INSTANTIATE_TEST_SUITE_P(MemoryLocations,
                                           testing::Values(device_type::cpu, device_type::gpu),
                                           testing::Values(device_type::cpu, device_type::gpu)));
 
+// An input with zero rows returns without touching the output, for every
+// predict() overload and every input/output memory combination.
+class GPUModelEmptyInputTest : public testing::TestWithParam<std::tuple<device_type, device_type>> {
+};
+
+TEST_P(GPUModelEmptyInputTest, Predict)
+{
+  auto const [in_mem_type, out_mem_type] = GetParam();
+  auto stream                            = cuda::stream{cuda::device_ref{0}};
+  auto tree_model                        = get_tree_model();
+  auto nvforest_model                    = import_from_treelite_model(*tree_model,
+                                                   tree_layout::breadth_first,
+                                                   index_type{},
+                                                   false,
+                                                   device_type::gpu,
+                                                   0,
+                                                   stream.get());
+  stream.sync();
+
+  auto input            = buffer<float>{0, in_mem_type, 0, stream.get()};
+  auto output           = buffer<float>{0, out_mem_type, 0, stream.get()};
+  auto stream_pool_next = [&]() { return cuda_stream{stream.get()}; };
+  for (auto infer_type : {infer_kind::default_kind, infer_kind::per_tree, infer_kind::leaf_id}) {
+    SCOPED_TRACE(static_cast<int>(infer_type));
+    EXPECT_NO_THROW(nvforest_model.predict(stream.get(), output, input, infer_type));
+    EXPECT_NO_THROW(nvforest_model.predict(stream_pool_next, 1, output, input, infer_type));
+    EXPECT_NO_THROW(nvforest_model.predict(
+      stream.get(), output.data(), input.data(), 0, out_mem_type, in_mem_type, infer_type));
+    EXPECT_NO_THROW(nvforest_model.predict(
+      stream_pool_next, 1, output.data(), input.data(), 0, out_mem_type, in_mem_type, infer_type));
+  }
+  EXPECT_NO_THROW(stream.sync());
+}
+
+INSTANTIATE_TEST_SUITE_P(MemoryLocations,
+                         GPUModelEmptyInputTest,
+                         testing::Combine(testing::Values(device_type::cpu, device_type::gpu),
+                                          testing::Values(device_type::cpu, device_type::gpu)));
+
 TEST(Inference, EmptyStreamPool)
 {
   auto tree_model  = get_tree_model();

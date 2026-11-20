@@ -1109,6 +1109,27 @@ def test_wide_data():
     _ = fm.predict(X)
 
 
+@pytest.mark.parametrize(
+    "device,input_type", [("cpu", "numpy"), ("gpu", "numpy"), ("gpu", "cupy")]
+)
+@pytest.mark.parametrize(
+    "method", ["predict", "predict_proba", "predict_per_tree", "apply"]
+)
+def test_empty_input(device, input_type, method):
+    X, y = _simulate_data(
+        100, 8, k=3, n_informative=4, random_state=0, classification=True
+    )
+    clf = RandomForestClassifier(
+        n_estimators=5, max_depth=3, random_state=0
+    ).fit(X, y)
+    fm = nvforest.load_from_sklearn(clf, device=device)
+
+    expected_shape = getattr(fm, method)(X[:2]).shape[1:]
+    X_empty = X[:0] if input_type == "numpy" else cp.asarray(X)[:0]
+    out = getattr(fm, method)(X_empty)
+    assert out.shape == (0, *expected_shape)
+
+
 @pytest.mark.parametrize("input_size", [4, 6], ids=["too_narrow", "too_wide"])
 @pytest.mark.parametrize(
     "predict_func",
