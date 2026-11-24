@@ -26,6 +26,7 @@ files:
       - py_version
       - rapids_build_backend
       - test_python
+      - test_python_xgboost
   devcontainers:
     output: none
     includes:
@@ -470,6 +471,31 @@ dependencies:
           - matrix:
             packages:
               - cuda-core[cu13]>=1.0.0,<2.0.0
+  test_python_xgboost:
+    specific:
+      - output_types: [conda]
+        matrices:
+          - matrix:
+            packages:
+              - xgboost>=3.3.0
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - xgboost-cu12>=3.3.0
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - xgboost-cu13>=3.3.0
+          # this unsuffixed dependency is useful in environments where xgboost is built from source
+          # (like RAPIDS DLFW builds)
+          - matrix:
+              cuda_suffixed: "false"
+            packages:
+              - xgboost>=3.3.0
   depends_on_cuda_python:
     specific:
       - output_types: [conda, requirements, constraints, pyproject]
