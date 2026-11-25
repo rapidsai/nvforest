@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from contextlib import nullcontext
 from math import ceil
 
 import cupy as cp
@@ -931,93 +930,6 @@ def test_missing_categorical(category_list):
     np.testing.assert_equal(nvforest_preds.flatten(), gtil_preds.flatten())
 
 
-@pytest.mark.parametrize("device_id", [None, 0, 1, 2])
-@pytest.mark.parametrize("model_kind", ["sklearn", "xgboost"])
-def test_device_selection(device_id, model_kind, tmp_path):
-    current_device = cp.cuda.runtime.getDevice()
-
-    if device_id is not None and device_id >= cp.cuda.runtime.getDeviceCount():
-        pytest.skip(
-            reason="device_id larger than the number of available GPU devices"
-        )
-
-    n_rows = 1000
-    n_columns = 30
-    n_classes = 3
-    n_estimators = 10
-
-    X, y = _simulate_data(
-        n_rows,
-        n_columns,
-        n_classes,
-        random_state=0,
-        classification=True,
-    )
-
-    with (
-        pytest.warns(FutureWarning, match=r".*`device_id` is deprecated.*")
-        if device_id is not None
-        else nullcontext()
-    ):
-        # 1. Model can be loaded with device_id set
-        if model_kind == "sklearn":
-            skl_model = RandomForestClassifier(
-                max_depth=3, random_state=0, n_estimators=n_estimators
-            )
-            skl_model.fit(X, y)
-            fm = nvforest.load_from_sklearn(
-                skl_model,
-                precision="native",
-                device="gpu",
-                device_id=device_id,
-            )
-        elif model_kind == "xgboost":
-            xgb_model = xgb.XGBClassifier(
-                max_depth=3, random_state=0, n_estimators=n_estimators
-            )
-            xgb_model.fit(X, y)
-            model_path = tmp_path / "xgb_class.ubj"
-            xgb_model.save_model(model_path)
-            fm = nvforest.load_model(
-                model_path,
-                model_type="xgboost_ubj",
-                precision="native",
-                device="gpu",
-                device_id=device_id,
-            )
-        else:
-            raise NotImplementedError()
-
-    # 2. The section above didn't corrupt current device context
-    assert cp.cuda.runtime.getDevice() == current_device
-
-    # 3. Inference can run on an input with the selected device
-    device_context = cp.cuda.Device(device_id) if device_id else nullcontext()
-    with device_context:
-        _ = fm.predict_proba(cp.array(X))
-
-    # 4. The section above didn't corrupt current device context
-    assert cp.cuda.runtime.getDevice() == current_device
-
-    # 5. Attempting to run inference with an input from a different device
-    #    is an error
-    if device_id is not None and device_id != 0:
-        with (
-            cp.cuda.Device(0),
-            pytest.raises(
-                RuntimeError,
-                match=r".*I/O data on different device than model.*",
-            ),
-        ):
-            _ = fm.predict_proba(cp.array(X))
-
-    # 6. The section above didn't corrupt current device context
-    assert cp.cuda.runtime.getDevice() == current_device
-
-
-@pytest.mark.filterwarnings(
-    "ignore:.*`device_id` is deprecated.*:FutureWarning"
-)
 def test_cuda_core_stream():
     previous_device = Device()
     try:
@@ -1031,12 +943,8 @@ def test_cuda_core_stream():
         skl_model = RandomForestClassifier(
             max_depth=3, random_state=0, n_estimators=5
         ).fit(X, y)
-        default_fm = nvforest.load_from_sklearn(
-            skl_model, device="gpu", device_id=0
-        )
-        fm = nvforest.load_from_sklearn(
-            skl_model, device="gpu", device_id=0, stream=stream
-        )
+        default_fm = nvforest.load_from_sklearn(skl_model, device="gpu")
+        fm = nvforest.load_from_sklearn(skl_model, device="gpu", stream=stream)
 
         assert isinstance(default_fm.forest.stream, Stream)
         assert isinstance(stream, Stream)
@@ -1133,37 +1041,3 @@ def test_incorrect_data_shape(input_size, predict_func):
     with pytest.raises(ValueError, match=f"Expected {n_features} features"):
         X_test = np.zeros((1, input_size))
         _ = predict_func(fm, X_test)
-
-
-@pytest.mark.skipif(
-    cp.cuda.runtime.getDeviceCount() < 2, reason="Requires at least 2 GPUs"
-)
-def test_incompatible_stream(tmp_path):
-    random_state = np.random.RandomState(43210)
-
-    X, y = _simulate_data(
-        1000,
-        2,
-        random_state=random_state,
-        classification=False,
-        bias=10.0,
-    )
-
-    model_path = tmp_path / "xgb_class.ubj"
-    _ = _build_and_save_xgboost(
-        model_path,
-        X,
-        y,
-        num_rounds=10,
-        classification=False,
-    )
-    with cp.cuda.Device(1):
-        stream = cp.cuda.Stream(non_blocking=True)
-        assert stream.device_id == 1
-    with pytest.raises(
-        ValueError,
-        match=r".*stream is associated with device 1, but device_id is 0.*",
-    ):
-        _ = nvforest.load_model(
-            model_path, device="gpu", device_id=0, stream=stream
-        )
