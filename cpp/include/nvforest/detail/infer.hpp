@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <nvforest/cuda_stream.hpp>
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/index_type.hpp>
 #include <nvforest/detail/infer/cpu.hpp>
 #include <nvforest/detail/postprocessor.hpp>
@@ -46,7 +45,6 @@ namespace nvforest::detail {
  * for each tree.
  * @param specified_chunk_size If non-nullopt, the size of "mini-batches"
  * used for distributing work across threads
- * @param device The device on which to execute evaluation
  * @param stream Optionally, the CUDA stream to use
  */
 template <device_type D, typename forest_t>
@@ -62,7 +60,6 @@ void infer(forest_t const& forest,
            typename forest_t::node_type::index_type* categorical_data = nullptr,
            infer_kind infer_type                                      = infer_kind::default_kind,
            std::optional<index_type> specified_chunk_size             = std::nullopt,
-           device_id<D> device                                        = device_id<D>{},
            cuda_stream stream                                         = cuda_stream{})
 {
   if (vector_output == nullptr) {
@@ -79,7 +76,6 @@ void infer(forest_t const& forest,
                                                                              nullptr,
                                                                              infer_type,
                                                                              specified_chunk_size,
-                                                                             device,
                                                                              stream);
       } else {
         inference::infer<D, true, forest_t, std::nullptr_t, std::nullptr_t>(forest,
@@ -93,7 +89,6 @@ void infer(forest_t const& forest,
                                                                             nullptr,
                                                                             infer_type,
                                                                             specified_chunk_size,
-                                                                            device,
                                                                             stream);
       }
     } else {
@@ -108,7 +103,6 @@ void infer(forest_t const& forest,
                                           categorical_data,
                                           infer_type,
                                           specified_chunk_size,
-                                          device,
                                           stream);
     }
   } else {
@@ -125,7 +119,6 @@ void infer(forest_t const& forest,
                                              nullptr,
                                              infer_type,
                                              specified_chunk_size,
-                                             device,
                                              stream);
       } else {
         inference::infer<D, true, forest_t>(forest,
@@ -139,7 +132,6 @@ void infer(forest_t const& forest,
                                             nullptr,
                                             infer_type,
                                             specified_chunk_size,
-                                            device,
                                             stream);
       }
     } else {
@@ -154,7 +146,6 @@ void infer(forest_t const& forest,
                                           categorical_data,
                                           infer_type,
                                           specified_chunk_size,
-                                          device,
                                           stream);
     }
   }

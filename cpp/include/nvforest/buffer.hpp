@@ -6,7 +6,6 @@
 #include <nvforest/cuda_stream.hpp>
 #include <nvforest/detail/const_agnostic.hpp>
 #include <nvforest/detail/copy.hpp>
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/exceptions.hpp>
 #include <nvforest/detail/gpu_support.hpp>
 #include <nvforest/detail/non_owning_buffer.hpp>
@@ -37,27 +36,19 @@ struct buffer {
                                   detail::owning_buffer<device_type::cpu, T>,
                                   detail::owning_buffer<device_type::gpu, T>>;
 
-  buffer() : device_{}, data_{}, size_{}, cached_ptr{nullptr} {}
+  buffer() : mem_type_{}, data_{}, size_{}, cached_ptr{nullptr} {}
 
   /** Construct non-initialized owning buffer */
   buffer(index_type size,
          device_type mem_type = device_type::cpu,
-         int device           = 0,
-         cuda_stream stream   = 0)
-    : device_{[mem_type, &device]() {
-        auto result = detail::device_id_variant{};
-        switch (mem_type) {
-          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
-        }
-        return result;
-      }()},
+         cuda_stream stream   = cuda_stream{})
+    : mem_type_{mem_type},
       data_{[this, mem_type, size, stream]() {
         auto result = data_store{};
         switch (mem_type) {
           case device_type::cpu: result = detail::owning_buffer<device_type::cpu, T>{size}; break;
           case device_type::gpu:
-            result = detail::owning_buffer<device_type::gpu, T>{std::get<1>(device_), size, stream};
+            result = detail::owning_buffer<device_type::gpu, T>{size, stream};
             break;
         }
         return result;
@@ -77,15 +68,8 @@ struct buffer {
   }
 
   /** Construct non-owning buffer */
-  buffer(T* input_data, index_type size, device_type mem_type = device_type::cpu, int device = 0)
-    : device_{[mem_type, &device]() {
-        auto result = detail::device_id_variant{};
-        switch (mem_type) {
-          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
-        }
-        return result;
-      }()},
+  buffer(T* input_data, index_type size, device_type mem_type = device_type::cpu)
+    : mem_type_{mem_type},
       data_{[input_data, mem_type]() {
         auto result = data_store{};
         switch (mem_type) {
@@ -118,18 +102,8 @@ struct buffer {
    * A buffer constructed in this way is owning and will copy the data from
    * the original location
    */
-  buffer(buffer<T> const& other,
-         device_type mem_type,
-         int device         = 0,
-         cuda_stream stream = cuda_stream{})
-    : device_{[mem_type, &device]() {
-        auto result = detail::device_id_variant{};
-        switch (mem_type) {
-          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
-        }
-        return result;
-      }()},
+  buffer(buffer<T> const& other, device_type mem_type, cuda_stream stream = cuda_stream{})
+    : mem_type_{mem_type},
       data_{[this, &other, mem_type, stream]() {
         auto result      = data_store{};
         auto result_data = static_cast<T*>(nullptr);
@@ -138,8 +112,7 @@ struct buffer {
           result_data = buf.get();
           result      = std::move(buf);
         } else if (mem_type == device_type::gpu) {
-          auto buf =
-            detail::owning_buffer<device_type::gpu, T>(std::get<1>(device_), other.size(), stream);
+          auto buf    = detail::owning_buffer<device_type::gpu, T>(other.size(), stream);
           result_data = buf.get();
           result      = std::move(buf);
         }
@@ -165,7 +138,7 @@ struct buffer {
    * The memory type of this new buffer will be the same as the original
    */
   buffer(buffer<T> const& other, cuda_stream stream = cuda_stream{})
-    : buffer(other, other.memory_type(), other.device_index(), stream)
+    : buffer(other, other.memory_type(), stream)
   {
   }
 
@@ -173,10 +146,10 @@ struct buffer {
    * @brief Create owning copy of existing buffer
    * The memory type of this new buffer will be the same as the original
    */
-  friend void swap(buffer<T>& first, buffer<T>& second)
+  friend void swap(buffer<T>& first, buffer<T>& second) noexcept
   {
     using std::swap;
-    swap(first.device_, second.device_);
+    swap(first.mem_type_, second.mem_type_);
     swap(first.data_, second.data_);
     swap(first.size_, second.size_);
     swap(first.cached_ptr, second.cached_ptr);
@@ -192,18 +165,11 @@ struct buffer {
    * @brief Move from existing buffer unless a copy is necessary based on
    * memory location
    */
-  buffer(buffer<T>&& other, device_type mem_type, int device, cuda_stream stream)
-    : device_{[mem_type, &device]() {
-        auto result = detail::device_id_variant{};
-        switch (mem_type) {
-          case device_type::cpu: result = detail::device_id<device_type::cpu>{device}; break;
-          case device_type::gpu: result = detail::device_id<device_type::gpu>{device}; break;
-        }
-        return result;
-      }()},
-      data_{[&other, mem_type, device, stream]() {
+  buffer(buffer<T>&& other, device_type mem_type, cuda_stream stream)
+    : mem_type_{mem_type},
+      data_{[&other, mem_type, stream]() {
         auto result = data_store{};
-        if (mem_type == other.memory_type() && device == other.device_index()) {
+        if (mem_type == other.memory_type()) {
           result = std::move(other.data_);
         } else {
           auto* result_data = static_cast<T*>(nullptr);
@@ -212,7 +178,7 @@ struct buffer {
             result_data = buf.get();
             result      = std::move(buf);
           } else if (mem_type == device_type::gpu) {
-            auto buf    = detail::owning_buffer<device_type::gpu, T>{device, other.size(), stream};
+            auto buf    = detail::owning_buffer<device_type::gpu, T>{other.size(), stream};
             result_data = buf.get();
             result      = std::move(buf);
           }
@@ -233,23 +199,18 @@ struct buffer {
       }()}
   {
   }
-  buffer(buffer<T>&& other, device_type mem_type, int device)
-    : buffer{std::move(other), mem_type, device, cuda_stream{}}
-  {
-  }
   buffer(buffer<T>&& other, device_type mem_type)
-    : buffer{std::move(other), mem_type, 0, cuda_stream{}}
+    : buffer{std::move(other), mem_type, cuda_stream{}}
   {
   }
 
-  buffer(buffer<T>&& other) noexcept
-    : buffer{std::move(other), other.memory_type(), other.device_index(), cuda_stream{}}
+  buffer(buffer<T>&& other) noexcept : buffer{std::move(other), other.memory_type(), cuda_stream{}}
   {
   }
   buffer<T>& operator=(buffer<T>&& other) noexcept
   {
     data_      = std::move(other.data_);
-    device_    = std::move(other.device_);
+    mem_type_  = std::move(other.mem_type_);
     size_      = std::move(other.size_);
     cached_ptr = std::move(other.cached_ptr);
     return *this;
@@ -268,51 +229,22 @@ struct buffer {
   template <
     typename iter_t,
     typename = decltype(*std::declval<iter_t&>(), void(), ++std::declval<iter_t&>(), void())>
-  buffer(iter_t const& begin, iter_t const& end, device_type mem_type)
-    : buffer{buffer{begin, end}, mem_type}
-  {
-  }
-
-  template <
-    typename iter_t,
-    typename = decltype(*std::declval<iter_t&>(), void(), ++std::declval<iter_t&>(), void())>
   buffer(iter_t const& begin,
          iter_t const& end,
          device_type mem_type,
-         int device,
          cuda_stream stream = cuda_stream{})
-    : buffer{buffer{begin, end}, mem_type, device, stream}
+    : buffer{buffer{begin, end}, mem_type, stream}
   {
   }
 
   auto size() const noexcept { return size_; }
   HOST DEVICE auto* data() const noexcept { return cached_ptr; }
-  auto memory_type() const noexcept
-  {
-    auto result = device_type{};
-    if (device_.index() == 0) {
-      result = device_type::cpu;
-    } else {
-      result = device_type::gpu;
-    }
-    return result;
-  }
+  auto memory_type() const noexcept { return mem_type_; }
 
-  auto device() const noexcept { return device_; }
-
-  auto device_index() const noexcept
-  {
-    auto result = int{};
-    switch (device_.index()) {
-      case 0: result = std::get<0>(device_).value(); break;
-      case 1: result = std::get<1>(device_).value(); break;
-    }
-    return result;
-  }
   ~buffer() = default;
 
  private:
-  detail::device_id_variant device_;
+  device_type mem_type_;
   data_store data_;
   index_type size_;
   T* cached_ptr;

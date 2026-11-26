@@ -14,19 +14,11 @@
 namespace nvforest::detail {
 /* Set any required device options for optimizing nvForest compute */
 template <typename forest_t, device_type D>
-void initialize_device(device_id<D> device)
+void initialize_device()
 {
-  device_initialization::initialize_device<forest_t>(device);
+  if constexpr (D == device_type::gpu) {
+    device_initialization::initialize_device<forest_t, device_type::gpu>();
+  }
 }
 
-/* Set any required device options for optimizing nvForest compute */
-template <typename forest_t>
-void initialize_device(device_id_variant device)
-{
-  std::visit(
-    [](auto&& concrete_device) {
-      device_initialization::initialize_device<forest_t>(concrete_device);
-    },
-    device);
-}
 }  // namespace nvforest::detail

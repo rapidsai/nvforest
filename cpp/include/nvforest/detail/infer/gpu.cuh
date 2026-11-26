@@ -8,7 +8,6 @@
 #include <nvforest/cuda_stream.hpp>
 #include <nvforest/detail/ceildiv.hpp>
 #include <nvforest/detail/cuda_check.hpp>
-#include <nvforest/detail/device_id.hpp>
 #include <nvforest/detail/forest.hpp>
 #include <nvforest/detail/gpu_introspection.hpp>
 #include <nvforest/detail/gpu_support.hpp>
@@ -41,18 +40,6 @@ inline auto compute_output_size(index_type row_output_size,
     result *= ceildiv(threads_per_block, rows_per_block_iteration);
   }
   return result;
-}
-
-// If a non-default stream is provided, it must reside on the correct device.
-inline void validate_stream(device_id<device_type::gpu> device, cuda::stream_ref stream)
-{
-  if (stream != cuda::stream_ref{cudaStream_t{cudaStreamDefault}} &&
-      stream != cuda::stream_ref{cudaStreamLegacy} &&
-      stream != cuda::stream_ref{cudaStreamPerThread} && stream.device().get() != device.value()) {
-    throw std::runtime_error{std::string("Stream on the wrong device. ") +
-                             "Expected: " + std::to_string(device.value()) +
-                             ", Actual: " + std::to_string(stream.device().get())};
-  }
 }
 
 /* A wrapper around the underlying inference kernels to support dispatching to
@@ -108,16 +95,14 @@ std::enable_if_t<D == device_type::gpu, void> infer(
   categorical_data_t categorical_data            = nullptr,
   infer_kind infer_type                          = infer_kind::default_kind,
   std::optional<index_type> specified_chunk_size = std::nullopt,
-  device_id<D> device                            = device_id<D>{},
   cuda_stream stream                             = cuda_stream{})
 {
   using output_t = typename forest_t::template raw_output_type<vector_output_t>;
 
-  validate_stream(device, cuda::stream_ref{stream});
-
-  auto sm_count                       = get_sm_count(device);
-  auto const max_shared_mem_per_block = get_max_shared_mem_per_block(device);
-  auto const max_shared_mem_per_sm    = get_max_shared_mem_per_sm(device);
+  int device_id                       = get_current_device_id();
+  auto sm_count                       = get_sm_count(device_id);
+  auto const max_shared_mem_per_block = get_max_shared_mem_per_block(device_id);
+  auto const max_shared_mem_per_sm    = get_max_shared_mem_per_sm(device_id);
   auto const max_overall_shared_mem   = std::min(max_shared_mem_per_block, max_shared_mem_per_sm);
 
   auto row_size_bytes  = index_type(index_type(sizeof(typename forest_t::io_type) * col_count));
@@ -155,7 +140,8 @@ std::enable_if_t<D == device_type::gpu, void> infer(
   // shared memory and just maximize occupancy
   if (threads_per_block < WARP_SIZE) { threads_per_block = MAX_THREADS_PER_BLOCK; }
 
-  auto const max_resident_blocks = sm_count * (get_max_threads_per_sm(device) / threads_per_block);
+  auto const max_resident_blocks =
+    sm_count * (get_max_threads_per_sm(device_id) / threads_per_block);
 
   // Compute shared memory usage based on minimum or specified
   // rows_per_block_iteration
@@ -205,8 +191,8 @@ std::enable_if_t<D == device_type::gpu, void> infer(
 
   auto num_blocks = std::min(ceildiv(row_count, rows_per_block_iteration), MAX_BLOCKS);
   if (row_output_size == 0) {
-    global_workspace = buffer<output_t>{
-      output_workspace_size * num_blocks, device_type::gpu, device.value(), stream};
+    global_workspace =
+      buffer<output_t>{output_workspace_size * num_blocks, device_type::gpu, stream};
   }
 
   /**

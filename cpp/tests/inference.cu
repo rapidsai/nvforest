@@ -4,7 +4,7 @@
  */
 
 #include <nvforest/cuda_stream.hpp>
-#include <nvforest/detail/device_setter.hpp>
+#include <nvforest/detail/gpu_introspection.hpp>
 #include <nvforest/device_type.hpp>
 #include <nvforest/infer_kind.hpp>
 #include <nvforest/tree_layout.hpp>
@@ -83,17 +83,13 @@ std::vector<float> repeat(std::vector<float> const& x, std::size_t n_repeat)
   return ret;
 }
 
-// Exercise every input/output memory combination on GPU 0 and, when available, GPU 1.
-class GPUModelInferenceTest
-  : public testing::TestWithParam<std::tuple<int, device_type, device_type>> {};
+class GPUModelInferenceTest : public testing::TestWithParam<std::tuple<device_type, device_type>> {
+};
 
 TEST_P(GPUModelInferenceTest, Predict)
 {
-  auto const [device_id, in_mem_type, out_mem_type] = GetParam();
-  int device_count;
-  detail::cuda_check(cudaGetDeviceCount(&device_count));
-  if (device_id >= device_count) { GTEST_SKIP() << "Requires GPU " << device_id; }
-  auto device_context = detail::device_setter{detail::device_id<device_type::gpu>{device_id}};
+  auto const [in_mem_type, out_mem_type] = GetParam();
+  int device_id                          = detail::get_current_device_id();
 
   constexpr std::size_t n_streams = 4;
   std::vector<cuda::stream> stream_pool;
@@ -106,7 +102,6 @@ TEST_P(GPUModelInferenceTest, Predict)
                                                    index_type{},
                                                    false,
                                                    device_type::gpu,
-                                                   device_id,
                                                    stream_pool[0].get());
   // Model initialization must finish before inference can use the other streams.
   stream_pool[0].sync();
@@ -115,7 +110,7 @@ TEST_P(GPUModelInferenceTest, Predict)
   constexpr std::size_t n_repeat = 16385;
   auto host_input                = repeat(std::vector<float>{-1.0f, 1.0f}, n_repeat);
   auto input_view                = buffer<float>{host_input.data(), host_input.size()};
-  auto input = buffer<float>{input_view, in_mem_type, device_id, stream_pool[0].get()};
+  auto input                     = buffer<float>{input_view, in_mem_type, stream_pool[0].get()};
   stream_pool[0].sync();
   auto const cases = std::array{
     std::pair{infer_kind::default_kind, std::vector<float>{-2.0f, 2.0f}},
@@ -133,7 +128,7 @@ TEST_P(GPUModelInferenceTest, Predict)
       SCOPED_TRACE(use_pool);
       for (bool use_buffers : {false, true}) {
         SCOPED_TRACE(use_buffers);
-        auto output = buffer<float>{expected.size(), out_mem_type, device_id, stream_pool[0].get()};
+        auto output = buffer<float>{expected.size(), out_mem_type, stream_pool[0].get()};
         stream_pool[0].sync();
         auto const previous_stream_calls = stream_calls;
         if (use_pool) {
@@ -166,7 +161,7 @@ TEST_P(GPUModelInferenceTest, Predict)
         for (auto& stream : stream_pool) {
           stream.sync();
         }
-        auto actual = buffer<float>{output, device_type::cpu, 0, stream_pool[0].get()};
+        auto actual = buffer<float>{output, device_type::cpu, stream_pool[0].get()};
         stream_pool[0].sync();
         EXPECT_EQ(std::vector<float>(actual.data(), actual.data() + actual.size()), expected);
       }
@@ -176,8 +171,7 @@ TEST_P(GPUModelInferenceTest, Predict)
 
 INSTANTIATE_TEST_SUITE_P(MemoryLocations,
                          GPUModelInferenceTest,
-                         testing::Combine(testing::Values(0, 1),
-                                          testing::Values(device_type::cpu, device_type::gpu),
+                         testing::Combine(testing::Values(device_type::cpu, device_type::gpu),
                                           testing::Values(device_type::cpu, device_type::gpu)));
 
 TEST(Inference, EmptyStreamPool)
@@ -218,8 +212,9 @@ TEST(Inference, GPUModelWithRAFTHandle)
   };
 
   std::size_t n_streams = 4;
-  raft::handle_t handle{cuda::stream_ref{cudaStreamPerThread},
-                        std::make_shared<rmm::cuda_stream_pool>(n_streams)};
+  auto device           = cuda::devices[0];
+  cuda::stream stream{device};
+  raft::handle_t handle{stream, std::make_shared<rmm::cuda_stream_pool>(n_streams)};
   for (auto const& [infer_type, expected] : cases) {
     SCOPED_TRACE(static_cast<int>(infer_type));
     auto output = thrust::device_vector<float>(expected.size());
