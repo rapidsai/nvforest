@@ -15,9 +15,6 @@ files:
       - depends_on_cuda_python
       - depends_on_cuda_core
       - depends_on_cupy
-      - depends_on_libraft
-      - depends_on_librmm
-      - depends_on_pylibraft
       - depends_on_rapids_logger
       - develop
       - docs
@@ -39,9 +36,6 @@ files:
       - depends_on_cuda_python
       - depends_on_cuda_core
       - depends_on_cupy
-      - depends_on_libraft
-      - depends_on_librmm
-      - depends_on_pylibraft
       - depends_on_rapids_logger
       - py_build_nvforest
       - py_run_nvforest
@@ -57,8 +51,6 @@ files:
       - common_build
       - cuda
       - cuda_version
-      - depends_on_libraft_headers
-      - depends_on_librmm
   checks:
     output: none
     includes:
@@ -74,8 +66,6 @@ files:
       - common_build
       - cuda
       - cuda_version
-      - depends_on_libraft_headers
-      - depends_on_librmm
   docs:
     output: none
     includes:
@@ -119,9 +109,6 @@ files:
       - common_build
       - depends_on_cuda_python
       - depends_on_libnvforest
-      - depends_on_libraft
-      - depends_on_librmm
-      - depends_on_pylibraft
       - py_build_nvforest
   py_run_nvforest:
     output: pyproject
@@ -136,7 +123,6 @@ files:
       - depends_on_cuda_core
       - depends_on_cupy
       - depends_on_libnvforest
-      - depends_on_pylibraft
       - py_run_nvforest
   py_test_nvforest:
     output: pyproject
@@ -167,8 +153,6 @@ files:
       key: requires
     includes:
       - common_build
-      - depends_on_libraft
-      - depends_on_librmm
       - depends_on_rapids_logger
   py_run_libnvforest:
     output: pyproject
@@ -179,8 +163,6 @@ files:
     extras:
       table: project
     includes:
-      - depends_on_libraft
-      - depends_on_librmm
       - depends_on_rapids_logger
 channels:
   - rapidsai-nightly
@@ -549,77 +531,6 @@ dependencies:
               cuda_suffixed: "false"
             packages:
               - *libnvforest_unsuffixed
-  depends_on_libraft:
-    common:
-      - output_types: conda
-        packages:
-          - &libraft_unsuffixed libraft==27.2.*,>=0.0.0a0
-    specific:
-      - output_types: [requirements, constraints, pyproject]
-        matrices:
-          - matrix:
-              cuda: "12.*"
-              cuda_suffixed: "true"
-            packages:
-              - libraft-cu12==27.2.*,>=0.0.0a0
-          - matrix:
-              cuda: "13.*"
-              cuda_suffixed: "true"
-            packages:
-              - libraft-cu13==27.2.*,>=0.0.0a0
-          - matrix:
-              cuda_suffixed: "false"
-            packages:
-              - *libraft_unsuffixed
-  depends_on_libraft_headers:
-    common:
-      - output_types: conda
-        packages:
-          - libraft-headers==27.2.*,>=0.0.0a0
-  depends_on_librmm:
-    common:
-      - output_types: conda
-        packages:
-          - &librmm_unsuffixed librmm==27.2.*,>=0.0.0a0
-    specific:
-      - output_types: [requirements, constraints, pyproject]
-        matrices:
-          - matrix:
-              cuda: "12.*"
-              cuda_suffixed: "true"
-            packages:
-              - librmm-cu12==27.2.*,>=0.0.0a0
-          - matrix:
-              cuda: "13.*"
-              cuda_suffixed: "true"
-            packages:
-              - librmm-cu13==27.2.*,>=0.0.0a0
-          - matrix:
-              cuda_suffixed: "false"
-            packages:
-              - *librmm_unsuffixed
-  depends_on_pylibraft:
-    common:
-      - output_types: conda
-        packages:
-          - &pylibraft_unsuffixed pylibraft==27.2.*,>=0.0.0a0
-    specific:
-      - output_types: [requirements, constraints, pyproject]
-        matrices:
-          - matrix:
-              cuda: "12.*"
-              cuda_suffixed: "true"
-            packages:
-              - pylibraft-cu12==27.2.*,>=0.0.0a0
-          - matrix:
-              cuda: "13.*"
-              cuda_suffixed: "true"
-            packages:
-              - pylibraft-cu13==27.2.*,>=0.0.0a0
-          - matrix:
-              cuda_suffixed: "false"
-            packages:
-              - *pylibraft_unsuffixed
   depends_on_rapids_logger:
     common:
       - output_types: [conda, requirements, constraints, pyproject]

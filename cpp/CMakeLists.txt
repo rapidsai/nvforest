@@ -65,7 +65,6 @@ option(DISABLE_DEPRECATION_WARNINGS "Disable deprecation warnings " ON)
 option(DISABLE_OPENMP "Disable OpenMP" OFF)
 option(NVTX "Enable nvtx markers" OFF)
 option(USE_CCACHE "Cache build artifacts with ccache" OFF)
-option(NVFOREST_USE_RAFT_STATIC "Build and statically link the RAFT library" OFF)
 option(NVFOREST_USE_TREELITE_STATIC "Build and statically link the treelite library" OFF)
 option(NVFOREST_EXPORT_TREELITE_LINKAGE "Whether to publicly or privately link treelite to libnvforest" OFF)
 option(CUDA_WARNINGS_AS_ERRORS "Enable -Werror=all-warnings for all CUDA compilation" ON)
@@ -73,9 +72,7 @@ option(CUDA_WARNINGS_AS_ERRORS "Enable -Werror=all-warnings for all CUDA compila
 # The options below allow incorporating libnvforest into another build process without installing all its components.
 # This is useful if total file size is at a premium and we do not expect other consumers to use any APIs of the
 # dependency except those that are directly linked to by the dependent library.
-option(NVFOREST_EXCLUDE_RAFT_FROM_ALL "Exclude RAFT targets from nvForest's 'all' target" OFF)
 option(NVFOREST_EXCLUDE_TREELITE_FROM_ALL "Exclude Treelite targets from nvForest's 'all' target" OFF)
-option(NVFOREST_RAFT_CLONE_ON_PIN "Explicitly clone RAFT branch when pinned to non-feature branch" ON)
 
 message(VERBOSE "NVFOREST_CPP: Enabling GPU: ${NVFOREST_ENABLE_GPU}")
 message(VERBOSE "NVFOREST_CPP: Building nvForest algorithm tests: ${BUILD_NVFOREST_TESTS}")
@@ -86,7 +83,6 @@ message(VERBOSE "NVFOREST_CPP: Enabling kernelinfo in nvcc: ${CUDA_ENABLE_KERNEL
 message(VERBOSE "NVFOREST_CPP: Enabling lineinfo in nvcc: ${CUDA_ENABLE_LINE_INFO}")
 message(VERBOSE "NVFOREST_CPP: Enabling nvtx markers: ${NVTX}")
 message(VERBOSE "NVFOREST_CPP: Cache build artifacts with ccache: ${USE_CCACHE}")
-message(VERBOSE "NVFOREST_CPP: Build and statically link RAFT library: ${NVFOREST_USE_RAFT_STATIC}")
 message(VERBOSE "NVFOREST_CPP: Build and statically link Treelite library: ${NVFOREST_USE_TREELITE_STATIC}")
 
 if(NVFOREST_ENABLE_GPU)
@@ -205,11 +201,7 @@ if(BUILD_NVFOREST_TESTS)
   find_package(Threads)
 endif()
 
-# CCCL before RMM, and RMM before RAFT
 include(cmake/thirdparty/get_cccl.cmake)
-if(NVFOREST_ENABLE_GPU)
-  include(cmake/thirdparty/get_raft.cmake)
-endif()
 include(cmake/thirdparty/get_treelite.cmake)
 
 if(BUILD_NVFOREST_TESTS)
@@ -309,10 +301,6 @@ target_include_directories(
 set(_nvforest_cpp_public_libs)
 set(_nvforest_cpp_private_libs)
 
-if(NVFOREST_USE_RAFT_STATIC AND (TARGET raft::raft))
-  copy_interface_excludes(INCLUDED_TARGET raft::raft TARGET ${NVFOREST_CPP_TARGET})
-endif()
-
 if(NVFOREST_USE_TREELITE_STATIC AND (TARGET treelite::treelite_static))
   set(TREELITE_LIBS treelite::treelite_static)
   copy_interface_excludes(INCLUDED_TARGET treelite::treelite_static TARGET ${NVFOREST_CPP_TARGET})
@@ -321,7 +309,7 @@ elseif(NVFOREST_EXPORT_TREELITE_LINKAGE)
 endif()
 
 if(NVFOREST_ENABLE_GPU)
-  list(APPEND _nvforest_cpp_public_libs raft::raft CUDA::cudart_static CCCL::CCCL)
+  list(APPEND _nvforest_cpp_public_libs CUDA::cudart_static CCCL::CCCL)
 endif()
 
 # These are always private:
