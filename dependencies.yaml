@@ -100,6 +100,7 @@ files:
       - depends_on_libnvforest
       - py_version
       - test_python
+      - test_python_xgboost
   py_build_nvforest:
     output: pyproject
     pyproject_dir: python/nvforest
@@ -139,6 +140,7 @@ files:
       - depends_on_libnvforest
       - depends_on_pylibraft
       - py_run_nvforest
+      - test_python_xgboost
   py_test_nvforest:
     output: pyproject
     pyproject_dir: python/nvforest
@@ -150,6 +152,7 @@ files:
       key: test
     includes:
       - test_python
+      - test_python_xgboost
   py_build_libnvforest:
     output: pyproject
     pyproject_dir: python/libnvforest
@@ -491,7 +494,6 @@ dependencies:
             packages:
               - xgboost-cu13>=3.3.0
           # this unsuffixed dependency is useful in environments where xgboost is built from source
-          # (like RAPIDS DLFW builds)
           - matrix:
               cuda_suffixed: "false"
             packages:
