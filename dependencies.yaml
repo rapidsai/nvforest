@@ -491,7 +491,6 @@ dependencies:
             packages:
               - xgboost-cu13>=3.3.0
           # this unsuffixed dependency is useful in environments where xgboost is built from source
-          # (like RAPIDS DLFW builds)
           - matrix:
               cuda_suffixed: "false"
             packages:
