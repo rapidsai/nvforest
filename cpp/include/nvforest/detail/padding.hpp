@@ -28,6 +28,13 @@ HOST DEVICE auto padded_size(T val, U alignment)
   return val + padding_size(val, alignment);
 }
 
+/* Return the next odd number >= val */
+template <typename T>
+HOST DEVICE auto odd_padded_size(T val)
+{
+  return val | T{1};
+}
+
 /* Return the value that must be added to val to equal the next multiple of
  * alignment less than or equal to val */
 template <typename T, typename U>
