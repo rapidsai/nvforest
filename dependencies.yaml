@@ -212,7 +212,6 @@ dependencies:
           - clang-tools==15.0.7
           - llvm-openmp==15.0.7
           - ninja
-          - tomli
   common_build:
     common:
       - output_types: [conda, requirements, constraints, pyproject]
